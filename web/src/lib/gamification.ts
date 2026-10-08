@@ -7,6 +7,22 @@ export const XP_PER_CORRECT = 10;
 export const XP_PERFECT_BONUS = 20;
 export const COINS_PER_EXERCISE = 5;
 
+// ลิมิตรายวัน: ถึงเพดานข้อใดข้อหนึ่งแล้วยังทำต่อได้ แต่ไม่นับ XP/เหรียญ/สถิติ
+export const DAILY_LIMIT_SECONDS = 3 * 60 * 60;
+export const DAILY_LIMIT_QUESTIONS = 100; // ค่าเริ่มต้น รอเจ้าของยืนยัน
+
+// งบของรางวัล: ครูอนุมัติแลกได้ไม่เกินยอดนี้ต่อเดือน (รวม Reward.costBaht ของรายการที่ส่งมอบแล้ว)
+export const MONTHLY_REWARD_BUDGET_BAHT = 3000;
+
+export function canApproveRedemption(spentThisMonthBaht: number, rewardCostBaht: number): boolean {
+  return spentThisMonthBaht + rewardCostBaht <= MONTHLY_REWARD_BUDGET_BAHT;
+}
+
+export function isDailyLimitReached(p: PlayerProfile, today: string): boolean {
+  if (p.lastPlayedDate !== today) return false;
+  return (p.todaySeconds ?? 0) >= DAILY_LIMIT_SECONDS || (p.todayQuestions ?? 0) >= DAILY_LIMIT_QUESTIONS;
+}
+
 // เลเวล n ต้องใช้ XP สะสม 50 * (n-1)^2 → Lv2=50, Lv3=200, Lv4=450, Lv5=800
 export function levelFromXp(xp: number): number {
   return Math.floor(Math.sqrt(xp / 50)) + 1;
@@ -56,6 +72,8 @@ export function newProfile(studentId: string): PlayerProfile {
     exercisesDone: 0,
     perfectRuns: 0,
     dayStreak: 0,
+    todayQuestions: 0,
+    todaySeconds: 0,
     achievementIds: [],
     ownedItemIds: ["body_default"],
     equipped: { body: "body_default" },
@@ -68,6 +86,7 @@ function dayDiff(from: string, to: string): number {
 
 export interface RunResult {
   profile: PlayerProfile;
+  counted: boolean; // false = เกินลิมิตรายวัน รอบนี้ไม่นับ
   xpEarned: number;
   coinsEarned: number;
   leveledUp: boolean;
@@ -76,7 +95,23 @@ export interface RunResult {
 }
 
 // คิดผลหลังทำแบบฝึกหัดจบ 1 ชุด: XP, เหรียญ, streak, achievement ใหม่, ไอเทมที่ปลดล็อก
-export function applyRun(prev: PlayerProfile, correct: number, total: number, today: string): RunResult {
+export function applyRun(prev: PlayerProfile, correct: number, total: number, durationSec: number, today: string): RunResult {
+  const sameDay = prev.lastPlayedDate === today;
+  const todayQuestions = (sameDay ? (prev.todayQuestions ?? 0) : 0) + total;
+  const todaySeconds = (sameDay ? (prev.todaySeconds ?? 0) : 0) + durationSec;
+
+  if (isDailyLimitReached(prev, today)) {
+    return {
+      profile: { ...prev, todayQuestions, todaySeconds },
+      counted: false,
+      xpEarned: 0,
+      coinsEarned: 0,
+      leveledUp: false,
+      newAchievements: [],
+      newItems: [],
+    };
+  }
+
   const perfect = total > 0 && correct === total;
   const xpEarned = correct * XP_PER_CORRECT + (perfect ? XP_PERFECT_BONUS : 0);
 
@@ -93,6 +128,8 @@ export function applyRun(prev: PlayerProfile, correct: number, total: number, to
     perfectRuns: prev.perfectRuns + (perfect ? 1 : 0),
     dayStreak,
     lastPlayedDate: today,
+    todayQuestions,
+    todaySeconds,
   };
 
   const newAchievements = ACHIEVEMENTS.filter((a) => !prev.achievementIds.includes(a.id) && a.check(profile));
@@ -110,5 +147,5 @@ export function applyRun(prev: PlayerProfile, correct: number, total: number, to
   );
   profile.ownedItemIds = [...prev.ownedItemIds, ...newItems.map((i) => i.id)];
 
-  return { profile, xpEarned, coinsEarned, leveledUp: level > levelFromXp(prev.xp), newAchievements, newItems };
+  return { profile, counted: true, xpEarned, coinsEarned, leveledUp: level > levelFromXp(prev.xp), newAchievements, newItems };
 }

@@ -136,6 +136,8 @@ export interface PlayerProfile {
   perfectRuns: number;
   dayStreak: number;
   lastPlayedDate?: string; // "2026-11-02"
+  todayQuestions: number; // ตัวนับลิมิตรายวัน — รีเซ็ตเมื่อ lastPlayedDate เปลี่ยน
+  todaySeconds: number;
   achievementIds: string[];
   ownedItemIds: string[];
   equipped: Partial<Record<AvatarSlot, string>>;
@@ -164,6 +166,7 @@ export interface Reward {
   id: string;
   name: string; // เช่น สติกเกอร์, ดินสอ, ขนม
   costCoins: number;
+  costBaht: number; // ต้นทุนจริง — ใช้คุมงบของรางวัลรายเดือน
   stock: number;
   active: boolean;
 }

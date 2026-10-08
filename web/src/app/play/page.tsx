@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ACHIEVEMENTS, AVATAR_ITEMS, applyRun, levelProgress, newProfile, powerTitle, type RunResult } from "@/lib/gamification";
+import {
+  ACHIEVEMENTS,
+  AVATAR_ITEMS,
+  applyRun,
+  isDailyLimitReached,
+  levelProgress,
+  newProfile,
+  powerTitle,
+  type RunResult,
+} from "@/lib/gamification";
 import { SAMPLE_EXERCISES } from "@/lib/sample-data";
 import type { AvatarItem, Exercise, PlayerProfile } from "@/lib/types";
 
@@ -28,6 +37,7 @@ export default function PlayPage() {
   const [correct, setCorrect] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [result, setResult] = useState<RunResult | null>(null);
+  const [startedAt, setStartedAt] = useState(0);
 
   useEffect(() => {
     let saved: PlayerProfile | null = null;
@@ -52,6 +62,7 @@ export default function PlayPage() {
     setCorrect(0);
     setPicked(null);
     setResult(null);
+    setStartedAt(Date.now());
   }
 
   function next() {
@@ -63,7 +74,8 @@ export default function PlayPage() {
       setPicked(null);
       return;
     }
-    const run = applyRun(profile, nowCorrect, exercise.questions.length, today());
+    const durationSec = Math.round((Date.now() - startedAt) / 1000);
+    const run = applyRun(profile, nowCorrect, exercise.questions.length, durationSec, today());
     setCorrect(nowCorrect);
     setResult(run);
     save(run.profile);
@@ -89,9 +101,13 @@ export default function PlayPage() {
         <h1 className="text-3xl font-bold">
           ถูก {correct} / {exercise.questions.length} ข้อ
         </h1>
-        <p className="text-xl text-amber-600">
-          +{result.xpEarned} XP · +{result.coinsEarned} 🪙
-        </p>
+        {result.counted ? (
+          <p className="text-xl text-amber-600">
+            +{result.xpEarned} XP · +{result.coinsEarned} 🪙
+          </p>
+        ) : (
+          <p className="text-gray-500">วันนี้เก็บพลังครบแล้ว รอบนี้เป็นการฝึกเพิ่ม ไม่นับคะแนน</p>
+        )}
         {result.leveledUp && <p className="text-2xl font-bold text-pink-600">⚡ เลเวลอัป! Lv.{levelProgress(result.profile.xp).level}</p>}
         {result.newAchievements.map((a) => (
           <p key={a.id} className="w-full rounded-2xl bg-white p-3 shadow-sm">
@@ -161,6 +177,12 @@ export default function PlayPage() {
           พลัง {progress.current}/{progress.needed} XP · 🪙 {profile.coins} · 🔥 {profile.dayStreak} วัน
         </div>
       </section>
+
+      {isDailyLimitReached(profile, today()) && (
+        <p className="rounded-2xl bg-sky-100 p-4 text-center text-sky-800">
+          🌙 วันนี้เก็บพลังครบแล้ว! ฝึกต่อได้ แต่จะไม่ได้ XP และเหรียญเพิ่ม พรุ่งนี้มาใหม่นะ
+        </p>
+      )}
 
       <section>
         <h2 className="mb-2 text-lg font-bold">แบบฝึกหัด</h2>
