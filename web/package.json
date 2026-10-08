@@ -9,7 +9,9 @@
         "lint": "eslint",
         "predev": "node scripts/gen-data-dictionary.mjs",
         "prebuild": "node scripts/gen-data-dictionary.mjs",
-        "smoke": "node scripts/smoke.mjs"
+        "smoke": "node scripts/smoke.mjs",
+        "smoke:isolated": "node scripts/smoke-isolated.mjs",
+        "test:server": "node --test scripts/server.test.mjs"
     },
     "dependencies": {
         "@anthropic-ai/sdk": "^0.132.1",

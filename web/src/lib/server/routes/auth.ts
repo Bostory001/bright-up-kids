@@ -8,6 +8,7 @@ import {
   destroySession,
   hashSecret,
   newTotpSecret,
+  passwordInput,
   publicStudent,
   publicUser,
   registerFailure,
@@ -47,7 +48,7 @@ route("POST", "setup", "public", async ({ store, body, setSession }) => {
 route("POST", "auth/login", "public", async ({ store, body, setSession, req }) => {
   rateLimit(req, "login", 40, 10 * 60_000);
   const username = normalize(str(body.username, "ชื่อเข้าระบบ", 50));
-  const password = str(body.password, "รหัสผ่าน", 100);
+  const password = passwordInput(body.password);
   const [user] = await store.list<AppUser>("users", { username });
   if (!user || !user.active) throw new HttpError(401, "ชื่อเข้าระบบหรือรหัสผ่านไม่ถูกต้อง");
   assertNotLocked(user);
@@ -136,12 +137,17 @@ route(
   ANY_USER,
   async (ctx) => {
     const user = staffUser(ctx);
-    if (!verifySecret(str(ctx.body.current, "รหัสผ่านเดิม", 100), user.passwordHash)) throw new HttpError(400, "รหัสผ่านเดิมไม่ถูกต้อง");
+    if (!verifySecret(passwordInput(ctx.body.current), user.passwordHash)) throw new HttpError(400, "รหัสผ่านเดิมไม่ถูกต้อง");
     await ctx.store.set("users", {
       ...user,
       passwordHash: hashSecret(checkPasswordStrength(ctx.body.next)),
       mustChangePassword: false,
     });
+    for (const session of await ctx.store.list<AuthSession>("auth_sessions", { subjectId: user.id, role: user.role })) {
+      await ctx.store.remove("auth_sessions", session.id);
+    }
+    const session = await createSession(user.role, user.id);
+    ctx.setSession(session.token, session.maxAge);
     return { ok: true };
   },
   { allowWithout2fa: true },

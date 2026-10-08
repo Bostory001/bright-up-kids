@@ -24,6 +24,11 @@ export function verifySecret(secret: string, stored: string): boolean {
   return timingSafeEqual(actual, expected);
 }
 
+export function passwordInput(value: unknown): string {
+  if (typeof value !== "string" || value.length === 0 || value.length > 100) throw new HttpError(400, "กรุณากรอกรหัสผ่านไม่เกิน 100 ตัวอักษร");
+  return value;
+}
+
 export function checkPasswordStrength(pw: unknown): string {
   if (typeof pw !== "string" || pw.length < 8) throw new HttpError(400, "รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร");
   if (pw.length > 100) throw new HttpError(400, "รหัสผ่านยาวเกินไป");

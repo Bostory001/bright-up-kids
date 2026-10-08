@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local dev datastore
 /.data/
+
+# Commit the blank configuration template only.
+!.env.local.example

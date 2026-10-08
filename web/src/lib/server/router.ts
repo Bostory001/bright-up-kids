@@ -71,7 +71,10 @@ function match(r: Route, method: string, path: string[]): Record<string, string>
 function readCookie(req: Request, name: string): string | undefined {
   for (const part of (req.headers.get("cookie") ?? "").split(";")) {
     const [k, ...v] = part.trim().split("=");
-    if (k === name) return decodeURIComponent(v.join("="));
+    if (k === name) {
+      try { return decodeURIComponent(v.join("=")); }
+      catch { return undefined; }
+    }
   }
 }
 
@@ -93,8 +96,14 @@ export async function dispatch(req: Request, path: string[]): Promise<Response> 
 
     // กัน CSRF: คำขอที่แก้ข้อมูลจากเบราว์เซอร์ต้องมาจากโดเมนเดียวกัน
     const origin = req.headers.get("origin");
-    if (req.method !== "GET" && origin && new URL(origin).host !== req.headers.get("host")) {
-      throw new HttpError(403, "คำขอมาจากโดเมนอื่น");
+    if (req.method !== "GET" && origin) {
+      let sameOrigin = false;
+      try {
+        const source = new URL(origin);
+        // Next.js may use its internal listening address in req.url.
+        sameOrigin = source.host === req.headers.get("host") && source.protocol === new URL(req.url).protocol;
+      } catch { /* Invalid origin. */ }
+      if (!sameOrigin) throw new HttpError(403, "คำขอมาจากโดเมนอื่น");
     }
 
     const token = readCookie(req, SESSION_COOKIE);
@@ -112,6 +121,9 @@ export async function dispatch(req: Request, path: string[]): Promise<Response> 
     if (rawBody) {
       try {
         body = JSON.parse(rawBody);
+        if (body === null || typeof body !== "object" || Array.isArray(body)) {
+          throw new Error("Expected a JSON object");
+        }
       } catch {
         throw new HttpError(400, "รูปแบบข้อมูลไม่ถูกต้อง");
       }

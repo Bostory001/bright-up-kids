@@ -28,7 +28,7 @@ export interface Store {
 type FileDb = Record<string, Record<string, Doc>>;
 
 function createFileStore(): Store {
-  const file = path.join(process.cwd(), ".data", "db.json");
+  const file = path.join(process.env.BUK_DATA_DIR || path.join(process.cwd(), ".data"), "db.json");
   let db: FileDb = {};
   if (existsSync(file)) db = JSON.parse(readFileSync(file, "utf8"));
 
@@ -122,6 +122,9 @@ const g = globalThis as unknown as { __bukStore?: Promise<Store> };
 export function getStore(): Promise<Store> {
   if (!g.__bukStore) {
     const sa = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (process.env.VERCEL && !sa) {
+      throw new Error("FIREBASE_SERVICE_ACCOUNT is required on Vercel; local file storage is unavailable.");
+    }
     g.__bukStore = sa ? createFirestoreStore(sa) : Promise.resolve(createFileStore());
   }
   return g.__bukStore;

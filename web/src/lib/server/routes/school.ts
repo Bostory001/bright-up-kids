@@ -1,6 +1,6 @@
 import "server-only";
 import { getSettings } from "../settings";
-import type { AppUser, Application, Attendance, Course, Enrollment, Grade, Invoice, Redemption, Slip, Student } from "../../types";
+import type { AppUser, AuthSession, Application, Attendance, Course, Enrollment, Grade, Invoice, Redemption, Slip, Student } from "../../types";
 import { hashSecret, publicStudent } from "../auth";
 import { notifyParent } from "../notify";
 import { type Ctx, OWNER, route, STAFF, staffUser } from "../router";
@@ -26,6 +26,10 @@ async function nextStudentCode(store: Store): Promise<string> {
 }
 
 async function createStudent(store: Store, data: Pick<Student, "nickname" | "fullName" | "grade" | "school" | "parentId" | "pdpaConsentAt">) {
+  if (data.parentId) {
+    const parent = await store.get<AppUser>("users", data.parentId);
+    if (!parent || parent.role !== "parent" || !parent.active) throw new HttpError(400, "ไม่พบบัญชีผู้ปกครองที่ใช้งานได้");
+  }
   const pin = randomDigits(4);
   const student: Student = {
     id: newId(),
@@ -44,17 +48,26 @@ async function createStudent(store: Store, data: Pick<Student, "nickname" | "ful
 function courseFrom(body: Ctx["body"], id: string): Course {
   const grades = Array.isArray(body.grades) ? body.grades.map((g: unknown) => oneOf(Number(g), GRADES, "ชั้น")) : [];
   if (!grades.length) throw new HttpError(400, "เลือกชั้นอย่างน้อย 1 ชั้น");
+  const startTime = str(body.startTime, "เวลาเริ่ม", 5);
+  const endTime = str(body.endTime, "เวลาเลิก", 5);
+  const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
+  if (!timePattern.test(startTime) || !timePattern.test(endTime) || endTime <= startTime) {
+    throw new HttpError(400, "เวลาเรียนไม่ถูกต้อง เวลาเลิกต้องอยู่หลังเวลาเริ่ม");
+  }
+  const weekday = num(body.weekday, "วันเรียน", 0, 6);
+  const capacity = num(body.capacity, "จำนวนที่รับ", 1, 500);
+  if (!Number.isInteger(weekday) || !Number.isInteger(capacity)) throw new HttpError(400, "วันเรียนและจำนวนที่รับต้องเป็นจำนวนเต็ม");
   return {
     id,
     name: str(body.name, "ชื่อคอร์ส", 100),
     subject: oneOf(body.subject, SUBJECTS, "วิชา"),
     grades,
     pricePerTerm: num(body.pricePerTerm, "ค่าเรียน", 0, 1_000_000),
-    weekday: num(body.weekday, "วันเรียน", 0, 6),
-    startTime: str(body.startTime, "เวลาเริ่ม", 5),
-    endTime: str(body.endTime, "เวลาเลิก", 5),
+    weekday,
+    startTime,
+    endTime,
     teacherName: optStr(body.teacherName, 80),
-    capacity: num(body.capacity, "จำนวนที่รับ", 1, 500),
+    capacity,
     active: body.active !== false,
   };
 }
@@ -249,6 +262,9 @@ route("POST", "admin/students/:id/pin", STAFF, async ({ store, params }) => {
   if (!student) throw new HttpError(404, "ไม่พบนักเรียน");
   const pin = randomDigits(4);
   await store.set("students", { ...student, pinHash: hashSecret(pin), failedLogins: 0, lockedUntil: undefined });
+  for (const session of await store.list<AuthSession>("auth_sessions", { subjectId: student.id, role: "student" })) {
+    await store.remove("auth_sessions", session.id);
+  }
   return { pin };
 });
 

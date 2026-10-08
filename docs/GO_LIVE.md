@@ -3,6 +3,12 @@
 ทำตามลำดับ แต่ละขั้นมีวิธีตรวจว่าสำเร็จ · ค่าทุกตัวใส่ใน `web/.env.local` (ในเครื่อง) และ Vercel > Settings > Environment Variables (ของจริง)
 ห้ามส่งค่าเหล่านี้ในแชต/อีเมล และห้าม commit ลง git
 
+## ตรวจในเครื่องก่อนเชื่อมบริการจริง
+
+รันจากโฟลเดอร์ `web`: `npm run test:server`, `npm run lint`, `npm run build`, แล้ว `npm run smoke:isolated`
+คำสั่งสุดท้ายเปิด production server บนพอร์ตว่าง สร้างฐานข้อมูลชั่วคราว ปิดการเชื่อมบริการภายนอกสำหรับ process ทดสอบ แล้วปิด server และลบเฉพาะโฟลเดอร์ชั่วคราวนั้นเมื่อเสร็จ ไม่ต้องลบ `web/.data`
+ผลในเครื่องยืนยันได้เฉพาะ file adapter; Firestore, LINE, AI และอุปกรณ์จริงยังต้องทดสอบตาม S1–S5
+
 ## S1 ฐานข้อมูล Firestore
 
 - [ ] เข้า https://console.firebase.google.com ด้วยบัญชี Google ที่จะเป็นเจ้าของระบบ → Add project (ตั้งชื่อ เช่น `brightupkids-<สาขา>`) · ไม่ต้องเปิด Analytics
@@ -11,7 +17,7 @@
 - [ ] Project settings > Service accounts > **Generate new private key** → ได้ไฟล์ JSON
 - [ ] เปิดไฟล์ JSON คัดลอกทั้งหมดเป็น**บรรทัดเดียว** ใส่ใน `FIREBASE_SERVICE_ACCOUNT=` แล้วลบไฟล์ JSON ทิ้ง
 - [ ] ตรวจ: `npm run dev` → เปิดหน้าแรก → สร้างบัญชีเจ้าของ → ใน Firebase Console ต้องเห็น collection `users`
-- [ ] (แนะนำ) ทดสอบทั้งระบบกับ project ทดลองอีกตัว: ตั้ง env ชี้ไป project ทดลองที่ว่าง แล้วรัน `npm run smoke` ต้องผ่าน 105 ข้อ — **อย่ารันกับ project จริง** เพราะจะสร้างข้อมูลทดสอบ
+- [ ] (แนะนำ) ทดสอบทั้งระบบกับ project ทดลองอีกตัว: ตั้ง env ชี้ไป project ทดลองที่ว่าง แล้วรัน `npm run smoke` ต้องผ่านทุกข้อ — **อย่ารันกับ project จริง** เพราะจะสร้างข้อมูลทดสอบ
 
 หมายเหตุ: บัญชี Firebase อยู่แผน Blaze อยู่แล้ว แต่ project ใหม่เริ่มที่ Spark · ระบบนี้ใช้แค่ Firestore ผ่าน Admin SDK ซึ่งใช้บน Spark ได้ ปริมาณระดับสาขาเดียวอยู่ในโควตาฟรี
 
@@ -24,7 +30,7 @@
 - [ ] ตรวจ: เปิดโดเมนที่ได้ → `/setup` สร้างบัญชีเจ้าของ → ตั้ง 2FA
 - [ ] ตรวจ PWA: iPad เปิดด้วย Safari > แชร์ > เพิ่มไปยังหน้าจอโฮม · Android เปิดด้วย Chrome > เมนู > ติดตั้งแอป
 
-ถ้าไม่ตั้ง `FIREBASE_SERVICE_ACCOUNT` บน Vercel ระบบจะพยายามเขียนไฟล์และพัง — ต้องตั้งก่อน deploy
+ถ้าไม่ตั้ง `FIREBASE_SERVICE_ACCOUNT` บน Vercel ระบบจะปฏิเสธการเริ่มฐานข้อมูลโดยไม่เขียนไฟล์ — ต้องตั้งก่อน deploy
 
 ## S3 LINE OA
 
@@ -59,3 +65,7 @@
 - [ ] จดสิ่งที่เด็กติด: หาปุ่มไม่เจอ / อ่านไม่ออก / ช้า / เบื่อ
 - [ ] ตั้งราคาของรางวัลด้วยตัวช่วยในหน้า "ตั้งค่า" หลังรู้จำนวนเด็กจริง
 - [ ] สำรองข้อมูล: Firebase Console > Firestore > ตั้ง scheduled backup หรือ export เป็นระยะ
+
+## Runtime สำหรับชุดทดสอบ
+
+ชุดตรวจล่าสุดใช้ Node.js 24.16.0; `test:server` ใช้ `node:module.registerHooks` จึงควรรันด้วย Node.js 24 LTS

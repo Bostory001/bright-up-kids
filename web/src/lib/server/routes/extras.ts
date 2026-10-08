@@ -223,7 +223,7 @@ route("DELETE", "admin/assignments/:id", STAFF, async ({ store, params }) => {
 // ---------- ผู้ปกครองเข้าผ่าน LINE (LIFF) ----------
 
 // หน้า /parent/line ขอค่า LIFF ID จากที่นี่ (ไม่ใช่ความลับ)
-route("GET", "public/config", "public", async () => ({ liffId: process.env.LINE_LIFF_ID ?? null }));
+route("GET", "public/config", "public", async () => ({ liffId: process.env.LINE_LIFF_ID || null }));
 
 // รับ ID token จาก LIFF → ให้ LINE ตรวจ → หา users ที่ผูก lineUserId นี้ไว้
 // LINE Login channel ต้องอยู่ใน Provider เดียวกับ Messaging API channel ไม่งั้น userId จะไม่ตรงกัน

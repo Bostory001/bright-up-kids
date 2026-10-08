@@ -50,6 +50,7 @@ export function optStr(v: unknown, max = 200): string | undefined {
 }
 
 export function num(v: unknown, field: string, min = 0, max = 1e9): number {
+  if (typeof v === "string" && !v.trim()) throw new HttpError(400, `${field} ไม่ถูกต้อง`);
   const n = typeof v === "string" ? Number(v) : v;
   if (typeof n !== "number" || !Number.isFinite(n) || n < min || n > max) throw new HttpError(400, `${field} ไม่ถูกต้อง`);
   return n;
@@ -62,5 +63,9 @@ export function oneOf<T extends string | number>(v: unknown, options: readonly T
 
 export function dateStr(v: unknown, field: string): string {
   if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) throw new HttpError(400, `${field} ต้องเป็นวันที่`);
+  const parsed = new Date(`${v}T00:00:00.000Z`);
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== v) {
+    throw new HttpError(400, `${field} ต้องเป็นวันที่ที่มีอยู่จริง`);
+  }
   return v;
 }

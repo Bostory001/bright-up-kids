@@ -1,6 +1,6 @@
 # Bright Up Kids — สาขาแฟรนไชส์ (สถาบันเรียนพิเศษ ป.1-6)
 
-สถานะ: ยังไม่เปิดสาขา ยังไม่มีนักเรียน/ข้อมูลจริง · โค้ดรอบ R1-R21 เสร็จแล้ว (ยกเว้น R18) ยังไม่ได้ต่อบริการภายนอกจริง (ดู "ยังไม่ได้ทดสอบกับของจริง" ใน ROADMAP.md)
+สถานะ: ยังไม่เปิดสาขา ยังไม่มีนักเรียน/ข้อมูลจริง · โค้ดรอบ R1-R33 เสร็จแล้ว (ยกเว้น R18) ยังไม่ได้ต่อบริการภายนอกจริง (ดู "ยังไม่ได้ทดสอบกับของจริง" ใน ROADMAP.md)
 
 ## โครงโฟลเดอร์
 
@@ -32,7 +32,7 @@
 | `src/lib/server/seed-exercises.ts` | ชุดโจทย์เริ่มต้น 57 ชุด (แต่งเอง นำเข้าเป็นร่าง) |
 | `src/lib/modules.ts` | ทะเบียนหน้าจอ — สร้างทั้งเมนูหลังบ้านและหน้าคู่มือ |
 | `src/components/AvatarSvg.tsx` | รูป avatar (id ต้องตรงกับ `AVATAR_ITEMS`) |
-| `scripts/smoke.mjs` | ทดสอบ API ทั้งระบบ 105 ข้อ |
+| `scripts/smoke.mjs` | ทดสอบ API ทั้งระบบ (รันผ่าน `npm run smoke:isolated`) |
 | `docs/GO_LIVE.md` | ขั้นตอนต่อ Firestore / Vercel / LINE / AI ของจริง |
 
 ## กฎการพัฒนา
@@ -44,7 +44,7 @@
 5. **UI เด็ก** — ปุ่มใหญ่ (สูง ≥ 64px), ข้อความสั้น, ออกแบบ tablet แนวตั้งก่อน, ภาษาไทย
 6. **เพิ่มหน้าใหม่** = เพิ่มใน `lib/modules.ts` ด้วย (เมนู + คู่มือ) · **เพิ่ม collection** = เพิ่ม interface พร้อม `@collection` และ comment ใน `types.ts`
 7. **Next.js 16** — อ่าน `web/AGENTS.md` + docs ใน `node_modules/next/dist/docs/` ก่อนใช้ API ที่ไม่แน่ใจ · ESLint เข้ม (ห้าม `Date.now()` ใน component, ห้าม setState ตรง ๆ ใน effect)
-8. จบงานแต่ละรอบ: `npm run lint` + `npm run build` + `npm run smoke` ผ่าน → commit → ติ๊ก ROADMAP.md
+8. จบงานแต่ละรอบ: `npm run test:server` + `npm run lint` + `npm run build` + `npm run smoke:isolated` ผ่าน → commit → ติ๊ก ROADMAP.md
 9. ตอบเป็นภาษาไทย รูปแบบ checklist กระชับ
 
 ## ข้อจำกัดจากแฟรนไชส์ (ต้องเคลียร์กับ HQ ก่อนใช้จริง)
@@ -67,7 +67,9 @@ npm install
 npm run dev      # http://localhost:3000 → ครั้งแรกเข้า /setup สร้างบัญชีเจ้าของ
 npm run lint
 npm run build
-npm run smoke    # ต้องลบ .data/ แล้วเปิด server ใหม่ก่อน (ทดสอบกับฐานข้อมูลเปล่า)
+npm run test:server
+npm run smoke:isolated # หลัง build: เปิด server + ฐานข้อมูลชั่วคราว แล้วเก็บกวาดอัตโนมัติ
+npm run smoke          # ใช้เฉพาะ server ทดสอบที่มีฐานข้อมูลว่างอยู่แล้ว
 ```
 
 ตั้งค่าบริการภายนอก: คัดลอก `web/.env.local.example` เป็น `web/.env.local`

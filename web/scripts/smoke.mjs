@@ -1,5 +1,6 @@
 // ทดสอบ API ทั้งระบบแบบ end-to-end กับฐานข้อมูลเปล่า
-// ใช้: ลบ .data/ → เปิด server (npm run dev) → npm run smoke   (ตั้ง BASE_URL ได้ ค่าเริ่มต้น http://localhost:3000)
+// แนะนำ: npm run build แล้ว npm run smoke:isolated (สร้างฐานข้อมูลชั่วคราวให้เอง)
+// npm run smoke ใช้กับ server ทดสอบที่ว่างเท่านั้น (BASE_URL ค่าเริ่มต้น http://localhost:3000)
 import { createHmac } from "node:crypto";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
@@ -46,7 +47,7 @@ let r;
 // ---------- R2: setup / login / 2FA / สิทธิ์ ----------
 r = await anon.call("status");
 if (!r.data.needsSetup) {
-  console.error("ฐานข้อมูลไม่ว่าง — ลบโฟลเดอร์ .data แล้วเปิด server ใหม่ก่อนรัน smoke test");
+  console.error("ฐานข้อมูลไม่ว่าง — ใช้ npm run smoke:isolated เพื่อทดสอบกับฐานข้อมูลชั่วคราว");
   process.exit(2);
 }
 check("ยังไม่ login เรียก admin → 401", (await anon.call("admin/dashboard")).status === 401);
@@ -294,11 +295,51 @@ check("ทำแล้ว → ครูเห็น 1/1 และป้ายก
 // ---------- R15: เข้าด้วย LINE (ยังไม่ตั้งค่า) ----------
 check("LIFF ยังไม่ตั้งค่า → config null, auth 503", (await anon.call("public/config")).data.liffId === null && (await anon.call("auth/line", { idToken: "x" })).status === 503);
 
+// ---------- R22–R33: regression checks ----------
+for (const body of [null, [], 1, true, "text"]) {
+  check("JSON body must be object: " + JSON.stringify(body), (await anon.call("auth/login", body)).status === 400);
+}
+check("Malformed cookie is ignored", (await anon.call("me", undefined, "GET", { cookie: "buk_session=%ZZ" })).status === 200);
+for (const origin of ["null", "not-a-url", BASE.replace(/^http:/, "https:")]) {
+  check("Reject invalid or cross-scheme origin: " + origin, (await anon.call("auth/logout", {}, "POST", { origin })).status === 403);
+}
+check("Accept same-origin request", (await anon.call("auth/logout", {}, "POST", { origin: new URL(BASE).origin })).status === 200);
+for (const date of ["2026-02-29", "2026-04-31", "2026-13-01", "2026-00-10"]) {
+  check("Reject invalid calendar date: " + date, (await teacher.call("admin/attendance?courseId=" + courseId + "&date=" + date)).status === 400);
+}
+check("Accept leap day", (await teacher.call("admin/attendance?courseId=" + courseId + "&date=2028-02-29")).status === 200);
+const validCourse = { name: "Validation", subject: "math", grades: [2], pricePerTerm: 3500, weekday: 6, startTime: "09:00", endTime: "10:30", capacity: 10 };
+for (const fields of [{ pricePerTerm: "" }, { pricePerTerm: "   " }, { startTime: "25:00" }, { startTime: "9:00" }, { endTime: "08:00" }, { endTime: "09:00" }, { weekday: 1.5 }, { capacity: 2.5 }]) {
+  check("Reject invalid course: " + JSON.stringify(fields), (await owner.call("admin/courses", { ...validCourse, ...fields })).status === 400);
+}
+const beforeStudents = (await owner.call("admin/students")).data.students.length;
+const allUsers = (await owner.call("admin/users")).data.users;
+const parentIdForValidation = allUsers.find((u) => u.role === "parent").id;
+await owner.call("admin/users/" + parentIdForValidation + "/active", { active: false });
+for (const parentId of ["missing-parent", allUsers.find((u) => u.role === "teacher").id, parentIdForValidation]) {
+  check("Reject invalid parent: " + parentId, (await owner.call("admin/students", { nickname: "test", fullName: "test student", grade: 2, pdpaConsent: true, parentId })).status === 400);
+}
+await owner.call("admin/users/" + parentIdForValidation + "/active", { active: true });
+check("Invalid parent did not create a student", (await owner.call("admin/students")).data.students.length === beforeStudents);
+const otherOwner = new Client();
+await otherOwner.call("auth/login", { username: "boss", password: "owner-pass-1", code: totp(ownerSecret) });
+const staleOwner = new Client();
+staleOwner.cookie = owner.cookie;
+check("Change password with spaces", (await owner.call("auth/password", { current: "owner-pass-1", next: "  owner-pass-2  " })).status === 200);
+check("Password change rotates current session", owner.cookie !== staleOwner.cookie && (await owner.call("admin/dashboard")).status === 200);
+check("Old current session revoked", (await staleOwner.call("admin/dashboard")).status === 401);
+check("Other device session revoked", (await otherOwner.call("admin/dashboard")).status === 401);
+check("Old password rejected", (await otherOwner.call("auth/login", { username: "boss", password: "owner-pass-1", code: totp(ownerSecret) })).status === 401);
+check("Trimmed password rejected", (await otherOwner.call("auth/login", { username: "boss", password: "owner-pass-2", code: totp(ownerSecret) })).status === 401);
+check("Exact password with spaces works", (await otherOwner.call("auth/login", { username: "boss", password: "  owner-pass-2  ", code: totp(ownerSecret) })).status === 200);
+check("Change password accepts exact current password", (await owner.call("auth/password", { current: "  owner-pass-2  ", next: "owner-pass-3" })).status === 200);
+
 // ---------- รีเซ็ต / ปิดบัญชี ----------
 const teacherId = (await owner.call("admin/users")).data.users.find((u) => u.username === "kru-a").id;
 await owner.call(`admin/users/${teacherId}/reset`, {});
 check("รีเซ็ตครู → session เดิมใช้ไม่ได้", (await teacher.call("admin/students")).status === 401);
 r = await owner.call(`admin/students/${student.id}/pin`, {});
+check("PIN reset revokes existing student session", (await kid.call("play/home")).status === 401);
 check("PIN ใหม่ใช้ได้ PIN เก่าใช้ไม่ได้", (await new Client().call("auth/student", { code: creds.studentCode, pin: r.data.pin })).status === 200 && (r.data.pin === creds.pin || (await new Client().call("auth/student", { code: creds.studentCode, pin: creds.pin })).status === 401));
 
 console.log(`\n${passed} ผ่าน, ${failures.length} ไม่ผ่าน`);

@@ -1,0 +1,68 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { registerHooks } from "node:module";
+import { existsSync, readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import ts from "typescript";
+
+// Load the real server modules without Next.js; erase TS only for these tests.
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier === "server-only") return { url: "data:text/javascript,export{}", shortCircuit: true };
+    if (specifier.startsWith(".") && context.parentURL?.endsWith(".ts")) {
+      const url = new URL(specifier + ".ts", context.parentURL);
+      if (existsSync(fileURLToPath(url))) return { url: url.href, shortCircuit: true };
+    }
+    return nextResolve(specifier, context);
+  },
+  load(url, context, nextLoad) {
+    if (url.startsWith("file:") && url.endsWith(".ts")) {
+      const source = ts.transpileModule(readFileSync(fileURLToPath(url), "utf8"), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+      return { format: "module", source, shortCircuit: true };
+    }
+    return nextLoad(url, context);
+  },
+});
+const { dateStr, num } = await import("../src/lib/server/util.ts");
+const { passwordInput, hashSecret, verifySecret } = await import("../src/lib/server/auth.ts");
+const { getStore } = await import("../src/lib/server/store.ts");
+test("calendar validation rejects impossible dates and accepts leap years", () => {
+  for (const value of ["2026-02-29", "2026-04-31", "2026-13-01", "invalid", null]) assert.throws(() => dateStr(value, "date"), { status: 400 });
+  for (const value of ["2028-02-29", "2026-12-31"]) assert.equal(dateStr(value, "date"), value);
+});
+test("numeric fields reject blanks while allowing zero", () => {
+  for (const value of ["", "  ", null, false, NaN, Infinity]) assert.throws(() => num(value, "number"), { status: 400 });
+  for (const value of [0, "0"]) assert.equal(num(value, "number"), 0);
+});
+test("password parser preserves exact text", () => {
+  const password = "  example password  ";
+  const hash = hashSecret(password);
+  assert.equal(passwordInput(password), password);
+  assert.equal(verifySecret(passwordInput(password), hash), true);
+  assert.equal(verifySecret(password.trim(), hash), false);
+});
+test("Vercel refuses file fallback; isolated storage writes only to its directory", async () => {
+  const previous = { VERCEL: process.env.VERCEL, FIREBASE_SERVICE_ACCOUNT: process.env.FIREBASE_SERVICE_ACCOUNT, BUK_DATA_DIR: process.env.BUK_DATA_DIR };
+  const dataDir = mkdtempSync(path.join(tmpdir(), "buk-unit-"));
+  try {
+    delete globalThis.__bukStore;
+    process.env.VERCEL = "1";
+    process.env.FIREBASE_SERVICE_ACCOUNT = "";
+    process.env.BUK_DATA_DIR = dataDir;
+    assert.throws(() => getStore(), /FIREBASE_SERVICE_ACCOUNT is required/);
+    assert.equal(existsSync(path.join(dataDir, "db.json")), false);
+    process.env.VERCEL = "";
+    const store = await getStore();
+    await store.set("sample", { id: "one", value: 42 });
+    assert.equal(JSON.parse(readFileSync(path.join(dataDir, "db.json"), "utf8")).sample.one.value, 42);
+    delete globalThis.__bukStore;
+    assert.equal((await (await getStore()).get("sample", "one")).value, 42);
+  } finally {
+    delete globalThis.__bukStore;
+    for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
+    if (path.dirname(path.resolve(dataDir)) !== path.resolve(tmpdir()) || !path.basename(dataDir).startsWith("buk-unit-")) throw new Error("Unexpected temporary directory");
+    rmSync(dataDir, { recursive: true, force: true });
+  }
+});
