@@ -1,29 +1,37 @@
+"use client";
+
 import Link from "next/link";
+import { Card, ErrorText } from "@/components/ui";
+import { useLoad } from "@/lib/client/api";
 
-// โครงเมนูหลังบ้าน — แต่ละข้อคือ 1 รอบงานใน ROADMAP.md
-const MODULES = [
-  { emoji: "📝", title: "สมัครเรียน", round: "R2" },
-  { emoji: "📅", title: "ตารางเรียน + เช็กชื่อ", round: "R3" },
-  { emoji: "💰", title: "ค่าเรียน / ใบแจ้งหนี้", round: "R4" },
-  { emoji: "💬", title: "แจ้งเตือน LINE", round: "R5" },
-  { emoji: "✏️", title: "คลังแบบฝึกหัด", round: "R6" },
-  { emoji: "🎁", title: "ของรางวัล / อนุมัติแลก", round: "R7" },
-];
+export default function DashboardPage() {
+  const { data: d, error } = useLoad("admin/dashboard");
+  if (error) return <ErrorText>{error}</ErrorText>;
+  if (!d) return <p className="text-gray-500">กำลังโหลด...</p>;
 
-export default function AdminPage() {
+  const cards = [
+    { href: "/admin/students", label: "นักเรียนที่เรียนอยู่", value: d.students, unit: "คน" },
+    { href: "/admin/applications", label: "ใบสมัครรออนุมัติ", value: d.pendingApplications, unit: "ใบ", alert: d.pendingApplications > 0 },
+    { href: "/admin/invoices", label: "สลิปรอตรวจ", value: d.slipsToCheck, unit: "ใบ", alert: d.slipsToCheck > 0 },
+    { href: "/admin/invoices", label: `ค้างชำระ ${d.unpaidCount} ใบ`, value: d.unpaidAmount.toLocaleString(), unit: "บาท" },
+    { href: "/admin/rewards", label: "ของรางวัลรอส่งมอบ", value: d.pendingRedemptions, unit: "รายการ", alert: d.pendingRedemptions > 0 },
+    { href: "/admin/rewards", label: "งบของรางวัลเดือนนี้", value: `${d.rewardSpent.toLocaleString()} / ${d.rewardBudget.toLocaleString()}`, unit: "บาท" },
+  ];
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 p-6">
-      <Link href="/" className="text-sm text-amber-700">← หน้าแรก</Link>
-      <h1 className="mt-2 text-2xl font-bold">หลังบ้าน (ครู / เจ้าของ)</h1>
-      <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-        {MODULES.map((m) => (
-          <li key={m.title} className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm">
-            <span className="text-3xl">{m.emoji}</span>
-            <span className="flex-1 font-medium">{m.title}</span>
-            <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-500">ยังไม่ทำ · {m.round}</span>
-          </li>
+    <>
+      <h1 className="mb-4 text-2xl font-bold">ภาพรวม</h1>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((c) => (
+          <Link key={c.label} href={c.href}>
+            <Card className={c.alert ? "border-2 border-amber-400" : ""}>
+              <div className="text-sm text-gray-500">{c.label}</div>
+              <div className="mt-1 text-2xl font-bold">
+                {c.value} <span className="text-sm font-normal text-gray-500">{c.unit}</span>
+              </div>
+            </Card>
+          </Link>
         ))}
-      </ul>
-    </main>
+      </div>
+    </>
   );
 }

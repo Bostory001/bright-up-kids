@@ -1,8 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ร่างแรก: ปิดทั้งหมดไว้ก่อน — เปิดทีละ collection ตอนทำแต่ละรอบใน ROADMAP.md
-    // หลักการ: player_profiles / attempts / redemptions เขียนได้จาก server (Admin SDK) เท่านั้น กันเด็กแก้ XP/เหรียญ
+    // ปิดทั้งหมดโดยเจตนา: เบราว์เซอร์ไม่อ่าน/เขียน Firestore ตรง ๆ
+    // ทุกอย่างผ่าน API ของเรา (Admin SDK ฝั่ง server ไม่ถูก rules นี้บังคับ) — ดู src/lib/server/store.ts
     match /{document=**} {
       allow read, write: if false;
     }

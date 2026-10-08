@@ -1,0 +1,144 @@
+"use client";
+
+import { useState } from "react";
+import { useMe } from "@/components/me";
+import { Badge, Button, Card, ErrorText, Field, Input, Select, Table } from "@/components/ui";
+import { api, useLoad } from "@/lib/client/api";
+import type { Course } from "@/lib/types";
+
+const WEEKDAYS = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+const SUBJECTS = { math: "คณิตศาสตร์", thai: "ภาษาไทย", english: "ภาษาอังกฤษ", science: "วิทยาศาสตร์" };
+const EMPTY: Omit<Course, "id"> = {
+  name: "",
+  subject: "math",
+  grades: [1],
+  pricePerTerm: 0,
+  weekday: 6,
+  startTime: "09:00",
+  endTime: "10:30",
+  teacherName: "",
+  capacity: 10,
+  active: true,
+};
+
+export default function CoursesPage() {
+  const { me } = useMe();
+  const { data, error, reload } = useLoad<{ courses: Course[] }>("admin/courses");
+  const [editing, setEditing] = useState<(Omit<Course, "id"> & { id?: string }) | null>(null);
+  const [formError, setFormError] = useState("");
+  const canEdit = me.role === "owner";
+
+  async function save() {
+    if (!editing) return;
+    setFormError("");
+    try {
+      await api(editing.id ? `admin/courses/${editing.id}` : "admin/courses", editing, editing.id ? "PATCH" : "POST");
+      setEditing(null);
+      reload();
+    } catch (err) {
+      setFormError((err as Error).message);
+    }
+  }
+
+  return (
+    <div className="grid gap-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">คอร์ส</h1>
+        {canEdit && <Button onClick={() => setEditing(EMPTY)}>เพิ่มคอร์ส</Button>}
+      </div>
+      <ErrorText>{error}</ErrorText>
+
+      {editing && (
+        <Card className="grid gap-3 sm:grid-cols-2">
+          <Field label="ชื่อคอร์ส">
+            <Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+          </Field>
+          <Field label="วิชา">
+            <Select value={editing.subject} onChange={(e) => setEditing({ ...editing, subject: e.target.value as Course["subject"] })}>
+              {Object.entries(SUBJECTS).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="ชั้นที่รับ">
+            <div className="flex flex-wrap gap-3 py-2">
+              {([1, 2, 3, 4, 5, 6] as const).map((g) => (
+                <label key={g} className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={editing.grades.includes(g)}
+                    onChange={(e) => setEditing({ ...editing, grades: e.target.checked ? [...editing.grades, g].sort() : editing.grades.filter((x) => x !== g) })}
+                  />
+                  ป.{g}
+                </label>
+              ))}
+            </div>
+          </Field>
+          <Field label="ค่าเรียนต่อเทอม (บาท)">
+            <Input type="number" value={editing.pricePerTerm} onChange={(e) => setEditing({ ...editing, pricePerTerm: Number(e.target.value) })} />
+          </Field>
+          <Field label="วันเรียน">
+            <Select value={editing.weekday} onChange={(e) => setEditing({ ...editing, weekday: Number(e.target.value) })}>
+              {WEEKDAYS.map((d, i) => (
+                <option key={d} value={i}>
+                  {d}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <div className="grid grid-cols-2 gap-2">
+            <Field label="เริ่ม">
+              <Input type="time" value={editing.startTime} onChange={(e) => setEditing({ ...editing, startTime: e.target.value })} />
+            </Field>
+            <Field label="เลิก">
+              <Input type="time" value={editing.endTime} onChange={(e) => setEditing({ ...editing, endTime: e.target.value })} />
+            </Field>
+          </div>
+          <Field label="ครูผู้สอน">
+            <Input value={editing.teacherName ?? ""} onChange={(e) => setEditing({ ...editing, teacherName: e.target.value })} />
+          </Field>
+          <Field label="จำนวนที่รับ">
+            <Input type="number" value={editing.capacity} onChange={(e) => setEditing({ ...editing, capacity: Number(e.target.value) })} />
+          </Field>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={editing.active} onChange={(e) => setEditing({ ...editing, active: e.target.checked })} /> เปิดรับสมัคร
+          </label>
+          <div className="flex gap-2 sm:col-span-2">
+            <Button onClick={save}>บันทึก</Button>
+            <Button variant="ghost" onClick={() => setEditing(null)}>
+              ยกเลิก
+            </Button>
+          </div>
+          <div className="sm:col-span-2">
+            <ErrorText>{formError}</ErrorText>
+          </div>
+        </Card>
+      )}
+
+      <Table head={["คอร์ส", "วิชา", "ชั้น", "วันเวลา", "ค่าเรียน", "รับ", "สถานะ", ""]}>
+        {data?.courses.map((c) => (
+          <tr key={c.id}>
+            <td className="font-medium">{c.name}</td>
+            <td>{SUBJECTS[c.subject]}</td>
+            <td>{c.grades.map((g) => `ป.${g}`).join(" ")}</td>
+            <td className="whitespace-nowrap">
+              {WEEKDAYS[c.weekday]} {c.startTime}-{c.endTime}
+            </td>
+            <td>{c.pricePerTerm.toLocaleString()}</td>
+            <td>{c.capacity}</td>
+            <td>{c.active ? <Badge color="green">เปิดรับ</Badge> : <Badge>ปิด</Badge>}</td>
+            <td>
+              {canEdit && (
+                <Button variant="ghost" onClick={() => setEditing(c)}>
+                  แก้ไข
+                </Button>
+              )}
+            </td>
+          </tr>
+        ))}
+      </Table>
+    </div>
+  );
+}

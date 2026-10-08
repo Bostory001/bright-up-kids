@@ -1,0 +1,935 @@
+[
+  {
+    "collection": "users",
+    "name": "AppUser",
+    "description": "ผู้ใช้ระบบ (เจ้าของ ครู ผู้ปกครอง) — นักเรียนไม่อยู่ที่นี่ ใช้รหัสนักเรียน + PIN",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "role",
+        "type": "\"owner\" | \"teacher\" | \"parent\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "username",
+        "type": "string",
+        "required": true,
+        "description": "ชื่อเข้าระบบ — ผู้ปกครองใช้เบอร์โทร"
+      },
+      {
+        "name": "displayName",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "passwordHash",
+        "type": "string",
+        "required": true,
+        "description": "รหัสผ่านที่ hash แล้ว (scrypt) ไม่ส่งออก API"
+      },
+      {
+        "name": "mustChangePassword",
+        "type": "boolean",
+        "required": false,
+        "description": "ต้องเปลี่ยนรหัสผ่านเมื่อเข้าครั้งแรก"
+      },
+      {
+        "name": "totpSecret",
+        "type": "string",
+        "required": false,
+        "description": "กุญแจ 2FA (TOTP) ไม่ส่งออก API"
+      },
+      {
+        "name": "totpEnabled",
+        "type": "boolean",
+        "required": false,
+        "description": "เปิดใช้ 2FA แล้ว — บังคับสำหรับเจ้าของและครู"
+      },
+      {
+        "name": "failedLogins",
+        "type": "number",
+        "required": false,
+        "description": "จำนวนครั้งที่ใส่รหัสผิดติดกัน"
+      },
+      {
+        "name": "lockedUntil",
+        "type": "string",
+        "required": false,
+        "description": "ล็อกบัญชีถึงเวลานี้"
+      },
+      {
+        "name": "lineUserId",
+        "type": "string",
+        "required": false,
+        "description": "LINE userId ที่ผูกไว้สำหรับรับแจ้งเตือน"
+      },
+      {
+        "name": "lineLinkCode",
+        "type": "string",
+        "required": false,
+        "description": "รหัส 6 หลักสำหรับผูก LINE (หมดอายุตาม lineLinkExpires)"
+      },
+      {
+        "name": "lineLinkExpires",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "auth_sessions",
+    "name": "AuthSession",
+    "description": "session การเข้าระบบ (id = sha256 ของ token ใน cookie)",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "role",
+        "type": "Role",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "subjectId",
+        "type": "string",
+        "required": true,
+        "description": "id ของ users หรือ students ตาม role"
+      },
+      {
+        "name": "expiresAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "applications",
+    "name": "Application",
+    "description": "ใบสมัครเรียนจากฟอร์มออนไลน์ รอครูอนุมัติ",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "parentName",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "studentFullName",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "nickname",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "grade",
+        "type": "Grade",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "school",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "courseIds",
+        "type": "string[]",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "pdpaConsentAt",
+        "type": "string",
+        "required": true,
+        "description": "เวลาที่ผู้ปกครองกดยินยอม PDPA"
+      },
+      {
+        "name": "status",
+        "type": "\"pending\" | \"approved\" | \"rejected\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "students",
+    "name": "Student",
+    "description": "นักเรียน",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "required": true,
+        "description": "รหัสนักเรียน เช่น BUK0001 ใช้เข้าระบบแบบฝึกหัด"
+      },
+      {
+        "name": "pinHash",
+        "type": "string",
+        "required": true,
+        "description": "PIN 4 หลักที่ hash แล้ว ไม่ส่งออก API"
+      },
+      {
+        "name": "nickname",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "fullName",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "grade",
+        "type": "Grade",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "school",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "parentId",
+        "type": "string",
+        "required": false,
+        "description": "id ผู้ปกครองใน users"
+      },
+      {
+        "name": "pdpaConsentAt",
+        "type": "string",
+        "required": false,
+        "description": "เวลาที่ผู้ปกครองยินยอมให้เก็บข้อมูลเด็ก"
+      },
+      {
+        "name": "failedLogins",
+        "type": "number",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "lockedUntil",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "courses",
+    "name": "Course",
+    "description": "คอร์สเรียน",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "subject",
+        "type": "Subject",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "grades",
+        "type": "Grade[]",
+        "required": true,
+        "description": "ชั้นที่รับ เช่น [1,2]"
+      },
+      {
+        "name": "pricePerTerm",
+        "type": "number",
+        "required": true,
+        "description": "ค่าเรียนต่อเทอม (บาท)"
+      },
+      {
+        "name": "weekday",
+        "type": "number",
+        "required": true,
+        "description": "วันเรียน 0=อาทิตย์ ... 6=เสาร์"
+      },
+      {
+        "name": "startTime",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "endTime",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "teacherName",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "capacity",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "enrollments",
+    "name": "Enrollment",
+    "description": "การลงทะเบียนเรียนของนักเรียนในคอร์ส",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "studentId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "courseId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "term",
+        "type": "string",
+        "required": true,
+        "description": "เทอม เช่น 2026-T2"
+      },
+      {
+        "name": "status",
+        "type": "\"active\" | \"cancelled\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "attendance",
+    "name": "Attendance",
+    "description": "การเช็กชื่อ 1 คน 1 คาบ (id = courseId_date_studentId)",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "courseId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "studentId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "status",
+        "type": "\"present\" | \"late\" | \"absent\" | \"leave\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "checkedBy",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "checkedAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "invoices",
+    "name": "Invoice",
+    "description": "ใบแจ้งค่าเรียน",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "studentId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "dueDate",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "status",
+        "type": "\"unpaid\" | \"slip_uploaded\" | \"paid\" | \"void\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "paidDate",
+        "type": "string",
+        "required": false,
+        "description": "วันที่ยืนยันรับเงิน — ใช้คิดยอดรับรายเดือน/royalty"
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "slips",
+    "name": "Slip",
+    "description": "รูปสลิปโอนเงิน (id = invoiceId) เก็บเป็น data URL ที่ย่อแล้ว",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "dataUrl",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "uploadedBy",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "uploadedAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "exercises",
+    "name": "Exercise",
+    "description": "ชุดแบบฝึกหัด (โจทย์แต่งเองทั้งหมด)",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "subject",
+        "type": "Subject",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "grade",
+        "type": "Grade",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "topic",
+        "type": "string",
+        "required": true,
+        "description": "หัวข้อ เช่น \"การบวก\" ใช้สรุปจุดอ่อนรายคน"
+      },
+      {
+        "name": "questions",
+        "type": "Question[]",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "published",
+        "type": "boolean",
+        "required": true,
+        "description": "เผยแพร่ให้นักเรียนเห็นแล้ว"
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "attempts",
+    "name": "Attempt",
+    "description": "การทำแบบฝึกหัด 1 รอบ — คิดคะแนนฝั่ง server",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "studentId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "exerciseId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "answers",
+        "type": "(number | null)[]",
+        "required": true,
+        "description": "คำตอบที่เลือกแต่ละข้อ (null = ยังไม่ตอบ)"
+      },
+      {
+        "name": "status",
+        "type": "\"started\" | \"finished\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "correct",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "total",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "counted",
+        "type": "boolean",
+        "required": true,
+        "description": "false = เกินลิมิตรายวัน รอบนี้ไม่นับคะแนน"
+      },
+      {
+        "name": "xpEarned",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "coinsEarned",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "durationSec",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "startedAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "finishedAt",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "required": true,
+        "description": "วันที่ทำ (เวลาไทย)"
+      }
+    ]
+  },
+  {
+    "collection": "player_profiles",
+    "name": "PlayerProfile",
+    "description": "ข้อมูลเกมของนักเรียน (id = studentId) — เขียนได้จาก server เท่านั้น",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "xp",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "coins",
+        "type": "number",
+        "required": true,
+        "description": "เหรียญสำหรับแลกของรางวัลจากสถาบัน"
+      },
+      {
+        "name": "questionsAnswered",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "exercisesDone",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "perfectRuns",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "dayStreak",
+        "type": "number",
+        "required": true,
+        "description": "จำนวนวันที่เข้ามาฝึกติดกัน"
+      },
+      {
+        "name": "lastPlayedDate",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "todayQuestions",
+        "type": "number",
+        "required": true,
+        "description": "ตัวนับลิมิตรายวัน — รีเซ็ตเมื่อ lastPlayedDate เปลี่ยน"
+      },
+      {
+        "name": "todaySeconds",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "achievementIds",
+        "type": "string[]",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "ownedItemIds",
+        "type": "string[]",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "equipped",
+        "type": "Partial<Record<AvatarSlot, string>>",
+        "required": true,
+        "description": "ของแต่งตัวที่ใส่อยู่ แยกตามช่อง"
+      }
+    ]
+  },
+  {
+    "collection": "rewards",
+    "name": "Reward",
+    "description": "ของรางวัลที่แลกได้ด้วยเหรียญ",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "costCoins",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "costBaht",
+        "type": "number",
+        "required": true,
+        "description": "ต้นทุนจริง (บาท) ใช้คุมงบของรางวัลรายเดือน"
+      },
+      {
+        "name": "stock",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "redemptions",
+    "name": "Redemption",
+    "description": "คำขอแลกของรางวัล — ครูเป็นคนกดส่งมอบที่สถาบัน",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "studentId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "rewardId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "rewardName",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "costCoins",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "costBaht",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "status",
+        "type": "\"requested\" | \"handed_over\" | \"rejected\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "requestedAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "handledBy",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "handledDate",
+        "type": "string",
+        "required": false,
+        "description": "วันที่ส่งมอบ — ใช้คิดงบรายเดือน"
+      }
+    ]
+  },
+  {
+    "collection": "notifications",
+    "name": "Notification",
+    "description": "ข้อความแจ้งเตือนถึงผู้ปกครอง (LINE) — ถ้ายังไม่ตั้งค่า LINE จะค้างสถานะ queued",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "parentId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "kind",
+        "type": "\"attendance\" | \"invoice\" | \"payment\" | \"weekly\" | \"general\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "status",
+        "type": "\"sent\" | \"queued\" | \"failed\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "error",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  }
+]
