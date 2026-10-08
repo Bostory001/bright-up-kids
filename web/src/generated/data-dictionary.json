@@ -931,5 +931,201 @@
         "description": ""
       }
     ]
+  },
+  {
+    "collection": "settings",
+    "name": "Settings",
+    "description": "ค่าตั้งของสถาบัน (มีเอกสารเดียว id = main) แก้ได้เฉพาะเจ้าของ",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "dailyLimitQuestions",
+        "type": "number",
+        "required": true,
+        "description": "จำนวนโจทย์ต่อวันที่นับคะแนน"
+      },
+      {
+        "name": "dailyLimitMinutes",
+        "type": "number",
+        "required": true,
+        "description": "เวลาทำโจทย์ต่อวันที่นับคะแนน (นาที)"
+      },
+      {
+        "name": "rewardBudgetBaht",
+        "type": "number",
+        "required": true,
+        "description": "งบของรางวัลต่อเดือน (บาท)"
+      },
+      {
+        "name": "royaltyPercent",
+        "type": "number",
+        "required": true,
+        "description": "อัตรา royalty ที่ส่ง HQ เป็นเปอร์เซ็นต์ของยอดรับค่าเรียน"
+      }
+    ]
+  },
+  {
+    "collection": "leads",
+    "name": "Lead",
+    "description": "ผู้สนใจ / ขอทดลองเรียนฟรี จากฟอร์ม /trial หรือครูกรอกเอง",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "parentName",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "childNickname",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "grade",
+        "type": "Grade",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "required": false,
+        "description": "รู้จักสถาบันจากช่องทางไหน เช่น Facebook, ใบปลิว, เพื่อนแนะนำ"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "trialDate",
+        "type": "string",
+        "required": false,
+        "description": "วันที่นัดทดลองเรียน"
+      },
+      {
+        "name": "status",
+        "type": "\"new\" | \"contacted\" | \"booked\" | \"attended\" | \"enrolled\" | \"lost\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "consentAt",
+        "type": "string",
+        "required": true,
+        "description": "เวลาที่ผู้ปกครองยินยอมให้ติดต่อกลับ"
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "makeups",
+    "name": "Makeup",
+    "description": "นัดเรียนชดเชยของคาบที่ขาด/ลา (id = attendanceId)",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "studentId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "courseId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "missedDate",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "makeupDate",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "status",
+        "type": "\"planned\" | \"done\" | \"cancelled\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "assignments",
+    "name": "Assignment",
+    "description": "การบ้าน: มอบหมายชุดแบบฝึกหัดให้นักเรียนทั้งคอร์ส",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "courseId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "exerciseId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "dueDate",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
   }
 ]

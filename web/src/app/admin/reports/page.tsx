@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button, Card, ErrorText, Field, Input, Select } from "@/components/ui";
 import { api, todayStr, useLoad } from "@/lib/client/api";
+import { downloadXlsx } from "@/lib/client/xlsx";
 
 type Row = Record<string, string | number>;
 interface Report {
@@ -106,7 +107,20 @@ export default function ReportsPage() {
               ))}
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={() => downloadCsv(`${meta?.label ?? dataset}_${todayStr()}`, columns, rows)}>Export Excel (CSV)</Button>
+              <Button
+                onClick={() =>
+                  downloadXlsx(
+                    `${meta?.label ?? dataset}_${todayStr()}`,
+                    columns.map((c) => c.label),
+                    rows.map((r) => columns.map((c) => r[c.key] ?? "")),
+                  )
+                }
+              >
+                Export Excel (.xlsx)
+              </Button>
+              <Button variant="ghost" onClick={() => downloadCsv(`${meta?.label ?? dataset}_${todayStr()}`, columns, rows)}>
+                CSV
+              </Button>
               <Button variant="ghost" onClick={() => window.print()}>
                 พิมพ์ / PDF
               </Button>

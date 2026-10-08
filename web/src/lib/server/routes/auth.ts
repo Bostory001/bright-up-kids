@@ -16,7 +16,7 @@ import {
   verifyTotp,
 } from "../auth";
 import { OWNER, route, STAFF, staffUser } from "../router";
-import { HttpError, newId, nowIso, oneOf, optStr, randomDigits, str } from "../util";
+import { HttpError, newId, nowIso, oneOf, optStr, randomDigits, rateLimit, str } from "../util";
 
 const ANY_USER = ["owner", "teacher", "parent"] as const;
 const normalize = (username: string) => username.trim().toLowerCase();
@@ -44,7 +44,8 @@ route("POST", "setup", "public", async ({ store, body, setSession }) => {
   return { ok: true };
 });
 
-route("POST", "auth/login", "public", async ({ store, body, setSession }) => {
+route("POST", "auth/login", "public", async ({ store, body, setSession, req }) => {
+  rateLimit(req, "login", 40, 10 * 60_000);
   const username = normalize(str(body.username, "ชื่อเข้าระบบ", 50));
   const password = str(body.password, "รหัสผ่าน", 100);
   const [user] = await store.list<AppUser>("users", { username });
@@ -69,7 +70,8 @@ route("POST", "auth/login", "public", async ({ store, body, setSession }) => {
 });
 
 // นักเรียน: รหัสนักเรียน (หรือสแกน QR บนบัตร) + PIN 4 หลัก
-route("POST", "auth/student", "public", async ({ store, body, setSession }) => {
+route("POST", "auth/student", "public", async ({ store, body, setSession, req }) => {
+  rateLimit(req, "student-login", 60, 10 * 60_000);
   const code = str(body.code, "รหัสนักเรียน", 20).toUpperCase();
   const pin = str(body.pin, "PIN", 10);
   const [student] = await store.list<Student>("students", { code });

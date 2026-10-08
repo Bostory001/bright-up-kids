@@ -10,6 +10,18 @@ export class HttpError extends Error {
   }
 }
 
+// จำกัดความถี่ต่อ IP แบบง่าย (อยู่ในหน่วยความจำของ instance — บน Vercel แต่ละ instance นับแยกกัน)
+// การล็อกบัญชีเมื่อผิด 5 ครั้งยังเป็นด่านหลัก อันนี้กันการไล่เดาข้ามหลายบัญชี
+const hits = new Map<string, number[]>();
+
+export function rateLimit(req: Request, bucket: string, max: number, windowMs: number) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "local";
+  const key = `${bucket}:${ip}`;
+  const recent = (hits.get(key) ?? []).filter((t) => t > Date.now() - windowMs);
+  if (recent.length >= max) throw new HttpError(429, "ลองบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่");
+  hits.set(key, [...recent, Date.now()]);
+}
+
 export function newId(): string {
   return randomBytes(9).toString("base64url");
 }

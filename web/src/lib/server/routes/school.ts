@@ -1,5 +1,5 @@
 import "server-only";
-import { MONTHLY_REWARD_BUDGET_BAHT } from "../../gamification";
+import { getSettings } from "../settings";
 import type { AppUser, Application, Attendance, Course, Enrollment, Grade, Invoice, Redemption, Slip, Student } from "../../types";
 import { hashSecret, publicStudent } from "../auth";
 import { notifyParent } from "../notify";
@@ -398,6 +398,6 @@ route("GET", "admin/dashboard", STAFF, async ({ store }) => {
     slipsToCheck: invoices.filter((i) => i.status === "slip_uploaded").length,
     pendingRedemptions: redemptions.filter((r) => r.status === "requested").length,
     rewardSpent: redemptions.filter((r) => r.status === "handed_over" && r.handledDate?.startsWith(month)).reduce((s, r) => s + r.costBaht, 0),
-    rewardBudget: MONTHLY_REWARD_BUDGET_BAHT,
+    rewardBudget: (await getSettings(store)).rewardBudgetBaht,
   };
 });

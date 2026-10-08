@@ -110,7 +110,12 @@ export async function createSession(role: Role, subjectId: string) {
     subjectId,
     expiresAt: new Date(Date.now() + maxAge * 1000).toISOString(),
   };
-  await (await getStore()).set("auth_sessions", session);
+  const store = await getStore();
+  // เก็บกวาด session ที่หมดอายุของคนนี้ ไม่ให้สะสม
+  for (const old of await store.list<AuthSession>("auth_sessions", { subjectId })) {
+    if (Date.parse(old.expiresAt) < Date.now()) await store.remove("auth_sessions", old.id);
+  }
+  await store.set("auth_sessions", session);
   return { token, maxAge };
 }
 

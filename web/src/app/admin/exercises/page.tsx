@@ -32,6 +32,7 @@ export default function ExercisesPage() {
   const [aiCount, setAiCount] = useState(5);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
+  const [notice, setNotice] = useState("");
 
   async function run(fn: () => Promise<void>) {
     setFormError("");
@@ -172,9 +173,27 @@ export default function ExercisesPage() {
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">แบบฝึกหัด</h1>
-        <Button onClick={() => setEditing(EMPTY)}>สร้างชุดใหม่</Button>
+        <div className="flex gap-2">
+          {me.role === "owner" && (
+            <Button
+              variant="ghost"
+              disabled={busy}
+              onClick={() =>
+                run(async () => {
+                  const res = await api("admin/exercises/seed", {});
+                  setNotice(`นำเข้า ${res.added} ชุด เป็นร่าง — ตรวจแล้วกดเผยแพร่ทีละชุด`);
+                  reload();
+                })
+              }
+            >
+              นำเข้าชุดโจทย์เริ่มต้น
+            </Button>
+          )}
+          <Button onClick={() => setEditing(EMPTY)}>สร้างชุดใหม่</Button>
+        </div>
       </div>
       <ErrorText>{error || formError}</ErrorText>
+      {notice && <p className="rounded-xl bg-green-50 p-3 text-sm text-green-700">{notice}</p>}
       <Table head={["ชุด", "วิชา", "ชั้น", "หัวข้อ", "ข้อ", "สถานะ", ""]}>
         {data?.exercises.map((e) => (
           <tr key={e.id}>

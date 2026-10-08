@@ -221,6 +221,79 @@ last = (await kid.call("play/finish", { attemptId: run.attemptId })).data;
 const after = (await kid.call("play/home")).data;
 check("เกินลิมิต: เล่นได้แต่ไม่ได้ XP/เหรียญ", last.counted === false && last.xpEarned === 0 && after.profile.xp === before.profile.xp && after.profile.coins === before.profile.coins, JSON.stringify(last));
 
+// ---------- R13: ตั้งค่า ----------
+check("ครูแก้ตั้งค่าไม่ได้ → 403", (await teacher.call("admin/settings", { dailyLimitQuestions: 5 }, "PATCH")).status === 403);
+r = await owner.call("admin/settings", { dailyLimitQuestions: 200, dailyLimitMinutes: 180, rewardBudgetBaht: 5000, royaltyPercent: 20 }, "PATCH");
+check("เจ้าของแก้ตั้งค่า", r.data.settings?.dailyLimitQuestions === 200);
+check("เพิ่มลิมิตเป็น 200 → เด็กกลับมาได้คะแนน", (await kid.call("play/home")).data.limitReached === false);
+check("งบใหม่ 5,000 มีผลกับหน้าของรางวัล", (await teacher.call("admin/redemptions")).data.budget === 5000);
+r = await owner.call("admin/reports", { dataset: "royalty", from: `${today.slice(0, 8)}01`, to: today });
+check("royalty ใช้อัตราใหม่ 20% → 700", r.data.rows?.[0]?.royalty === 700, JSON.stringify(r.data.rows));
+
+// ---------- R14: ชุดโจทย์เริ่มต้น ----------
+check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
+r = await owner.call("admin/exercises/seed", {});
+check("นำเข้าชุดโจทย์เริ่มต้น 57 ชุด", r.data.added === 57, String(r.data.added));
+check("นำเข้าซ้ำ → 0 ชุด", (await owner.call("admin/exercises/seed", {})).data.added === 0);
+const all = (await owner.call("admin/exercises")).data.exercises;
+const seeded = all.filter((e) => !["บวกเลข", "ของ ป.5", "ยังร่าง"].includes(e.title));
+const badShape = seeded.flatMap((e) => e.questions.filter((q) => q.choices.length !== 4 || new Set(q.choices).size !== 4 || !(q.answerIndex >= 0 && q.answerIndex < 4)).map((q) => `${e.title}: ${q.prompt}`));
+check("ทุกข้อมี 4 ตัวเลือกไม่ซ้ำ และมีคำตอบ", badShape.length === 0, badShape.slice(0, 3).join(" | "));
+check("ชุดเริ่มต้นเป็นร่างทั้งหมด และคณิตมีชุดละ 10 ข้อ", seeded.every((e) => !e.published) && seeded.filter((e) => e.subject === "math").every((e) => e.questions.length === 10));
+// ตรวจคำตอบเลขคณิตพื้นฐานซ้ำด้วยการคำนวณอิสระ
+let arithmetic = 0;
+const wrongMath = [];
+for (const e of seeded.filter((x) => x.subject === "math")) {
+  for (const q of e.questions) {
+    const m = q.prompt.replace(/,/g, "").match(/^([\d.]+) ([+−×÷]) ([\d.]+) = \?$/);
+    if (!m) continue;
+    const [a, b] = [Number(m[1]), Number(m[3])];
+    const expected = { "+": a + b, "−": a - b, "×": a * b, "÷": a / b }[m[2]];
+    arithmetic++;
+    if (Math.abs(Number(q.choices[q.answerIndex].replace(/,/g, "")) - expected) > 1e-9) wrongMath.push(`${q.prompt} → ${q.choices[q.answerIndex]}`);
+  }
+}
+check(`เฉลยเลขคณิต ${arithmetic} ข้อ ตรงกับที่คำนวณเอง`, arithmetic > 150 && wrongMath.length === 0, wrongMath.slice(0, 3).join(" | "));
+
+// ---------- R16: ผู้สนใจ / ชดเชย / การบ้าน ----------
+check("ขอทดลองเรียนโดยไม่ยินยอม → 400", (await anon.call("public/trial", { parentName: "ก", phone: "0811111111", childNickname: "ข", grade: 3 })).status === 400);
+check("ขอทดลองเรียน", (await anon.call("public/trial", { parentName: "คุณสนใจ", phone: "0811111111", childNickname: "ต้นกล้า", grade: 3, source: "Facebook", consent: true })).status === 200);
+check("คนนอกดูรายชื่อผู้สนใจไม่ได้ → 401", (await anon.call("admin/leads")).status === 401);
+r = await teacher.call("admin/leads");
+const lead = r.data.leads?.[0];
+check("ครูเห็นผู้สนใจ", lead?.childNickname === "ต้นกล้า" && r.data.funnel.total === 1);
+await teacher.call(`admin/leads/${lead.id}`, { status: "booked", trialDate: today, note: "นัดเสาร์นี้" }, "PATCH");
+r = await teacher.call("admin/leads");
+check("อัปเดตสถานะ + กรวยการขาย", r.data.leads[0].status === "booked" && r.data.funnel.booked === 1 && r.data.funnel.enrolled === 0);
+check("ลบข้อมูลผู้สนใจ", (await teacher.call(`admin/leads/${lead.id}`, {}, "DELETE")).status === 200 && (await teacher.call("admin/leads")).data.leads.length === 0);
+
+const yesterday = new Date(Date.parse(today) - 86_400_000).toISOString().slice(0, 10);
+await teacher.call("admin/attendance", { courseId, date: yesterday, marks: [{ studentId: student.id, status: "absent" }] });
+r = await teacher.call("admin/makeups");
+check("คาบที่ขาดขึ้นในรายการรอชดเชย", r.data.missed?.length === 1 && r.data.missed[0].date === yesterday);
+check("นัดชดเชย", (await teacher.call("admin/makeups", { attendanceId: r.data.missed[0].attendanceId, makeupDate: today })).status === 200);
+r = await teacher.call("admin/makeups");
+check("นัดแล้วหายจากรายการรอ", r.data.missed.length === 0 && r.data.makeups[0].status === "planned");
+await teacher.call(`admin/makeups/${r.data.makeups[0].id}`, { status: "done" }, "PATCH");
+check("บันทึกมาเรียนชดเชยแล้ว", (await teacher.call("admin/makeups")).data.makeups[0].status === "done");
+
+const draft = all.find((e) => e.title === "ยังร่าง");
+const grade5 = all.find((e) => e.title === "ของ ป.5");
+check("สั่งการบ้านด้วยชุดที่ยังไม่เผยแพร่ → 400", (await teacher.call("admin/assignments", { courseId, exerciseId: draft.id, dueDate: today })).status === 400);
+check("สั่งการบ้านผิดชั้น → 400", (await teacher.call("admin/assignments", { courseId, exerciseId: grade5.id, dueDate: today })).status === 400);
+check("สั่งการบ้าน", (await teacher.call("admin/assignments", { courseId, exerciseId, dueDate: today })).status === 200);
+r = await kid.call("play/home");
+check("นักเรียนเห็นป้ายการบ้าน", r.data.exercises.find((e) => e.id === exerciseId)?.homeworkDue === today);
+r = await teacher.call("admin/assignments");
+check("ครูเห็นว่ายังไม่มีใครทำ", r.data.assignments[0].doneCount === 0 && r.data.assignments[0].notDone[0] === "มายด์");
+run = await playRun([1, 0, 2]);
+await kid.call("play/finish", { attemptId: run.attemptId });
+r = await teacher.call("admin/assignments");
+check("ทำแล้ว → ครูเห็น 1/1 และป้ายการบ้านหาย", r.data.assignments[0].doneCount === 1 && (await kid.call("play/home")).data.exercises.find((e) => e.id === exerciseId).homeworkDue === null);
+
+// ---------- R15: เข้าด้วย LINE (ยังไม่ตั้งค่า) ----------
+check("LIFF ยังไม่ตั้งค่า → config null, auth 503", (await anon.call("public/config")).data.liffId === null && (await anon.call("auth/line", { idToken: "x" })).status === 503);
+
 // ---------- รีเซ็ต / ปิดบัญชี ----------
 const teacherId = (await owner.call("admin/users")).data.users.find((u) => u.username === "kru-a").id;
 await owner.call(`admin/users/${teacherId}/reset`, {});

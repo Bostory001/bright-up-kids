@@ -1,4 +1,4 @@
-import type { Achievement, AvatarItem, PlayerProfile } from "./types";
+import type { Achievement, AvatarItem, PlayerProfile, Settings } from "./types";
 
 // กติกาเกมทั้งหมดอยู่ไฟล์นี้ไฟล์เดียว (pure function) — ปรับสมดุลที่นี่
 // เรียกจาก server เท่านั้นตอนคิดคะแนน (lib/server/play.ts) ฝั่ง client ใช้แค่แสดงผล
@@ -7,24 +7,29 @@ export const XP_PER_CORRECT = 10;
 export const XP_PERFECT_BONUS = 20;
 export const COINS_PER_EXERCISE = 5;
 
+// ค่าเริ่มต้นของสถาบัน — เจ้าของแก้ได้ที่หน้า "ตั้งค่า" (เก็บใน collection settings)
 // ลิมิตรายวัน: ถึงเพดานข้อใดข้อหนึ่งแล้วยังทำต่อได้ แต่ไม่นับ XP/เหรียญ/สถิติ
-export const DAILY_LIMIT_SECONDS = 3 * 60 * 60;
-export const DAILY_LIMIT_QUESTIONS = 100; // ค่าเริ่มต้น รอเจ้าของยืนยัน
+export const DEFAULT_SETTINGS: Settings = {
+  id: "main",
+  dailyLimitQuestions: 100,
+  dailyLimitMinutes: 180,
+  rewardBudgetBaht: 3000,
+  royaltyPercent: 23, // ตรวจกับสัญญาแฟรนไชส์ก่อนใช้จริง
+};
 
-// งบของรางวัล: ครูอนุมัติแลกได้ไม่เกินยอดนี้ต่อเดือน
-export const MONTHLY_REWARD_BUDGET_BAHT = 3000;
+export type Limits = Pick<Settings, "dailyLimitQuestions" | "dailyLimitMinutes">;
 
-// ค่า royalty ที่ต้องส่ง HQ คิดจากยอดรับค่าเรียน — ตรวจกับสัญญาก่อนใช้จริง
-export const ROYALTY_RATE = 0.23;
-
-export function canApproveRedemption(spentThisMonthBaht: number, rewardCostBaht: number): boolean {
-  return spentThisMonthBaht + rewardCostBaht <= MONTHLY_REWARD_BUDGET_BAHT;
+export function canApproveRedemption(spentThisMonthBaht: number, rewardCostBaht: number, budgetBaht: number): boolean {
+  return spentThisMonthBaht + rewardCostBaht <= budgetBaht;
 }
 
-export function isDailyLimitReached(p: PlayerProfile, today: string): boolean {
+export function isDailyLimitReached(p: PlayerProfile, today: string, limits: Limits = DEFAULT_SETTINGS): boolean {
   if (p.lastPlayedDate !== today) return false;
-  return p.todaySeconds >= DAILY_LIMIT_SECONDS || p.todayQuestions >= DAILY_LIMIT_QUESTIONS;
+  return p.todaySeconds >= limits.dailyLimitMinutes * 60 || p.todayQuestions >= limits.dailyLimitQuestions;
 }
+
+// เหรียญที่เด็ก 1 คนได้โดยประมาณต่อชุด (เหรียญประจำชุด + achievement เฉลี่ย) ใช้ในตัวช่วยคำนวณราคา
+export const EST_COINS_PER_RUN = 7;
 
 // เลเวล n ต้องใช้ XP สะสม 50 * (n-1)^2 → Lv2=50, Lv3=200, Lv4=450, Lv5=800
 export function levelFromXp(xp: number): number {
@@ -105,12 +110,19 @@ export interface RunResult {
 }
 
 // คิดผลหลังทำแบบฝึกหัดจบ 1 ชุด: XP, เหรียญ, streak, achievement ใหม่, ไอเทมที่ปลดล็อก
-export function applyRun(prev: PlayerProfile, correct: number, total: number, durationSec: number, today: string): RunResult {
+export function applyRun(
+  prev: PlayerProfile,
+  correct: number,
+  total: number,
+  durationSec: number,
+  today: string,
+  limits: Limits = DEFAULT_SETTINGS,
+): RunResult {
   const sameDay = prev.lastPlayedDate === today;
   const todayQuestions = (sameDay ? prev.todayQuestions : 0) + total;
   const todaySeconds = (sameDay ? prev.todaySeconds : 0) + durationSec;
 
-  if (isDailyLimitReached(prev, today)) {
+  if (isDailyLimitReached(prev, today, limits)) {
     return {
       profile: { ...prev, todayQuestions, todaySeconds },
       counted: false,

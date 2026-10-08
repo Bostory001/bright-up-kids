@@ -4,16 +4,15 @@ import {
   applyRun,
   AVATAR_ITEMS,
   canApproveRedemption,
-  DAILY_LIMIT_QUESTIONS,
   isDailyLimitReached,
   levelProgress,
-  MONTHLY_REWARD_BUDGET_BAHT,
   newProfile,
   powerTitle,
 } from "../../gamification";
-import type { Attempt, AvatarSlot, Exercise, Grade, PlayerProfile, Question, Redemption, Reward, Student } from "../../types";
+import type { Assignment, Attempt, AvatarSlot, Enrollment, Exercise, Grade, PlayerProfile, Question, Redemption, Reward, Student } from "../../types";
 import { omit } from "../auth";
 import { type Ctx, OWNER, route, STAFF, staffUser, studentOf } from "../router";
+import { getSettings } from "../settings";
 import type { Store } from "../store";
 import { bkkDate, HttpError, newId, nowIso, num, oneOf, optStr, str } from "../util";
 
@@ -83,23 +82,35 @@ route("DELETE", "admin/exercises/:id", OWNER, async ({ store, params }) => {
 route("GET", "play/home", STUDENT, async (ctx) => {
   const student = studentOf(ctx);
   const today = bkkDate();
-  const [profile, exercises, attempts] = await Promise.all([
+  const [profile, exercises, attempts, settings, enrollments, assignments] = await Promise.all([
     getProfile(ctx.store, student.id),
     ctx.store.list<Exercise>("exercises", { grade: student.grade, published: true }),
     ctx.store.list<Attempt>("attempts", { studentId: student.id, status: "finished" }),
+    getSettings(ctx.store),
+    ctx.store.list<Enrollment>("enrollments", { studentId: student.id, status: "active" }),
+    ctx.store.list<Assignment>("assignments"),
   ]);
   const progress = levelProgress(profile.xp);
+  // การบ้านของคอร์สที่ลงไว้ ที่ยังไม่ได้ทำหลังครูสั่ง
+  const myCourses = new Set(enrollments.map((e) => e.courseId));
+  const homeworkDue = new Map<string, string>();
+  for (const a of assignments) {
+    if (!myCourses.has(a.courseId)) continue;
+    const done = attempts.some((t) => t.exerciseId === a.exerciseId && t.startedAt >= a.createdAt);
+    if (!done) homeworkDue.set(a.exerciseId, a.dueDate);
+  }
   return {
     student: { nickname: student.nickname, code: student.code, grade: student.grade },
     profile,
     level: { ...progress, title: powerTitle(progress.level) },
-    limitReached: isDailyLimitReached(profile, today),
+    limitReached: isDailyLimitReached(profile, today, settings),
     todayQuestions: profile.lastPlayedDate === today ? profile.todayQuestions : 0,
-    dailyLimitQuestions: DAILY_LIMIT_QUESTIONS,
+    dailyLimitQuestions: settings.dailyLimitQuestions,
     exercises: exercises.map((e) => {
       const mine = attempts.filter((a) => a.exerciseId === e.id);
       return {
         id: e.id,
+        homeworkDue: homeworkDue.get(e.id) ?? null,
         title: e.title,
         subject: e.subject,
         topic: e.topic,
@@ -180,9 +191,10 @@ route("POST", "play/finish", STUDENT, async (ctx) => {
   const durationSec = Math.min(MAX_RUN_SECONDS, Math.max(0, Math.round((Date.parse(finishedAt) - Date.parse(closed.startedAt)) / 1000)));
   const today = bkkDate();
 
+  const settings = await getSettings(ctx.store);
   let run = applyRun(newProfile(student.id), 0, 0, 0, today);
   const profile = await ctx.store.update<PlayerProfile>("player_profiles", student.id, (cur) => {
-    run = applyRun(cur ?? newProfile(student.id), correct, closed.total, durationSec, today);
+    run = applyRun(cur ?? newProfile(student.id), correct, closed.total, durationSec, today, settings);
     return run.profile;
   });
   await ctx.store.set("attempts", { ...closed, correct, durationSec, counted: run.counted, xpEarned: run.xpEarned, coinsEarned: run.coinsEarned });
@@ -296,7 +308,7 @@ route("GET", "admin/redemptions", STAFF, async ({ store }) => {
   const [redemptions, students] = await Promise.all([store.list<Redemption>("redemptions"), store.list<Student>("students")]);
   return {
     spent: spentThisMonth(redemptions),
-    budget: MONTHLY_REWARD_BUDGET_BAHT,
+    budget: (await getSettings(store)).rewardBudgetBaht,
     redemptions: redemptions
       .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt))
       .slice(0, 200)
@@ -311,8 +323,9 @@ route("POST", "admin/redemptions/:id/handover", STAFF, async (ctx) => {
   const all = await ctx.store.list<Redemption>("redemptions");
   const target = all.find((r) => r.id === ctx.params.id);
   if (!target || target.status !== "requested") throw new HttpError(400, "รายการนี้ดำเนินการไปแล้ว");
-  if (!canApproveRedemption(spentThisMonth(all), target.costBaht)) {
-    throw new HttpError(400, `เกินงบของรางวัลเดือนนี้ (${MONTHLY_REWARD_BUDGET_BAHT.toLocaleString()} บาท) — ส่งมอบเดือนหน้าหรือปฏิเสธเพื่อคืนเหรียญ`);
+  const budget = (await getSettings(ctx.store)).rewardBudgetBaht;
+  if (!canApproveRedemption(spentThisMonth(all), target.costBaht, budget)) {
+    throw new HttpError(400, `เกินงบของรางวัลเดือนนี้ (${budget.toLocaleString()} บาท) — ส่งมอบเดือนหน้าหรือปฏิเสธเพื่อคืนเหรียญ`);
   }
   const done = await ctx.store.update<Redemption>("redemptions", target.id, (r) =>
     r && r.status === "requested" ? { ...r, status: "handed_over", handledBy: staffUser(ctx).id, handledDate: bkkDate() } : null,

@@ -289,6 +289,69 @@ export interface Notification {
   createdAt: string;
 }
 
+/**
+ * ค่าตั้งของสถาบัน (มีเอกสารเดียว id = main) แก้ได้เฉพาะเจ้าของ
+ * @collection settings
+ */
+export interface Settings {
+  id: string;
+  /** จำนวนโจทย์ต่อวันที่นับคะแนน */
+  dailyLimitQuestions: number;
+  /** เวลาทำโจทย์ต่อวันที่นับคะแนน (นาที) */
+  dailyLimitMinutes: number;
+  /** งบของรางวัลต่อเดือน (บาท) */
+  rewardBudgetBaht: number;
+  /** อัตรา royalty ที่ส่ง HQ เป็นเปอร์เซ็นต์ของยอดรับค่าเรียน */
+  royaltyPercent: number;
+}
+
+/**
+ * ผู้สนใจ / ขอทดลองเรียนฟรี จากฟอร์ม /trial หรือครูกรอกเอง
+ * @collection leads
+ */
+export interface Lead {
+  id: string;
+  parentName: string;
+  phone: string;
+  childNickname: string;
+  grade: Grade;
+  /** รู้จักสถาบันจากช่องทางไหน เช่น Facebook, ใบปลิว, เพื่อนแนะนำ */
+  source?: string;
+  note?: string;
+  /** วันที่นัดทดลองเรียน */
+  trialDate?: string;
+  status: "new" | "contacted" | "booked" | "attended" | "enrolled" | "lost";
+  /** เวลาที่ผู้ปกครองยินยอมให้ติดต่อกลับ */
+  consentAt: string;
+  createdAt: string;
+}
+
+/**
+ * นัดเรียนชดเชยของคาบที่ขาด/ลา (id = attendanceId)
+ * @collection makeups
+ */
+export interface Makeup {
+  id: string;
+  studentId: string;
+  courseId: string;
+  missedDate: string;
+  makeupDate: string;
+  status: "planned" | "done" | "cancelled";
+  createdAt: string;
+}
+
+/**
+ * การบ้าน: มอบหมายชุดแบบฝึกหัดให้นักเรียนทั้งคอร์ส
+ * @collection assignments
+ */
+export interface Assignment {
+  id: string;
+  courseId: string;
+  exerciseId: string;
+  dueDate: string;
+  createdAt: string;
+}
+
 // ---------- ใช้ในโค้ดเท่านั้น ไม่ใช่ collection ----------
 
 export interface AvatarItem {

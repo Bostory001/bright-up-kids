@@ -31,9 +31,14 @@ export default function Home() {
           </Link>
         ))}
       </div>
-      <Link href="/enroll" className="text-center font-semibold text-amber-700 underline">
-        สมัครเรียนออนไลน์
-      </Link>
+      <div className="flex justify-center gap-6 font-semibold text-amber-700">
+        <Link href="/trial" className="underline">
+          ทดลองเรียนฟรี
+        </Link>
+        <Link href="/enroll" className="underline">
+          สมัครเรียนออนไลน์
+        </Link>
+      </div>
     </main>
   );
 }

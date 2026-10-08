@@ -12,7 +12,7 @@ interface Home {
   limitReached: boolean;
   todayQuestions: number;
   dailyLimitQuestions: number;
-  exercises: { id: string; title: string; subject: string; topic: string; count: number; best: number | null }[];
+  exercises: { id: string; title: string; subject: string; topic: string; count: number; best: number | null; homeworkDue: string | null }[];
   achievements: { id: string; name: string; description: string; emoji: string; coins: number; done: boolean }[];
   items: { id: string; slot: AvatarSlot; name: string; emoji: string; owned: boolean; unlock: { level?: number; achievementId?: string } }[];
 }
@@ -43,6 +43,13 @@ interface Shop {
 const SUBJECT_EMOJI: Record<string, string> = { math: "🔢", thai: "📖", english: "🔤", science: "🔬" };
 const RED = { requested: "รอรับที่สถาบัน", handed_over: "รับแล้ว", rejected: "ไม่อนุมัติ (คืนเหรียญแล้ว)" };
 const BIG = "rounded-3xl p-4 text-xl font-bold shadow-md active:scale-95 disabled:opacity-40";
+// แนะนำการใช้งานครั้งแรก — แสดงจนกว่าจะทำแบบฝึกหัดชุดแรกเสร็จ
+const TUTORIAL = [
+  { emoji: "✏️", text: "เลือกแบบฝึกหัด แล้วแตะคำตอบที่คิดว่าถูก" },
+  { emoji: "⚡", text: "ตอบถูกได้พลัง (XP) พลังเต็มหลอดแล้วเลเวลอัป!" },
+  { emoji: "👕", text: "เลเวลสูงขึ้น ได้ชุดและสัตว์เลี้ยงใหม่ไว้แต่งตัว" },
+  { emoji: "🎁", text: "เก็บเหรียญ 🪙 ไว้แลกของรางวัลจริงที่สถาบัน" },
+];
 
 export default function PlayPage() {
   const me = useLoad<{ me: { role: string } | null }>("me");
@@ -54,6 +61,7 @@ export default function PlayPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
 
   useEffect(() => {
     if (me.data && !isStudent) go("/play/login");
@@ -203,6 +211,21 @@ export default function PlayPage() {
         </div>
       </section>
 
+      {h.profile.exercisesDone === 0 && tutorialStep < TUTORIAL.length && (
+        <section className="rounded-3xl border-4 border-amber-300 bg-white p-5 text-center shadow-md">
+          <div className="text-6xl">{TUTORIAL[tutorialStep].emoji}</div>
+          <p className="mt-2 text-xl font-bold">{TUTORIAL[tutorialStep].text}</p>
+          <div className="mt-3 flex justify-center gap-2">
+            {TUTORIAL.map((t, i) => (
+              <span key={t.emoji} className={`h-3 w-3 rounded-full ${i === tutorialStep ? "bg-amber-500" : "bg-gray-300"}`} />
+            ))}
+          </div>
+          <button onClick={() => setTutorialStep(tutorialStep + 1)} className={`${BIG} mt-3 w-full bg-amber-500 text-white`}>
+            {tutorialStep + 1 < TUTORIAL.length ? "ต่อไป →" : "เริ่มเลย! 🚀"}
+          </button>
+        </section>
+      )}
+
       <nav className="grid grid-cols-3 gap-2">
         {(
           [
@@ -229,10 +252,17 @@ export default function PlayPage() {
           )}
           <section className="grid gap-3">
             {h.exercises.length === 0 && <p className="text-center text-gray-500">ยังไม่มีแบบฝึกหัดสำหรับ ป.{h.student.grade}</p>}
-            {h.exercises.map((ex) => (
-              <button key={ex.id} disabled={busy} onClick={() => start(ex.id)} className="flex items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-sm active:scale-95">
+            {/* การบ้านขึ้นก่อน */}
+            {[...h.exercises.filter((ex) => ex.homeworkDue), ...h.exercises.filter((ex) => !ex.homeworkDue)].map((ex) => (
+              <button
+                key={ex.id}
+                disabled={busy}
+                onClick={() => start(ex.id)}
+                className={`flex items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-sm active:scale-95 ${ex.homeworkDue ? "border-4 border-pink-300" : ""}`}
+              >
                 <span className="text-4xl">{SUBJECT_EMOJI[ex.subject]}</span>
                 <span className="flex-1">
+                  {ex.homeworkDue && <span className="block text-sm font-bold text-pink-600">📌 การบ้าน ส่งภายใน {ex.homeworkDue}</span>}
                   <span className="block text-lg font-bold">{ex.title}</span>
                   <span className="text-sm text-gray-500">
                     {ex.topic} · {ex.count} ข้อ

@@ -43,6 +43,9 @@ export default function LoginPage() {
           <ErrorText>{error}</ErrorText>
           <Button type="submit">{needsCode ? "ยืนยัน" : "เข้าสู่ระบบ"}</Button>
         </form>
+        <Link href="/parent/line" className="mt-3 block rounded-xl bg-green-500 py-2 text-center text-sm font-semibold text-white">
+          ผู้ปกครองเข้าด้วย LINE
+        </Link>
         <p className="mt-4 text-center text-sm text-gray-500">
           นักเรียนเข้าที่ <Link href="/play" className="text-amber-700 underline">หน้านักเรียน</Link>
         </p>

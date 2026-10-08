@@ -1,5 +1,5 @@
 import "server-only";
-import { ROYALTY_RATE } from "../../gamification";
+import { getSettings } from "../settings";
 import type { AppUser, Attempt, Attendance, Course, Enrollment, Exercise, Invoice, Redemption, Student } from "../../types";
 import { route, STAFF } from "../router";
 import type { Store } from "../store";
@@ -151,12 +151,13 @@ export const DATASETS: Record<string, Dataset> = {
         const m = byMonth.get(month) ?? { count: 0, amount: 0 };
         byMonth.set(month, { count: m.count + 1, amount: m.amount + i.amount });
       }
+      const { royaltyPercent } = await getSettings(store);
       return {
-        columns: [col("month", "เดือน"), col("count", "จำนวนใบ"), col("amount", "ยอดรับ"), col("royalty", `royalty ${ROYALTY_RATE * 100}%`), col("net", "คงเหลือ")],
+        columns: [col("month", "เดือน"), col("count", "จำนวนใบ"), col("amount", "ยอดรับ"), col("royalty", `royalty ${royaltyPercent}%`), col("net", "คงเหลือ")],
         rows: [...byMonth.entries()]
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([month, m]) => {
-            const royalty = Math.round(m.amount * ROYALTY_RATE * 100) / 100;
+            const royalty = Math.round(m.amount * royaltyPercent) / 100;
             return { month, count: m.count, amount: m.amount, royalty, net: m.amount - royalty };
           }),
       };
