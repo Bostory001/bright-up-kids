@@ -31,16 +31,19 @@ function exerciseFrom(body: Ctx["body"], id: string, createdAt: string): Exercis
   const raw: unknown[] = Array.isArray(body.questions) ? body.questions : [];
   if (raw.length < 1 || raw.length > 50) throw new HttpError(400, "ต้องมีโจทย์ 1-50 ข้อ");
   const questions = raw.map((q, i): Question => {
+    if (!q || typeof q !== "object" || Array.isArray(q)) throw new HttpError(400, `ข้อ ${i + 1}: รูปแบบโจทย์ไม่ถูกต้อง`);
     const item = q as Record<string, unknown>;
     const choices = Array.isArray(item.choices) ? item.choices.map((c) => String(c ?? "").trim()) : [];
     // ตัดช่องว่างท้ายได้ แต่ห้ามเว้นตรงกลาง ไม่งั้นลำดับคำตอบที่ถูกจะเลื่อน
     while (choices.length && !choices[choices.length - 1]) choices.pop();
     if (choices.some((c) => !c)) throw new HttpError(400, `ข้อ ${i + 1}: ตัวเลือกห้ามเว้นว่างตรงกลาง`);
     if (choices.length < 2 || choices.length > 4) throw new HttpError(400, `ข้อ ${i + 1}: ต้องมีตัวเลือก 2-4 ตัว`);
+    const answerIndex = num(item.answerIndex, `คำตอบข้อ ${i + 1}`, 0, choices.length - 1);
+    if (!Number.isInteger(answerIndex)) throw new HttpError(400, `ข้อ ${i + 1}: คำตอบต้องเป็นลำดับจำนวนเต็ม`);
     return {
       prompt: str(item.prompt, `โจทย์ข้อ ${i + 1}`, 500),
       choices: choices.map((c) => c.slice(0, 200)),
-      answerIndex: num(item.answerIndex, `คำตอบข้อ ${i + 1}`, 0, choices.length - 1),
+      answerIndex,
       explain: optStr(item.explain, 500),
     };
   });
@@ -97,7 +100,7 @@ route("GET", "play/home", STUDENT, async (ctx) => {
   for (const a of assignments) {
     if (!myCourses.has(a.courseId)) continue;
     const done = attempts.some((t) => t.exerciseId === a.exerciseId && t.startedAt >= a.createdAt);
-    if (!done) homeworkDue.set(a.exerciseId, a.dueDate);
+    if (!done && (!homeworkDue.has(a.exerciseId) || a.dueDate < homeworkDue.get(a.exerciseId)!)) homeworkDue.set(a.exerciseId, a.dueDate);
   }
   return {
     student: { nickname: student.nickname, code: student.code, grade: student.grade },
@@ -106,6 +109,19 @@ route("GET", "play/home", STUDENT, async (ctx) => {
     limitReached: isDailyLimitReached(profile, today, settings),
     todayQuestions: profile.lastPlayedDate === today ? profile.todayQuestions : 0,
     dailyLimitQuestions: settings.dailyLimitQuestions,
+    today,
+    recentAttempts: [...attempts]
+      .sort((a, b) => (b.finishedAt ?? b.startedAt).localeCompare(a.finishedAt ?? a.startedAt) || b.id.localeCompare(a.id))
+      .slice(0, 10)
+      .map((a) => ({
+        id: a.id,
+        title: exercises.find((e) => e.id === a.exerciseId)?.title ?? "แบบฝึกหัดที่ไม่เปิดให้ฝึกแล้ว",
+        correct: a.correct,
+        total: a.total,
+        date: a.date,
+        xpEarned: a.xpEarned,
+        counted: a.counted,
+      })),
     exercises: exercises.map((e) => {
       const mine = attempts.filter((a) => a.exerciseId === e.id);
       return {
@@ -156,12 +172,14 @@ route("POST", "play/answer", STUDENT, async (ctx) => {
   const student = studentOf(ctx);
   const index = num(ctx.body.index, "ข้อ", 0, 49);
   const choice = num(ctx.body.choice, "ตัวเลือก", 0, 3);
+  if (!Number.isInteger(index) || !Number.isInteger(choice)) throw new HttpError(400, "ข้อและตัวเลือกต้องเป็นจำนวนเต็ม");
   const attemptId = str(ctx.body.attemptId, "รอบ", 40);
   const current = await ctx.store.get<Attempt>("attempts", attemptId);
   if (!current || current.studentId !== student.id || current.status !== "started") throw new HttpError(400, "รอบนี้จบไปแล้ว");
   const exercise = await ctx.store.get<Exercise>("exercises", current.exerciseId);
   const question = exercise?.questions[index];
   if (!question) throw new HttpError(400, "ไม่พบโจทย์ข้อนี้");
+  if (choice >= question.choices.length) throw new HttpError(400, "ไม่พบตัวเลือกนี้");
 
   const saved = await ctx.store.update<Attempt>("attempts", attemptId, (a) => {
     if (!a || a.status !== "started" || a.answers[index] !== null) return null;
@@ -182,9 +200,13 @@ route("POST", "play/finish", STUDENT, async (ctx) => {
 
   // ปิดรอบแบบ atomic กันกดจบซ้ำเพื่อรับคะแนนสองรอบ
   const finishedAt = nowIso();
-  const closed = await ctx.store.update<Attempt>("attempts", attemptId, (a) =>
-    a && a.status === "started" ? { ...a, status: "finished", finishedAt } : null,
-  );
+  const closed = await ctx.store.update<Attempt>("attempts", attemptId, (a) => {
+    if (!a || a.status !== "started") return null;
+    if (a.answers.length !== a.total || a.answers.some((answer) => answer === null)) {
+      throw new HttpError(400, "ตอบให้ครบทุกข้อก่อนดูผลนะ");
+    }
+    return { ...a, status: "finished", finishedAt };
+  });
   if (!closed) throw new HttpError(400, "รอบนี้จบไปแล้ว");
 
   const correct = closed.answers.filter((ans, i) => ans === exercise.questions[i]?.answerIndex).length;
@@ -244,7 +266,8 @@ route("GET", "play/rewards", STUDENT, async (ctx) => {
   return {
     coins: profile.coins,
     rewards: rewards.filter((r) => r.stock > 0).sort((a, b) => a.costCoins - b.costCoins).map((r) => omit(r, ["costBaht"])),
-    redemptions: redemptions.sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)).slice(0, 20),
+    redemptions: redemptions.sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)).slice(0, 20)
+      .map((r) => ({ id: r.id, rewardName: r.rewardName, status: r.status, costCoins: r.costCoins, requestedAt: r.requestedAt })),
   };
 });
 

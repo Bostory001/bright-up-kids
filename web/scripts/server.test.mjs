@@ -66,3 +66,24 @@ test("Vercel refuses file fallback; isolated storage writes only to its director
     rmSync(dataDir, { recursive: true, force: true });
   }
 });
+
+const { visibleExercises, thaiDate } = await import("../src/lib/play-view.ts");
+const cards = [
+  { id: "done", title: "Animal words", topic: "Animals", subject: "english", count: 3, best: 3, homeworkDue: null },
+  { id: "new", title: "บวกเลข", topic: "การบวก", subject: "math", count: 3, best: null, homeworkDue: null },
+  { id: "later", title: "ฝึกอ่าน", topic: "สระ", subject: "thai", count: 3, best: 1, homeworkDue: "2026-10-20" },
+  { id: "first", title: "บวกเพิ่ม", topic: "การบวก", subject: "math", count: 3, best: 2, homeworkDue: "2026-10-09" },
+];
+test("exercise filters combine subject, status and search without mutating source", () => {
+  const original = JSON.stringify(cards);
+  assert.deepEqual(visibleExercises(cards, "math", "new", " การบวก ").map((card) => card.id), ["new"]);
+  assert.deepEqual(visibleExercises(cards, "all", "review", "").map((card) => card.id), ["first", "later"]);
+  assert.deepEqual(visibleExercises(cards, "all", "homework", "").map((card) => card.id), ["first", "later"]);
+  assert.deepEqual(visibleExercises(cards, "all", "all", "ANIMALS").map((card) => card.id), ["done"]);
+  assert.equal(visibleExercises(cards, "science", "all", "").length, 0);
+  assert.equal(JSON.stringify(cards), original);
+});
+test("homework order puts earliest deadlines before ordinary exercises", () => {
+  assert.deepEqual(visibleExercises(cards, "all", "all", "").slice(0, 2).map((card) => card.id), ["first", "later"]);
+  assert.match(thaiDate("2026-10-09"), /2569/);
+});

@@ -295,6 +295,37 @@ check("ทำแล้ว → ครูเห็น 1/1 และป้ายก
 // ---------- R15: เข้าด้วย LINE (ยังไม่ตั้งค่า) ----------
 check("LIFF ยังไม่ตั้งค่า → config null, auth 503", (await anon.call("public/config")).data.liffId === null && (await anon.call("auth/line", { idToken: "x" })).status === 503);
 
+// ---------- R34–R45: student experience and scoring ----------
+for (const badQuestions of [ [null], [{ prompt: "bad index", choices: ["a", "b"], answerIndex: 0.5 }] ]) {
+  check("Malformed exercise rejected", (await teacher.call("admin/exercises", { title: "bad", subject: "math", grade: 2, topic: "test", questions: badQuestions, published: true })).status === 400);
+}
+const partialRun = (await kid.call("play/start", { exerciseId })).data;
+const beforeIncomplete = (await kid.call("play/home")).data.profile;
+check("Cannot finish unanswered exercise", (await kid.call("play/finish", { attemptId: partialRun.attemptId })).status === 400);
+for (const answer of [{ index: 0.5, choice: 1 }, { index: 0, choice: 0.5 }, { index: 1, choice: 3 }]) {
+  check("Invalid choice rejected: " + JSON.stringify(answer), (await kid.call("play/answer", { attemptId: partialRun.attemptId, ...answer })).status === 400);
+}
+check("Answer remains available after invalid request", (await kid.call("play/answer", { attemptId: partialRun.attemptId, index: 0, choice: 1 })).status === 200);
+check("Cannot finish partially answered exercise", (await kid.call("play/finish", { attemptId: partialRun.attemptId })).status === 400);
+const afterIncomplete = (await kid.call("play/home")).data;
+check("Incomplete exercise does not award XP or coins", afterIncomplete.profile.xp === beforeIncomplete.xp && afterIncomplete.profile.coins === beforeIncomplete.coins);
+check("Incomplete exercise not in recent results", !afterIncomplete.recentAttempts.some((attempt) => attempt.id === partialRun.attemptId));
+const secondStudent = (await owner.call("admin/students", { nickname: "ทดสอบสอง", fullName: "ข้อมูลสมมติคนที่สอง", grade: 2, pdpaConsent: true })).data;
+const secondKid = new Client();
+await secondKid.call("auth/student", { code: secondStudent.student.code, pin: secondStudent.pin });
+check("New student cannot see other student's recent results", (await secondKid.call("play/home")).data.recentAttempts.length === 0);
+check("Other student cannot answer this attempt", (await secondKid.call("play/answer", { attemptId: partialRun.attemptId, index: 1, choice: 0 })).status === 400);
+check("Other student cannot finish this attempt", (await secondKid.call("play/finish", { attemptId: partialRun.attemptId })).status === 404);
+await kid.call("play/answer", { attemptId: partialRun.attemptId, index: 1, choice: 0 });
+await kid.call("play/answer", { attemptId: partialRun.attemptId, index: 2, choice: 2 });
+check("Can complete after rejected early finish", (await kid.call("play/finish", { attemptId: partialRun.attemptId })).data.correct === 3);
+const recent = (await kid.call("play/home")).data.recentAttempts;
+check("Recent results show latest score and are capped at 10", recent.length === 10 && recent[0].id === partialRun.attemptId && recent[0].correct === 3);
+check("Recent results expose no answers or other student identifiers", recent.every((attempt) => !('answers' in attempt) && !('studentId' in attempt) && !('answerIndex' in attempt)));
+const rewardView = (await kid.call("play/rewards")).data;
+check("Reward history keeps name and status", rewardView.redemptions.length > 0 && Boolean(rewardView.redemptions[0].rewardName) && Boolean(rewardView.redemptions[0].status));
+check("Neither reward list nor redemption history expose costs", !JSON.stringify(rewardView).includes("costBaht") && !JSON.stringify(rewardView).includes("handledBy"));
+
 // ---------- R22–R33: regression checks ----------
 for (const body of [null, [], 1, true, "text"]) {
   check("JSON body must be object: " + JSON.stringify(body), (await anon.call("auth/login", body)).status === 400);
