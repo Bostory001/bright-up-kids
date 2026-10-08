@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ACHIEVEMENTS,
   AVATAR_ITEMS,
@@ -37,7 +37,7 @@ export default function PlayPage() {
   const [correct, setCorrect] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [result, setResult] = useState<RunResult | null>(null);
-  const [startedAt, setStartedAt] = useState(0);
+  const startedAt = useRef(0);
 
   useEffect(() => {
     let saved: PlayerProfile | null = null;
@@ -56,16 +56,17 @@ export default function PlayPage() {
     } catch {}
   }
 
-  function start(ex: Exercise) {
+  // ใช้ timeStamp ของ event จับเวลา (ms นับจากเปิดหน้า) แทนการอ่านนาฬิกาเอง
+  function start(ex: Exercise, timeStamp: number) {
     setExercise(ex);
     setIndex(0);
     setCorrect(0);
     setPicked(null);
     setResult(null);
-    setStartedAt(Date.now());
+    startedAt.current = timeStamp;
   }
 
-  function next() {
+  function next(timeStamp: number) {
     if (!exercise || !profile || picked === null) return;
     const nowCorrect = correct + (picked === exercise.questions[index].answerIndex ? 1 : 0);
     if (index + 1 < exercise.questions.length) {
@@ -74,7 +75,7 @@ export default function PlayPage() {
       setPicked(null);
       return;
     }
-    const durationSec = Math.round((Date.now() - startedAt) / 1000);
+    const durationSec = Math.round((timeStamp - startedAt.current) / 1000);
     const run = applyRun(profile, nowCorrect, exercise.questions.length, durationSec, today());
     setCorrect(nowCorrect);
     setResult(run);
@@ -152,7 +153,7 @@ export default function PlayPage() {
           })}
         </div>
         {picked !== null && (
-          <button onClick={next} className="rounded-2xl bg-amber-500 p-4 text-xl font-bold text-white active:scale-95">
+          <button onClick={(e) => next(e.timeStamp)}className="rounded-2xl bg-amber-500 p-4 text-xl font-bold text-white active:scale-95">
             {index + 1 < exercise.questions.length ? "ข้อต่อไป →" : "ดูผล 🎉"}
           </button>
         )}
@@ -188,7 +189,7 @@ export default function PlayPage() {
         <h2 className="mb-2 text-lg font-bold">แบบฝึกหัด</h2>
         <div className="grid gap-3">
           {SAMPLE_EXERCISES.map((ex) => (
-            <button key={ex.id} onClick={() => start(ex)} className="rounded-2xl bg-white p-4 text-left shadow-sm active:scale-95">
+            <button key={ex.id} onClick={(e) => start(ex, e.timeStamp)} className="rounded-2xl bg-white p-4 text-left shadow-sm active:scale-95">
               <div className="text-lg font-bold">{ex.title}</div>
               <div className="text-sm text-gray-500">
                 ป.{ex.grade} · {ex.questions.length} ข้อ
