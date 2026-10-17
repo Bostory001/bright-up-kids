@@ -11,7 +11,7 @@
 
 ## S1 ฐานข้อมูล Firestore
 
-- [ ] เข้า https://console.firebase.google.com ด้วยบัญชี Google ที่จะเป็นเจ้าของระบบ → Add project (ตั้งชื่อ เช่น `brightup-watluangphoto`) · ไม่ต้องเปิด Analytics
+- [ ] เข้า https://console.firebase.google.com ด้วยบัญชี Google ที่จะเป็นเจ้าของระบบ → Add project (ตั้งชื่อ เช่น `brightupkids-watluangphoto`) · ไม่ต้องเปิด Analytics
 - [ ] Build > Firestore Database > Create database → โหมด **Production** → ตำแหน่ง `asia-southeast1 (Singapore)`
 - [ ] แท็บ Rules: วางเนื้อหาจาก `web/firestore.rules` (ปิดทั้งหมด) แล้ว Publish
 - [ ] Project settings > Service accounts > **Generate new private key** → ได้ไฟล์ JSON
