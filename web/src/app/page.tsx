@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BRAND, BRANCH, TAGLINE } from "@/lib/brand";
 import { useLoad } from "@/lib/client/api";
 
 const PORTALS = [
@@ -14,8 +15,9 @@ export default function Home() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-8 p-6">
       <header className="text-center">
-        <h1 className="text-4xl font-bold text-amber-600">Bright Up Kids</h1>
-        <p className="mt-2 text-gray-600">สถาบันเรียนพิเศษ ป.1-6</p>
+        <h1 className="text-4xl font-bold text-amber-600">{BRAND}</h1>
+        <p className="mt-1 text-gray-600">{BRANCH}</p>
+        <p className="mt-1 text-gray-600">{TAGLINE}</p>
       </header>
       {data?.needsSetup && (
         <Link href="/setup" className="rounded-2xl bg-amber-500 p-4 text-center font-bold text-white">

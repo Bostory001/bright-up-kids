@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, Card, ErrorText, Field, Input, Select } from "@/components/ui";
+import { BRAND, BRANCH } from "@/lib/brand";
 import { api, useLoad } from "@/lib/client/api";
 
 interface PublicCourse {
@@ -49,7 +50,8 @@ export default function EnrollPage() {
 
   return (
     <main className="mx-auto w-full max-w-md flex-1 p-6">
-      <h1 className="text-2xl font-bold text-amber-600">สมัครเรียน Bright Up Kids</h1>
+      <h1 className="text-2xl font-bold text-amber-600">สมัครเรียน {BRAND}</h1>
+      <p className="text-sm text-gray-600">{BRANCH}</p>
       <form onSubmit={submit} className="mt-4 grid gap-3">
         <Card className="grid gap-3">
           <div className="font-bold">ผู้ปกครอง</div>

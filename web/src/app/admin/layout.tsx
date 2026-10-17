@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { type Me, MeContext } from "@/components/me";
 import { SecurityPanel } from "@/components/SecurityPanel";
+import { BRAND } from "@/lib/brand";
 import { api, go, useLoad } from "@/lib/client/api";
 import { ADMIN_NAV } from "@/lib/modules";
 
@@ -43,7 +44,7 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
     <MeContext.Provider value={{ me, reload }}>
       <div className="flex flex-1 flex-col lg:flex-row">
         <nav className="flex gap-1 overflow-x-auto border-b border-amber-200 bg-white p-2 lg:w-56 lg:flex-col lg:overflow-visible lg:border-b-0 lg:border-r print:hidden">
-          <div className="hidden px-3 py-2 font-bold text-amber-600 lg:block">Bright Up Kids</div>
+          <div className="hidden px-3 py-2 font-bold text-amber-600 lg:block">{BRAND}</div>
           {nav.map((m) => (
             <Link
               key={m.href}

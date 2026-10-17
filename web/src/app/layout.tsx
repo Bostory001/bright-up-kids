@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Thai } from "next/font/google";
 import { RegisterSw } from "@/components/RegisterSw";
+import { BRAND_FULL, TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
 const notoThai = Noto_Sans_Thai({
@@ -9,8 +10,8 @@ const notoThai = Noto_Sans_Thai({
 });
 
 export const metadata: Metadata = {
-  title: "Bright Up Kids",
-  description: "ระบบสถาบันเรียนพิเศษ ป.1-6 — แบบฝึกหัดออนไลน์ เช็กชื่อ ค่าเรียน",
+  title: BRAND_FULL,
+  description: `ระบบ${TAGLINE} — แบบฝึกหัดออนไลน์ เช็กชื่อ ค่าเรียน`,
 };
 
 export const viewport: Viewport = {

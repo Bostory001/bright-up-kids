@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { BRAND, BRAND_FULL, TAGLINE } from "@/lib/brand";
 
 // PWA: ให้ติดตั้งเป็นไอคอนบนหน้าจอ iPad / tablet / มือถือ / PC แล้วเปิดเต็มจอ
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Bright Up Kids",
-    short_name: "Bright Up",
-    description: "แบบฝึกหัดออนไลน์และระบบสถาบันเรียนพิเศษ ป.1-6",
+    name: BRAND_FULL,
+    short_name: BRAND,
+    description: `แบบฝึกหัดออนไลน์และระบบ${TAGLINE}`,
     start_url: "/",
     display: "standalone",
     orientation: "any",

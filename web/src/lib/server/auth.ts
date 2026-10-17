@@ -1,5 +1,6 @@
 import "server-only";
 import { createHash, createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { BRAND } from "../brand";
 import type { AppUser, AuthSession, Role, Student } from "../types";
 import { getStore } from "./store";
 import { HttpError } from "./util";
@@ -78,8 +79,8 @@ export function verifyTotp(secret: string, code: unknown): boolean {
 }
 
 export function totpUri(secret: string, username: string): string {
-  const label = encodeURIComponent(`Bright Up Kids:${username}`);
-  return `otpauth://totp/${label}?secret=${secret}&issuer=${encodeURIComponent("Bright Up Kids")}`;
+  const label = encodeURIComponent(`${BRAND}:${username}`);
+  return `otpauth://totp/${label}?secret=${secret}&issuer=${encodeURIComponent(BRAND)}`;
 }
 
 // ---------- กันเดารหัส ----------

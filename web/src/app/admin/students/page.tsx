@@ -3,6 +3,7 @@
 import QRCode from "qrcode";
 import { useState } from "react";
 import { Badge, Button, Card, ErrorText, Field, Input, SecretBox, Select, Table } from "@/components/ui";
+import { BRAND, BRANCH } from "@/lib/brand";
 import { api, useLoad } from "@/lib/client/api";
 
 interface Row {
@@ -91,7 +92,8 @@ export default function StudentsPage() {
 
       {card && (
         <Card className="mx-auto w-72 text-center">
-          <div className="text-lg font-bold text-amber-600">Bright Up Kids</div>
+          <div className="text-lg font-bold text-amber-600">{BRAND}</div>
+          <div className="text-xs text-gray-500">{BRANCH}</div>
           {/* eslint-disable-next-line @next/next/no-img-element -- data URL */}
           <img src={card.qr} alt="QR เข้าระบบ" className="mx-auto" />
           <div className="text-xl font-bold">น้อง{card.row.nickname}</div>
