@@ -13,6 +13,21 @@
 
 ⚠️ ถ้าเครื่องมือเขียนตัวอักษรลงในภาพ (แม้เป็น "อักษรเวท") ให้สั่งใหม่
 
+### ทางลัด: ให้สคริปต์ทำให้ทั้งชุด
+
+`scripts/gen-characters.mjs` **อ่าน prompt จากไฟล์นี้โดยตรง** (ทั้งบล็อก `[STYLE]` และตารางเติมช่อง `{TOKEN}`)
+แก้ prompt ที่นี่ที่เดียว สคริปต์ตามอัตโนมัติ — ไม่มี prompt ฝังในโค้ด
+
+```bash
+node scripts/gen-characters.mjs --list                 # ดูว่ามีงานอะไรบ้าง (26 งาน)
+node scripts/gen-characters.mjs --dry-run --only=kru-kao   # ดู prompt เต็มโดยไม่เรียก API
+OPENAI_API_KEY=... node scripts/gen-characters.mjs --only=kru-kao
+```
+
+- ภาพแรกที่สร้างจะถูกใช้เป็น **หลักสไตล์** ของทั้งรอบ (ส่งเป็น reference ให้ใบถัด ๆ ไป) · กำหนดเองได้ด้วย `--ref=path.png`
+- ถ้า prompt ยังมีช่อง `{TOKEN}` ที่ไม่ได้เติม สคริปต์จะ **ข้ามและเตือน** ไม่ยิง API ทิ้ง
+- ⚠️ ตรวจชื่อโมเดลกับ docs ของ OpenAI ก่อน แล้วตั้ง `OPENAI_IMAGE_MODEL` (ค่าเริ่มต้นอาจไม่ใช่ตัวล่าสุด)
+
 ---
 
 ## 🧩 บล็อกที่ต้องใส่ทุก prompt
@@ -291,12 +306,16 @@ later in code.
 [STYLE] [NEGATIVE]
 ```
 
-| วิชา | {CHARACTER} | {COLOR} | {PROPS} |
-|---|---|---|---|
-| คณิต | **ครูเก้า** (+ มีมี่) | deep blue #2563EB | translucent geometric solids, abacus beads, light lines |
-| ไทย | **ครูจัน** (+ แพรว) | rose red #E11D48 | pink light ribbons, woven cloth, fan, cloth-bound book |
-| อังกฤษ | **ครูมายด์** (+ โบ๊ท) | orange #F97316 | glowing globe, compass, floating blank map, parrot |
-| วิทย์ | **ดร.ปุย** (+ ต้นกล้า) | green #16A34A | beakers, glowing vapour, leaves, crystals |
+| วิชา | {CHARACTER} | {COLOR} | {PROPS} | {POSE} |
+|---|---|---|---|---|
+| คณิต | **ครูเก้า** | deep blue #2563EB | translucent geometric solids, abacus beads, light lines | drawing a glowing line in the air with his ruler-staff |
+| ไทย | **ครูจัน** | rose red #E11D48 | pink light ribbons, woven cloth, fan, cloth-bound book | fanning gently so light ribbons curl upward |
+| อังกฤษ | **ครูมายด์** | orange #F97316 | glowing globe, compass, floating blank map, parrot | waving with one hand raised, parrot on her shoulder |
+| วิทย์ | **ดร.ปุย** | green #16A34A | beakers, glowing vapour, leaves, crystals | holding her beaker up with sparkling eyes |
+
+อยากให้มีเด็กในปกด้วย → แนบ sheet ของเด็กเพิ่ม แล้วต่อท้าย prompt ว่า
+`Add {ชื่อเด็ก} from the second reference sheet standing beside them, smaller, looking up.`
+(คณิต→มีมี่ · ไทย→แพรว · อังกฤษ→โบ๊ท · วิทย์→ต้นกล้า)
 
 🚫 props ห้ามมีตัวเลข/ตัวอักษรบนตัวมัน
 
