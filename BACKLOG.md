@@ -122,7 +122,7 @@
 
 | ID | งาน | PIC | สถานะ |
 |---|---|---|---|
-| H0a | **character sheet ครูประจำวิชา 4 คน** (ครูเก้า/ดร.ปุย/ครูมายด์/ครูจัน) + ภาพทีมครู | `art-prompt-writer` | TODO |
+| H0a | **character sheet ครูประจำวิชา 4 คน** (ครูเก้า/ดร.ภู/ครูมายด์/ครูจัน) + ภาพทีมครู | `art-prompt-writer` | TODO |
 | H0b | character sheet เด็ก 4 คน + มะนาว | `art-prompt-writer` | TODO |
 | H0c | character sheet ครูแอน + โกโก้ | `art-prompt-writer` | TODO |
 | H1 | R18 — ภาพ avatar ฝีมือนักวาด (ใช้ sheet จาก H0 เป็น reference) | `art-prompt-writer` | TODO |

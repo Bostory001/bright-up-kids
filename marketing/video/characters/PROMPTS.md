@@ -102,23 +102,28 @@ ACCENT COLOR: deep blue.
 [STYLE] [LAYOUT] [NEGATIVE]
 ```
 
-# 2. ดร.ปุย (Dr. Pui) — SCIENCE · Alchemist · female ~40
+# 2. ดร.ภู (Dr. Phu) — SCIENCE · quiet scientist · male ~38
 
 ```
-Character reference sheet of an excitable female Thai alchemist who teaches
-science. Loud, enthusiastic, her experiments fail in funny harmless ways.
+Character reference sheet of a quiet, serious male Thai scientist who teaches
+science. He speaks little and never gives the answer — he asks a question
+back, so the children find it themselves.
 
-CHARACTER: frizzy silver-grey curly hair escaping a loose tie with tiny
-harmless sparks drifting around it, big round excited eyes, wide open smile,
-sturdy friendly build, a smudge of soot on one cheek.
-OUTFIT: short moss-green leather alchemist coat with rolled sleeves, a
-leather chest strap holding a row of small glass potion vials, khaki cargo
-trousers, leather work gloves, sturdy boots. All plain — no label, no text.
-MAGIC ITEMS: brass-rimmed safety goggles pushed UP onto her forehead; she
-holds a beaker giving off a soft glowing green vapour with sparkles rising
-from it; a green paper lantern hangs at her hip.
-POSE NOTE: one pose holding the beaker up to the light with sparkling eyes,
-one pose with both arms thrown wide in amazement.
+CHARACTER: ADULT man, tall and lean, short straight BLACK hair, sharp
+dark-grey eyes with faint shadows under them from late nights, a calm
+unsmiling face — composed and serious, never angry, never frightening.
+OUTFIT: a proper scientist's outfit — a knee-length WHITE LAB COAT with long
+sleeves over a dark-green collared shirt, a plain grey tie, grey slacks,
+rubber gloves, dark shoes. The coat is COMPLETELY PLAIN — no logo, no name
+tag, no text.
+MAGIC ITEMS: brass-rimmed safety goggles pushed UP onto his forehead; he
+holds a beaker giving off a soft glowing green vapour; a small experiment
+notebook in his chest pocket; faint glowing crystals drifting slowly around
+him while he thinks; a green paper lantern at his hip.
+POSE NOTE: one pose holding the beaker up and studying it with full
+attention; one pose with arms at his sides, head slightly tilted, listening.
+In the "happy" expression he allows himself only a SMALL half-smile at one
+corner of his mouth — that is as warm as he gets.
 ACCENT COLOR: green.
 
 [STYLE] [LAYOUT] [NEGATIVE]
@@ -127,22 +132,29 @@ ACCENT COLOR: green.
 # 3. ครูมายด์ (Kru Mind) — ENGLISH · Wayfarer · female ~26
 
 ```
-Character reference sheet of a high-energy young female Thai wayfarer who
-teaches English. She gets the whole class repeating after her and never lets
-anyone stay silent.
+Character reference sheet of a cool, composed young female Thai wayfarer who
+teaches English. She is quietly confident and speaks many languages; she does
+not shout a class awake, she makes children want to sound like her.
 
-CHARACTER: short brown bob with warm orange highlights, wide toothy smile,
-petite but always in motion, very expressive hands.
-OUTFIT: short burnt-orange traveller's cloak over a simple tunic, a long
-trailing scarf caught in the wind, cropped trousers, short leather boots.
-All plain — no logo, no slogan.
-MAGIC ITEMS: orange crystal headphones worn around her neck that glow softly;
-a translucent glowing MAP floating open beside her with NO writing on it,
-only glowing routes and dots; a brass compass; an orange paper lantern at
-her belt.
+CHARACTER: ADULT woman, clearly a teacher and not a student. Long flowing
+waist-length hair, deep brown fading to warm copper-orange at the ends; sharp
+amber eyes; a small knowing half-smile; calm upright stance.
+OUTFIT: a long ink-navy travelling cloak, almost black, with a glowing
+burnt-orange inner lining, the hem caught mid-sweep; underneath, a cream
+collared shirt, a fitted waistcoat, FULL-LENGTH trousers and knee-high
+leather boots. Modest and fully covering, knee-length or longer, not
+form-fitting. Completely plain — no crest, no emblem, no striped tie, no
+school badge of any kind.
+MAGIC ITEMS: a slim QUILL-STAFF — a long feather pen she uses like a wand —
+trailing ribbons of orange light through the air; orange crystal headphones
+around her neck; a translucent glowing MAP floating open beside her with NO
+writing on it, only glowing routes and dots; a brass compass; an orange paper
+lantern at her belt.
 COMPANION: a small blue-and-orange parrot perched on her shoulder.
-POSE NOTE: one pose with a raised hand cueing the class to repeat after her,
-one pose mid-stride as if setting off.
+SETTING LIGHT: warm lantern light at dusk on a tower balcony — atmospheric
+but never a dark dungeon, never gloomy.
+POSE NOTE: one pose with the quill-staff raised and light trailing from it,
+one pose mid-stride with the cloak flaring.
 ACCENT COLOR: orange.
 
 [STYLE] [LAYOUT] [NEGATIVE]
@@ -269,8 +281,8 @@ Group illustration of the four teachers from the attached reference sheets,
 standing together facing the viewer, in the SAME art style as the references.
 
 ARRANGEMENT left to right: Kru Kao (deep blue, ruler-staff raised, geometric
-solids orbiting him), Dr. Pui (green, beaker held up with glowing vapour),
-Kru Mind (orange, parrot on her shoulder, floating map beside her), Kru Jan
+solids orbiting him), Dr. Phu (green, lab coat, beaker held up and studied quietly, calm serious face),
+Kru Mind (orange, cloak flaring, quill-staff trailing orange light, parrot on her shoulder), Kru Jan
 (rose red, seated slightly forward on a low stool, fan raised with pink light
 ribbons curling upward). Their four lanterns are the brightest points of the
 image.
@@ -296,7 +308,7 @@ different lively pose, each lit by their own glowing lantern.
 
 Panel order and colors:
 1. Kru Kao — deep blue
-2. Dr. Pui — green
+2. Dr. Phu — green
 3. Kru Mind — orange
 4. Kru Jan — rose red
 5. Kru Ann — mustard yellow
@@ -323,8 +335,8 @@ later in code.
 |---|---|---|---|---|
 | คณิต | **ครูเก้า** | deep blue #2563EB | translucent geometric solids, abacus beads, light lines | drawing a glowing line in the air with his ruler-staff |
 | ไทย | **ครูจัน** | rose red #E11D48 | pink light ribbons, woven cloth, fan, cloth-bound book | fanning gently so light ribbons curl upward |
-| อังกฤษ | **ครูมายด์** | orange #F97316 | glowing globe, compass, floating blank map, parrot | waving with one hand raised, parrot on her shoulder |
-| วิทย์ | **ดร.ปุย** | green #16A34A | beakers, glowing vapour, leaves, crystals | holding her beaker up with sparkling eyes |
+| อังกฤษ | **ครูมายด์** | orange #F97316 | glowing globe, compass, floating blank map, parrot | quill-staff raised, orange light trailing from the tip, cloak flaring |
+| วิทย์ | **ดร.ภู** | green #16A34A | beakers, glowing vapour, leaves, crystals | holding the beaker up and studying it, calm and focused |
 
 อยากให้มีเด็กในปกด้วย → แนบ sheet ของเด็กเพิ่ม แล้วต่อท้าย prompt ว่า
 `Add {ชื่อเด็ก} from the second reference sheet standing beside them, smaller, looking up.`

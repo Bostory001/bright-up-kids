@@ -21,7 +21,7 @@ Use the image above as the style reference. Keep the exact same art style, line 
 | # | slug | ใช้ทำอะไร |
 |---|---|---|
 | 1 | `kru-kao` | ครูเก้า (Kru Kao) — MATH · Geometry Mage · male ~30 ⭐ เริ่มที่ตัวนี้ |
-| 2 | `dr-pui` | ดร.ปุย (Dr. Pui) — SCIENCE · Alchemist · female ~40 |
+| 2 | `dr-phu` | ดร.ภู (Dr. Phu) — SCIENCE · quiet scientist · male ~38 |
 | 3 | `kru-mind` | ครูมายด์ (Kru Mind) — ENGLISH · Wayfarer · female ~26 |
 | 4 | `kru-jan` | ครูจัน (Kru Jan) — THAI · Storyweaver · female ~55 |
 | 5 | `kru-ann` | ครูแอน (Kru Ann) — LANTERNKEEPER · female ~28 |

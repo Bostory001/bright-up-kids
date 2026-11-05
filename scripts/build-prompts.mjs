@@ -31,7 +31,7 @@ const OUT_DIR = path.resolve(ROOT, value("out") ?? path.join("marketing", "video
 
 /** ชื่อไฟล์ผลลัพธ์ — ภาษาไทยใช้เป็นชื่อไฟล์ไม่ได้ */
 const SLUGS = {
-  "ครูเก้า": "kru-kao", "ดร.ปุย": "dr-pui", "ครูมายด์": "kru-mind", "ครูจัน": "kru-jan",
+  "ครูเก้า": "kru-kao", "ดร.ภู": "dr-phu", "ครูมายด์": "kru-mind", "ครูจัน": "kru-jan",
   "ครูแอน": "kru-ann", "ต้นกล้า": "tonkla", "โบ๊ท": "boat", "มีมี่": "mimi", "แพรว": "praew",
   "มะนาว": "manao", "โกโก้": "koko",
   "คณิต": "cover-math", "ไทย": "cover-thai", "อังกฤษ": "cover-english", "วิทย์": "cover-science",
@@ -40,7 +40,7 @@ const SLUGS = {
 /** ชื่อที่ส่งเข้า prompt — โมเดลอ่านไทยไม่ออก ต้องเป็นอังกฤษ */
 const DISPLAY = {
   "ครูเก้า": "Kru Kao, the geometry mage who teaches math",
-  "ดร.ปุย": "Dr. Pui, the alchemist who teaches science",
+  "ดร.ภู": "Dr. Phu, the quiet scientist who teaches science",
   "ครูมายด์": "Kru Mind, the wayfarer who teaches English",
   "ครูจัน": "Kru Jan, the storyweaver who teaches Thai",
   "ครูแอน": "Kru Ann, the lanternkeeper",
