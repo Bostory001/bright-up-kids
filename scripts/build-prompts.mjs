@@ -1,42 +1,35 @@
 #!/usr/bin/env node
 /**
- * สร้าง character sheet จาก marketing/video/characters/PROMPTS.md
+ * แตก prompt จาก marketing/video/characters/PROMPTS.md ออกเป็นไฟล์ "พร้อมก๊อปวาง"
  *
- * หลักการ: **ไฟล์ PROMPTS.md คือความจริงฉบับเดียว** สคริปต์นี้อ่านทุกอย่างจากไฟล์นั้น
- * (บล็อก [STYLE] [LAYOUT] [NEGATIVE] และตารางเติมช่อง {TOKEN}) ไม่มี prompt ฝังในโค้ด
- * แก้ prompt ที่ไฟล์ .md ที่เดียว สคริปต์ตามอัตโนมัติ
+ * สคริปต์นี้ **ไม่เรียก API ไม่สร้างภาพ ไม่ต้องใช้คีย์** — หน้าที่เดียวคือ
+ * ประกอบบล็อก [STYLE] [LAYOUT] [NEGATIVE] และเติมตาราง {TOKEN} ให้ครบ
+ * แล้วเขียนเป็นไฟล์ .txt ทีละใบ เอาไปให้ Codex/GPT สั่งสร้างภาพเอง
  *
- *   node scripts/gen-characters.mjs --list
- *   node scripts/gen-characters.mjs --dry-run --only=kru-kao
- *   OPENAI_API_KEY=... node scripts/gen-characters.mjs --only=kru-kao
+ * PROMPTS.md คือความจริงฉบับเดียว — ไม่มี prompt ฝังในโค้ดนี้
  *
- * ⚠️ ก่อนรันจริง: ตรวจชื่อโมเดลกับ docs ของ OpenAI แล้วตั้ง OPENAI_IMAGE_MODEL
- *    ค่าเริ่มต้นด้านล่างอาจไม่ใช่โมเดลล่าสุด
+ *   node scripts/build-prompts.mjs            # เขียนไฟล์ทั้งหมดลง ready/
+ *   node scripts/build-prompts.mjs --list     # ดูรายชื่องาน
+ *   node scripts/build-prompts.mjs --only=kru-kao --print
  */
 
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PROMPTS_PATH = path.join(ROOT, "marketing", "video", "characters", "PROMPTS.md");
-const OUT_DIR = path.dirname(PROMPTS_PATH);
-
-const MODEL = process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-1";
-const SIZE = process.env.OPENAI_IMAGE_SIZE ?? "1536x1024"; // sheet เป็นแนวนอน 4:3
-const QUALITY = process.env.OPENAI_IMAGE_QUALITY ?? "medium";
 
 const argv = process.argv.slice(2);
-const flag = (name) => argv.includes(`--${name}`);
-const value = (name) => argv.find((a) => a.startsWith(`--${name}=`))?.split("=").slice(1).join("=");
+const flag = (n) => argv.includes(`--${n}`);
+const value = (n) => argv.find((a) => a.startsWith(`--${n}=`))?.split("=").slice(1).join("=");
 
 const LIST = flag("list");
-const DRY = flag("dry-run");
+const PRINT = flag("print");
 const ONLY = value("only");
-const REF = value("ref");
+const OUT_DIR = path.resolve(ROOT, value("out") ?? path.join("marketing", "video", "characters", "ready"));
 
-/** ชื่อไฟล์ผลลัพธ์ — ไทย → slug (ภาษาไทยทำเป็นชื่อไฟล์ไม่ได้) */
+/** ชื่อไฟล์ผลลัพธ์ — ภาษาไทยใช้เป็นชื่อไฟล์ไม่ได้ */
 const SLUGS = {
   "ครูเก้า": "kru-kao", "ดร.ปุย": "dr-pui", "ครูมายด์": "kru-mind", "ครูจัน": "kru-jan",
   "ครูแอน": "kru-ann", "ต้นกล้า": "tonkla", "โบ๊ท": "boat", "มีมี่": "mimi", "แพรว": "praew",
@@ -55,7 +48,6 @@ const DISPLAY = {
   "มะนาว": "Manao the kitten", "โกโก้": "Koko the baby dragon",
 };
 
-/** หัวข้อที่ไม่มีชื่อภาษาอังกฤษในวงเล็บ */
 const SECTION_SLUGS = { 12: "team-teachers", 13: "banner-panels" };
 
 const clean = (s) => s.replace(/\*\*/g, "").replace(/`/g, "").replace(/\s*\(\+[^)]*\)/g, "").trim();
@@ -63,9 +55,7 @@ const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-
 
 function parseBlocks(md) {
   const out = {};
-  for (const m of md.matchAll(/^### \[([A-Z]+)\][ \t]*\r?\n```\r?\n([\s\S]*?)\r?\n```/gm)) {
-    out[m[1]] = m[2].trim();
-  }
+  for (const m of md.matchAll(/^### \[([A-Z]+)\][ \t]*\r?\n```\r?\n([\s\S]*?)\r?\n```/gm)) out[m[1]] = m[2].trim();
   for (const key of ["STYLE", "LAYOUT", "NEGATIVE"]) {
     if (!out[key]) throw new Error(`ไม่พบบล็อก [${key}] ใน PROMPTS.md — ต้องเขียนเป็น "### [${key}]" แล้วตามด้วย code fence`);
   }
@@ -140,31 +130,36 @@ function jobsFrom(section, blocks) {
   return jobs;
 }
 
-async function callImageAPI(prompt, referencePath) {
-  if (!process.env.OPENAI_API_KEY) throw new Error("ยังไม่ได้ตั้ง OPENAI_API_KEY");
-  const headers = { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` };
-  let response;
-  if (referencePath) {
-    const form = new FormData();
-    form.append("model", MODEL);
-    form.append("prompt", prompt);
-    form.append("size", SIZE);
-    form.append("quality", QUALITY);
-    const bytes = await readFile(referencePath);
-    form.append("image[]", new Blob([bytes], { type: "image/png" }), path.basename(referencePath));
-    response = await fetch("https://api.openai.com/v1/images/edits", { method: "POST", headers, body: form });
-  } else {
-    response = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: { ...headers, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: MODEL, prompt, size: SIZE, quality: QUALITY }),
-    });
-  }
-  const body = await response.json();
-  if (!response.ok) throw new Error(`${response.status}: ${JSON.stringify(body)}`);
-  const b64 = body.data?.[0]?.b64_json;
-  if (!b64) throw new Error("ผลลัพธ์ไม่มี data[0].b64_json");
-  return Buffer.from(b64, "base64");
+const REFERENCE_LINE =
+  "Use the image above as the style reference. Keep the exact same art style, line weight, shading and proportions.";
+
+function orderFile(jobs) {
+  return [
+    "# ลำดับสั่งสร้างภาพ (สร้างอัตโนมัติ — อย่าแก้ไฟล์นี้ด้วยมือ)",
+    "",
+    "ไฟล์ในโฟลเดอร์นี้สร้างจาก `marketing/video/characters/PROMPTS.md`",
+    "แก้ prompt ที่ไฟล์นั้น แล้วรัน `node scripts/build-prompts.mjs` ใหม่",
+    "",
+    "## วิธีสั่ง",
+    "",
+    "1. ทำ **ในแชทเดียวกันทั้งหมด** ไม่งั้นสไตล์หลุด",
+    "2. ใบแรก (`kru-kao`) ก๊อป `.txt` วางตรง ๆ",
+    "3. ใบที่ 2 เป็นต้นไป วางบรรทัดนี้ก่อน แล้วตามด้วยเนื้อ `.txt`",
+    "",
+    "```",
+    REFERENCE_LINE,
+    "```",
+    "",
+    "4. ได้ภาพที่พอใจ → เซฟเป็น `marketing/video/characters/<slug>.png`",
+    "5. ภาพทุกใบผ่าน `content-reviewer` ก่อนใช้",
+    "",
+    "## รายการ",
+    "",
+    "| # | slug | ใช้ทำอะไร |",
+    "|---|---|---|",
+    ...jobs.map((j, i) => `| ${i + 1} | \`${j.slug}\` | ${j.title.replace(/\|/g, "/")} |`),
+    "",
+  ].join("\n");
 }
 
 async function main() {
@@ -172,58 +167,41 @@ async function main() {
   const blocks = parseBlocks(md);
   const all = parseSections(md).flatMap((s) => jobsFrom(s, blocks));
   const jobs = ONLY ? all.filter((j) => j.slug === ONLY || j.slug.includes(ONLY)) : all;
-
   if (!jobs.length) throw new Error(ONLY ? `ไม่มีงานชื่อ "${ONLY}" — ดูรายชื่อด้วย --list` : "ไม่พบ prompt ใน PROMPTS.md");
+
+  const unfilled = (p) => [...new Set(p.match(/\{[A-Z_]+\}/g) ?? [])];
 
   if (LIST) {
     for (const j of all) {
-      const missing = j.prompt.match(/\{[A-Z_]+\}/g);
-      console.log(`${j.slug.padEnd(22)} ${missing ? `⚠️ ยังไม่ได้เติม ${[...new Set(missing)].join(" ")}  ` : ""}${j.title}`);
+      const miss = unfilled(j.prompt);
+      console.log(`${j.slug.padEnd(22)} ${miss.length ? `⚠️ ยังไม่ได้เติม ${miss.join(" ")}  ` : ""}${j.title}`);
     }
-    console.log(`\nรวม ${all.length} งาน · โมเดล: ${MODEL} · ขนาด: ${SIZE}`);
+    console.log(`\nรวม ${all.length} งาน`);
     return;
   }
 
-  // ใช้ภาพแรกเป็น "หลักสไตล์" ตลอดรอบ (ไม่ไล่ต่อกันไปเรื่อย ๆ เพราะสไตล์จะเพี้ยนสะสม)
-  let anchor = REF ? path.resolve(REF) : null;
-  if (anchor && !existsSync(anchor)) throw new Error(`ไม่พบไฟล์อ้างอิง: ${anchor}`);
-
-  await mkdir(OUT_DIR, { recursive: true });
-  for (const job of jobs) {
-    const missing = job.prompt.match(/\{[A-Z_]+\}/g);
-    if (missing) {
-      console.warn(`⏭️  ข้าม ${job.slug} — ยังมีช่องที่ไม่ได้เติม: ${[...new Set(missing)].join(" ")}`);
-      continue;
-    }
-    if (DRY) {
-      console.log(`\n=== ${job.slug} === (อ้างอิง: ${anchor ? path.basename(anchor) : "ไม่มี"})\n${job.prompt}\n`);
-      continue;
-    }
-    const imagePath = path.join(OUT_DIR, `${job.slug}.png`);
-    const bytes = await callImageAPI(job.prompt, anchor);
-    await writeFile(imagePath, bytes);
-    await writeFile(
-      path.join(OUT_DIR, `${job.slug}.md`),
-      [
-        `# ${job.title}`,
-        "",
-        `- โมเดล: \`${MODEL}\` · ขนาด ${SIZE} · คุณภาพ ${QUALITY}`,
-        `- Endpoint: ${anchor ? "POST /v1/images/edits (ส่ง sheet หลักเป็น reference)" : "POST /v1/images/generations"}`,
-        `- ภาพอ้างอิง: ${anchor ? path.basename(anchor) : "ไม่มี (ใบนี้เป็นหลักสไตล์)"}`,
-        `- Seed: Images API ไม่คืน seed — ทำซ้ำเป๊ะไม่ได้ ให้เก็บ .png ไว้เป็นต้นฉบับ`,
-        `- สร้างเมื่อ: ${new Date().toISOString()}`,
-        "",
-        "## Prompt ที่ใช้จริง",
-        "",
-        "```",
-        job.prompt,
-        "```",
-        "",
-      ].join("\n"),
-    );
-    console.log(`✅ ${imagePath}`);
-    anchor ??= imagePath;
+  if (PRINT) {
+    for (const j of jobs) console.log(`\n=== ${j.slug} ===\n${j.prompt}\n`);
+    return;
   }
+
+  await rm(OUT_DIR, { recursive: true, force: true });
+  await mkdir(OUT_DIR, { recursive: true });
+  let written = 0;
+  let skipped = 0;
+  for (const job of jobs) {
+    const miss = unfilled(job.prompt);
+    if (miss.length) {
+      console.warn(`⏭️  ข้าม ${job.slug} — ยังมีช่องที่ไม่ได้เติมใน PROMPTS.md: ${miss.join(" ")}`);
+      skipped++;
+      continue;
+    }
+    await writeFile(path.join(OUT_DIR, `${job.slug}.txt`), `${job.prompt}\n`, "utf8");
+    written++;
+  }
+  await writeFile(path.join(OUT_DIR, "ORDER.md"), orderFile(jobs.filter((j) => !unfilled(j.prompt).length)), "utf8");
+  console.log(`✅ เขียน ${written} ไฟล์ลง ${path.relative(ROOT, OUT_DIR)}${skipped ? ` (ข้าม ${skipped})` : ""}`);
+  console.log(`   ลำดับการสั่ง: ${path.relative(ROOT, path.join(OUT_DIR, "ORDER.md"))}`);
 }
 
 main().catch((error) => {

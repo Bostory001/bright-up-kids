@@ -1,0 +1,14 @@
+Flat vector game asset, single item, centered on a fully TRANSPARENT
+background, 1:1 square canvas, thick clean outlines, bright flat colors,
+minimal shading, designed to be layered with other pieces using the same
+canvas center and scale.
+
+ITEM: night sky with stars and distant floating lanterns
+
+DO NOT INCLUDE: any text, letters, numbers, runes or written symbols of any
+kind; logos, watermarks, signatures, speech bubbles; photorealism, 3d render;
+dark or sinister magic, black smoke, purple-black glow, horror, villains,
+combat; swords, knives, guns, bows or any weapon; sexualized clothing, skirts
+above mid-thigh, bare midriff, makeup-heavy faces; adult proportions on
+children; extra fingers, deformed hands; cluttered background; copyrighted
+wizarding-school uniforms, house crests, sorting hats, or branded mascots.
