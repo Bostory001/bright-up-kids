@@ -11,6 +11,7 @@
 | `web/` | แอป Next.js 16 (App Router, TS, Tailwind 4) |
 | `marketing/` | แผนการตลาด, ปฏิทินคอนเทนต์, brief โบรชัวร์ |
 | `docs/` | เอกสารธุรกิจ/ระบบ (ฟีเจอร์, ข้อตัดสินใจ, ทีม agent) |
+| `docs/BENCHMARK_ONION.md` | สำรวจ Onion Academy (洋葱学园) — โครงที่เอามาใช้ได้ / ที่ยังไม่ต้องสนใจ (งาน B4) |
 | `docs/CHARACTER_SHEET.md` | **หน้าตาตัวละครฉบับเดียว** (ต้นกล้า โบ๊ท มีมี่ แพรว ครูแอน มะนาว โกโก้) — prompt พร้อมใช้อยู่ที่ `marketing/video/characters/PROMPTS.md` |
 | `ROADMAP.md` | รอบงานที่ทำไปแล้ว R1-R45 + ขั้นเปิดระบบจริง S1-S5 — "ทำต่อไป" = ทำข้อถัดไปที่ยังไม่ติ๊ก |
 | `BACKLOG.md` | **งานข้างหน้าทั้งหมด** แบ่งเป็น EPIC A-H + แผน sprint + PIC (agent ที่รับผิดชอบแต่ละ task) |
