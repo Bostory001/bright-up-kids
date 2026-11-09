@@ -234,7 +234,8 @@ check("royalty ใช้อัตราใหม่ 20% → 700", r.data.rows?.[
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});
-check("นำเข้าชุดโจทย์เริ่มต้น 57 ชุด", r.data.added === 57, String(r.data.added));
+// ตัวเลขนี้ต้องแก้ตามจำนวนชุดใน seed-exercises.ts ทุกครั้งที่เติมคลัง (ดู npm run audit:exercises)
+check("นำเข้าชุดโจทย์เริ่มต้น 67 ชุด", r.data.added === 67, String(r.data.added));
 check("นำเข้าซ้ำ → 0 ชุด", (await owner.call("admin/exercises/seed", {})).data.added === 0);
 const all = (await owner.call("admin/exercises")).data.exercises;
 const seeded = all.filter((e) => !["บวกเลข", "ของ ป.5", "ยังร่าง"].includes(e.title));

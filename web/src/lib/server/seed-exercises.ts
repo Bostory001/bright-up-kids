@@ -225,6 +225,242 @@ function scienceSets(): Draft[] {
   });
 }
 
+// ---------- เขียนมือพร้อมคำอธิบาย ----------
+// เติมช่องว่างของคลัง: คลังเดิมมีอังกฤษแต่ชุด "คำศัพท์" แปลคำเดี่ยวอย่างเดียว
+// แต่แผนที่หัวข้อใน .claude/skills/exercise-authoring ข้อ 3 ระบุว่า
+//   ป.3 ต้องมี "ประโยคสั้น" · ป.4 ต้องมี "Present Simple + คำถาม Wh-"
+//   ป.5 ต้องมี "Past Simple + คำคุณศัพท์เปรียบเทียบ"  ← ยังไม่มีเลยทั้งหมด
+// ป.1 เทอม 2 อิงหน่วย 4-6 (Animals / Food / Colors & Toys) ของแผน DLTV
+// ตัวลวงทุกตัวคือ "คำตอบที่เด็กจะได้ถ้าคิดผิดแบบที่เด็กผิดจริง" ตาม SKILL ข้อ 4
+// รูปแบบ: [โจทย์, คำตอบถูก, ตัวลวง, ตัวลวง, ตัวลวง, คำอธิบายเฉลย]
+
+type WrittenItem = [string, string, string, string, string, string];
+
+interface WrittenSet {
+  grade: Grade;
+  subject: Subject;
+  title: string;
+  topic: string;
+  items: WrittenItem[];
+}
+
+const toEnglish = (w: string) => `คำว่า "${w}" ภาษาอังกฤษคือคำใด`;
+
+const WRITTEN: WrittenSet[] = [
+  // ===== ป.1 เทอม 2 · หน่วย 5 Food =====
+  {
+    grade: 1,
+    subject: "english",
+    title: "Food and Drink อาหารและเครื่องดื่ม",
+    topic: "คำศัพท์",
+    items: [
+      [meaning("rice"), "ข้าว", "ขนมปัง", "ไข่", "นม", "rice คือ ข้าว · ขนมปัง คือ bread"],
+      [meaning("egg"), "ไข่", "ไก่", "ปลา", "ข้าว", "egg คือ ไข่ · ไก่ คือ chicken"],
+      [meaning("milk"), "นม", "น้ำ", "น้ำตาล", "น้ำผลไม้", "milk คือ นม · น้ำเปล่า คือ water — สองคำนี้เด็กสลับกันบ่อย"],
+      [meaning("water"), "น้ำ", "นม", "น้ำแข็ง", "น้ำตาล", "water คือ น้ำเปล่า · นม คือ milk"],
+      [meaning("bread"), "ขนมปัง", "เค้ก", "ข้าว", "คุกกี้", "bread คือ ขนมปัง · เค้ก คือ cake"],
+      [meaning("banana"), "กล้วย", "มะม่วง", "ส้ม", "แอปเปิล", "banana คือ กล้วย"],
+      [meaning("apple"), "แอปเปิล", "ส้ม", "องุ่น", "มะม่วง", "apple คือ แอปเปิล · ส้ม คือ orange"],
+      [meaning("mango"), "มะม่วง", "กล้วย", "มะละกอ", "ส้ม", "mango คือ มะม่วง · มะละกอ คือ papaya"],
+      [meaning("noodles"), "ก๋วยเตี๋ยว", "ข้าว", "ซุป", "ขนมปัง", "noodles คือ ก๋วยเตี๋ยว เติม -s เพราะมีหลายเส้น"],
+      [meaning("cake"), "เค้ก", "ขนมปัง", "คุกกี้", "ไอศกรีม", "cake คือ เค้ก · ขนมปัง คือ bread"],
+    ],
+  },
+  // ===== ป.1 เทอม 2 · หน่วย 6 Toys =====
+  {
+    grade: 1,
+    subject: "english",
+    title: "Toys ของเล่น",
+    topic: "คำศัพท์",
+    items: [
+      [meaning("ball"), "ลูกบอล", "ลูกโป่ง", "ตุ๊กตา", "ว่าว", "ball คือ ลูกบอล · ลูกโป่ง คือ balloon — สองคำนี้ขึ้นต้น bal เหมือนกัน ต้องดูให้ดี"],
+      [meaning("doll"), "ตุ๊กตา", "หุ่นยนต์", "ลูกบอล", "กลอง", "doll คือ ตุ๊กตา · หุ่นยนต์ คือ robot"],
+      [meaning("kite"), "ว่าว", "ลูกโป่ง", "ธง", "ร่ม", "kite คือ ว่าว"],
+      [meaning("balloon"), "ลูกโป่ง", "ลูกบอล", "ว่าว", "ร่ม", "balloon คือ ลูกโป่ง · ลูกบอล คือ ball"],
+      [meaning("robot"), "หุ่นยนต์", "ตุ๊กตา", "รถยนต์", "เครื่องบิน", "robot คือ หุ่นยนต์"],
+      [meaning("drum"), "กลอง", "ขลุ่ย", "กีตาร์", "ระฆัง", "drum คือ กลอง"],
+      [meaning("teddy bear"), "ตุ๊กตาหมี", "หุ่นยนต์", "ว่าว", "กลอง", "teddy bear คือ ตุ๊กตาหมี · bear เฉย ๆ คือ หมีจริง"],
+      [meaning("toy car"), "รถของเล่น", "รถไฟ", "จักรยาน", "เรือ", "car คือ รถยนต์ · เติม toy ข้างหน้าแปลว่าเป็นของเล่น"],
+    ],
+  },
+  // ===== ป.1 เทอม 2 · ไทย → อังกฤษ (ตัวลวงสะกดใกล้กัน) =====
+  {
+    grade: 1,
+    subject: "english",
+    title: "ไทยเป็นอังกฤษ สีและของเล่น",
+    topic: "คำศัพท์",
+    items: [
+      [toEnglish("สีแดง"), "red", "read", "bed", "rod", "red คือ สีแดง · read คือ อ่าน เขียนคล้ายกันมาก"],
+      [toEnglish("สีดำ"), "black", "block", "back", "blue", "black คือ สีดำ · block คือ ก้อนหรือบล็อก"],
+      [toEnglish("สีขาว"), "white", "write", "wide", "light", "white คือ สีขาว · write คือ เขียน อ่านออกเสียงเหมือนกันเลย"],
+      [toEnglish("สีน้ำเงิน"), "blue", "black", "blow", "glue", "blue คือ สีน้ำเงิน · glue คือ กาว"],
+      [toEnglish("สีเขียว"), "green", "grey", "queen", "groan", "green คือ สีเขียว · queen คือ ราชินี"],
+      [toEnglish("สีเหลือง"), "yellow", "yell", "hello", "willow", "yellow คือ สีเหลือง · yell คือ ตะโกน"],
+      [toEnglish("สีชมพู"), "pink", "pig", "pine", "drink", "pink คือ สีชมพู · pig คือ หมู ต่างกันแค่ตัวท้าย"],
+      [toEnglish("ลูกบอล"), "ball", "bell", "bowl", "tall", "ball คือ ลูกบอล · bowl คือ ชาม · bell คือ ระฆัง"],
+      [toEnglish("ตุ๊กตา"), "doll", "dog", "dull", "ball", "doll คือ ตุ๊กตา · dog คือ สุนัข ต่างกันแค่ตัวท้าย"],
+      [toEnglish("ว่าว"), "kite", "kit", "cake", "bike", "kite คือ ว่าว · kit คือ ชุดอุปกรณ์ ต่างกันแค่ตัว e ท้ายคำ"],
+    ],
+  },
+  // ===== ป.1 เทอม 2 · บุพบทบอกตำแหน่ง =====
+  {
+    grade: 1,
+    subject: "english",
+    title: "Where is it? บอกตำแหน่ง",
+    topic: "ไวยากรณ์",
+    items: [
+      ["แมวอยู่ในกล่อง · The cat is ___ the box.", "in", "on", "under", "next to", "in คือ อยู่ข้างใน"],
+      ["แมวอยู่บนกล่อง · The cat is ___ the box.", "on", "in", "under", "behind", "on คือ อยู่บนผิวหน้า · in คือ อยู่ข้างใน"],
+      ["แมวอยู่ใต้โต๊ะ · The cat is ___ the table.", "under", "on", "in", "next to", "under คือ อยู่ข้างใต้"],
+      ["หนังสืออยู่บนโต๊ะ · The book is ___ the table.", "on", "in", "under", "behind", "วางอยู่บนหน้าโต๊ะ ใช้ on"],
+      ["ลูกบอลอยู่ในกระเป๋า · The ball is ___ the bag.", "in", "on", "under", "next to", "อยู่ข้างในกระเป๋า ใช้ in"],
+      ["แมวอยู่ข้างกล่อง · The cat is ___ the box.", "next to", "in", "on", "under", "next to คือ อยู่ติดข้าง ๆ"],
+      ["แมวอยู่หลังกล่อง · The cat is ___ the box.", "behind", "in front of", "under", "on", "behind คือ อยู่ข้างหลัง · in front of คือ อยู่ข้างหน้า"],
+      ["Where is the cat? แปลว่าอะไร", "แมวอยู่ที่ไหน", "แมวชื่ออะไร", "แมวทำอะไร", "แมวสีอะไร", "Where คือ ที่ไหน ใช้ถามสถานที่"],
+    ],
+  },
+  // ===== ป.1 เทอม 2 · นับจำนวนและพหูพจน์ =====
+  {
+    grade: 1,
+    subject: "english",
+    title: "How many? นับจำนวน",
+    topic: "ไวยากรณ์",
+    items: [
+      ["How many ... ? ใช้ถามเรื่องอะไร", "จำนวนเท่าไร", "อยู่ที่ไหน", "สีอะไร", "ชื่ออะไร", "How many คือ ถามจำนวน · Where คือ ถามที่"],
+      ["three คือเลขอะไร", "3", "2", "4", "13", "three คือ 3 · thirteen คือ 13 ออกเสียงคล้ายกัน"],
+      ["seven คือเลขอะไร", "7", "6", "8", "11", "seven คือ 7"],
+      ["ten คือเลขอะไร", "10", "2", "12", "100", "ten คือ 10 · twelve คือ 12"],
+      ["เป็ด 1 ตัว · ___ duck", "one", "two", "three", "many", "มี 1 ตัว ใช้ one และคำนามไม่เติม -s"],
+      ["เป็ด 3 ตัว · three ___", "ducks", "duck", "duckes", "ducked", "มากกว่า 1 ตัว เติม -s เป็น ducks"],
+      ["แอปเปิล 5 ลูก · five ___", "apples", "apple", "applees", "appled", "มากกว่า 1 ลูก เติม -s เป็น apples"],
+      ["ลูกโป่ง 7 ใบ · seven ___", "balloons", "balloon", "balloones", "ballooned", "เติม -s ท้ายคำได้เลย ไม่ต้องเติม -es"],
+    ],
+  },
+
+  // ===== ป.3 · ประโยคสั้น =====
+  {
+    grade: 3,
+    subject: "english",
+    title: "Short Sentences ประโยคสั้น",
+    topic: "ไวยากรณ์",
+    items: [
+      ["หนังสือ 1 เล่ม เขียนอย่างไร", "a book", "an book", "a books", "an books", "คำนามเอกพจน์ใช้ a · ใช้ an เฉพาะคำที่เริ่มด้วยเสียงสระ a e i o u"],
+      ["แอปเปิล 1 ลูก เขียนอย่างไร", "an apple", "a apple", "an apples", "a apples", "apple เริ่มด้วยเสียงสระ จึงใช้ an ไม่ใช่ a"],
+      ["นี่คือแมวของฉัน", "This is my cat.", "This my cat is.", "This cat is my.", "This is me cat.", "เรียง ประธาน + is + ส่วนขยาย · เจ้าของใช้ my ไม่ใช่ me"],
+      ["นั่นคือหนังสือของเธอ", "That is her book.", "That her book is.", "That is she book.", "That book is her.", "ไกลตัวใช้ That · เจ้าของผู้หญิงใช้ her ไม่ใช่ she"],
+      ["ฉันมีสุนัข 1 ตัว", "I have a dog.", "I has a dog.", "I have dog.", "I am have a dog.", "I ใช้ have ไม่ใช่ has · สุนัข 1 ตัวต้องมี a"],
+      ["เขาผู้ชายมีแมว 2 ตัว", "He has two cats.", "He have two cats.", "He has two cat.", "He is have two cats.", "He ใช้ has · 2 ตัวต้องเติม -s เป็น cats"],
+      ["มีหนังสือ 1 เล่มอยู่บนโต๊ะ", "There is a book on the table.", "There are a book on the table.", "There is a books on the table.", "There have a book on the table.", "ของชิ้นเดียวใช้ There is · ของหลายชิ้นใช้ There are"],
+      ["มีแมว 3 ตัวอยู่ในกล่อง", "There are three cats in the box.", "There is three cats in the box.", "There are three cat in the box.", "There have three cats in the box.", "3 ตัวเป็นพหูพจน์ ต้องใช้ There are และเติม -s"],
+      ["เธอไม่ใช่ครูของฉัน", "She is not my teacher.", "She not is my teacher.", "She is no my teacher.", "She not my teacher.", "ปฏิเสธคือวาง not ไว้หลัง is"],
+      ["พวกเขาเป็นเพื่อนของฉัน", "They are my friends.", "They is my friends.", "They are my friend.", "They am my friends.", "They ใช้ are · เพื่อนหลายคนเติม -s"],
+    ],
+  },
+
+  // ===== ป.4 · Present Simple =====
+  {
+    grade: 4,
+    subject: "english",
+    title: "Present Simple เหตุการณ์ปัจจุบัน",
+    topic: "ไวยากรณ์",
+    items: [
+      ["I ___ to school every day.", "go", "goes", "going", "went", "I ใช้กริยารูปปกติ · goes ใช้กับ he she it เท่านั้น"],
+      ["She ___ to school every day.", "goes", "go", "going", "gone", "She เป็นเอกพจน์บุรุษที่ 3 ต้องเติม -es เป็น goes"],
+      ["He ___ rice every morning.", "eats", "eat", "eating", "ate", "He ต้องเติม -s · ate เป็นรูปอดีต ใช้กับ every morning ไม่ได้"],
+      ["We ___ English on Monday.", "study", "studies", "studying", "studied", "We ใช้รูปปกติ · studies ใช้กับ he she it"],
+      ["My mother ___ dinner every evening.", "cooks", "cook", "cooking", "cooked", "My mother แทนด้วย she ได้ จึงต้องเติม -s"],
+      ["They ___ football after school.", "play", "plays", "playing", "played", "They เป็นพหูพจน์ ใช้รูปปกติ ไม่เติม -s"],
+      ["The cat ___ milk every day.", "drinks", "drink", "drinking", "drank", "The cat แทนด้วย it ได้ จึงต้องเติม -s"],
+      ["___ you like mango?", "Do", "Does", "Is", "Are", "ถามด้วยกริยาทั่วไปกับ you ใช้ Do"],
+      ["___ she like mango?", "Does", "Do", "Is", "Are", "ถามกับ he she it ใช้ Does แล้วกริยาหลักกลับเป็นรูปปกติ"],
+      ["He ___ not like fish.", "does", "do", "is", "are", "ปฏิเสธกับ he ใช้ does not แล้วตามด้วย like รูปปกติ"],
+      ["ประโยคใดเติมท้ายกริยาถูกต้อง", "She watches TV.", "She watchs TV.", "She watch TV.", "She watching TV.", "คำที่ลงท้าย ch ต้องเติม -es เป็น watches"],
+      ["ประโยคใดเขียนรูปปฏิเสธถูกต้อง", "I do not have a pen.", "I does not have a pen.", "I not have a pen.", "I am not have a pen.", "I ใช้ do not · does not ใช้กับ he she it"],
+    ],
+  },
+
+  // ===== ป.4 · คำถาม Wh- =====
+  {
+    grade: 4,
+    subject: "english",
+    title: "Wh- Questions คำถามขึ้นต้นด้วย Wh",
+    topic: "ไวยากรณ์",
+    items: [
+      ["What แปลว่าอะไร", "อะไร", "ที่ไหน", "ใคร", "เมื่อไร", "What คือ อะไร ใช้ถามสิ่งของหรือเรื่องราว"],
+      ["Where แปลว่าอะไร", "ที่ไหน", "อะไร", "ใคร", "อย่างไร", "Where คือ ที่ไหน ใช้ถามสถานที่"],
+      ["Who แปลว่าอะไร", "ใคร", "อะไร", "ที่ไหน", "ทำไม", "Who คือ ใคร ใช้ถามคน"],
+      ["When แปลว่าอะไร", "เมื่อไร", "ที่ไหน", "ทำไม", "อย่างไร", "When คือ เมื่อไร ใช้ถามเวลา"],
+      ["Why แปลว่าอะไร", "ทำไม", "อย่างไร", "เมื่อไร", "ใคร", "Why คือ ทำไม ใช้ถามเหตุผล ตอบด้วย Because"],
+      ["How แปลว่าอะไร", "อย่างไร", "ทำไม", "ที่ไหน", "ใคร", "How คือ อย่างไร ใช้ถามวิธีหรืออาการ"],
+      ["___ is your name? (ถามชื่อ)", "What", "Where", "When", "Why", "ถามชื่อใช้ What ไม่ใช่ Who"],
+      ["___ do you live? (ถามที่อยู่)", "Where", "What", "When", "Who", "ถามสถานที่ใช้ Where"],
+      ["___ is your teacher? (ถามว่าเป็นคนไหน)", "Who", "What", "Where", "When", "ถามคนใช้ Who"],
+      ["___ are you sad? (ถามเหตุผล)", "Why", "What", "Where", "When", "ถามเหตุผลใช้ Why"],
+    ],
+  },
+
+  // ===== ป.5 · Past Simple =====
+  {
+    grade: 5,
+    subject: "english",
+    title: "Past Simple เหตุการณ์ที่ผ่านไปแล้ว",
+    topic: "ไวยากรณ์",
+    items: [
+      ["Yesterday I ___ to the market.", "went", "go", "goes", "going", "yesterday บอกว่าเป็นอดีต go เปลี่ยนรูปเป็น went"],
+      ["She ___ rice for dinner last night.", "cooked", "cook", "cooks", "cooking", "last night เป็นอดีต กริยาปกติเติม -ed"],
+      ["We ___ a movie last Sunday.", "watched", "watch", "watches", "watching", "last Sunday เป็นอดีต เติม -ed เป็น watched"],
+      ["He ___ his homework yesterday.", "did", "do", "does", "doing", "รูปอดีตของ do คือ did"],
+      ["They ___ at home last week.", "stayed", "stay", "stays", "staying", "stay ลงท้ายสระ y ที่มีสระนำ เติม -ed ได้เลย"],
+      ["Last Friday I ___ my friend.", "met", "meet", "meets", "meeting", "รูปอดีตของ meet คือ met ไม่ใช่ meeted"],
+      ["รูปอดีตของ study คือคำใด", "studied", "studyed", "studys", "studing", "คำลงท้าย y ที่มีพยัญชนะนำ เปลี่ยน y เป็น i แล้วเติม -ed"],
+      ["รูปอดีตของ stop คือคำใด", "stopped", "stoped", "stopping", "stops", "สระสั้นตามด้วยพยัญชนะตัวเดียว ต้องเพิ่มพยัญชนะอีกตัวก่อนเติม -ed"],
+      ["รูปอดีตของ take คือคำใด", "took", "taked", "taken", "takes", "take เป็นกริยาไม่ปกติ อดีตคือ took · taken เป็นช่องที่ 3"],
+      ["รูปอดีตของ give คือคำใด", "gave", "gived", "given", "gives", "give เป็นกริยาไม่ปกติ อดีตคือ gave · given เป็นช่องที่ 3"],
+      ["ประโยคใดเขียนรูปปฏิเสธถูกต้อง", "I did not go to school.", "I did not went to school.", "I was not go to school.", "I not go to school.", "มี did แล้ว กริยาหลักกลับเป็นรูปปกติ go ไม่ใช่ went"],
+      ["ประโยคใดเขียนรูปคำถามถูกต้อง", "Did you eat breakfast?", "Did you ate breakfast?", "Do you ate breakfast?", "Did you eating breakfast?", "ถามอดีตใช้ Did แล้วกริยาหลักเป็นรูปปกติ eat"],
+    ],
+  },
+
+  // ===== ป.5 · คำคุณศัพท์เปรียบเทียบ =====
+  {
+    grade: 5,
+    subject: "english",
+    title: "Comparatives คำคุณศัพท์เปรียบเทียบ",
+    topic: "ไวยากรณ์",
+    items: [
+      ["An elephant is ___ than a cat.", "bigger", "big", "biggest", "more big", "เทียบ 2 สิ่ง ใช้ขั้นกว่า big เป็น bigger"],
+      ["A mouse is ___ than a dog.", "smaller", "small", "smallest", "more small", "คำสั้นเติม -er ไม่ใช้ more"],
+      ["My brother is ___ than me.", "taller", "tall", "tallest", "more tall", "tall เป็นคำสั้น เติม -er เป็น taller"],
+      ["คำใดใช้ต่อหลังคำเปรียบเทียบขั้นกว่า", "than", "then", "that", "from", "ขั้นกว่าตามด้วย than · then แปลว่า แล้วก็ สะกดต่างกันตัวเดียว"],
+      ["ขั้นกว่าของ happy คือคำใด", "happier", "happyer", "happiest", "happily", "ลงท้าย y ที่มีพยัญชนะนำ เปลี่ยน y เป็น i แล้วเติม -er"],
+      ["ขั้นกว่าของ big คือคำใด", "bigger", "biger", "biggest", "more big", "สระสั้นพยัญชนะเดียว ต้องเพิ่ม g อีกตัวก่อนเติม -er"],
+      ["ขั้นกว่าของ beautiful คือคำใด", "more beautiful", "beautifuler", "most beautiful", "beautifullest", "คำยาว 3 พยางค์ขึ้นไป ใช้ more ข้างหน้า ไม่เติม -er"],
+      ["ขั้นกว่าของ good คือคำใด", "better", "gooder", "best", "more good", "good เป็นคำพิเศษ ขั้นกว่าคือ better · best เป็นขั้นสูงสุด"],
+      ["ขั้นกว่าของ bad คือคำใด", "worse", "badder", "worst", "more bad", "bad เป็นคำพิเศษ ขั้นกว่าคือ worse · worst เป็นขั้นสูงสุด"],
+      ["ขั้นสูงสุดของ big คือคำใด", "the biggest", "the bigger", "the most big", "the biggiest", "ขั้นสูงสุดเติม -est และมี the นำหน้า"],
+      ["ขั้นสูงสุดของ beautiful คือคำใด", "the most beautiful", "the beautifulest", "the more beautiful", "the beautifuler", "คำยาวใช้ the most ข้างหน้า"],
+      ["ประโยคใดเปรียบเทียบถูกต้อง", "She is taller than her sister.", "She is more taller than her sister.", "She is taller then her sister.", "She is tall than her sister.", "ใช้ -er อย่างเดียว ห้ามใส่ more ซ้ำ และต้องเป็น than"],
+    ],
+  },
+];
+
+function writtenSets(): Draft[] {
+  return WRITTEN.map((set, i) => {
+    const r = rng(11000 + i);
+    return {
+      title: set.title,
+      subject: set.subject,
+      grade: set.grade,
+      topic: set.topic,
+      questions: set.items.map(([prompt, answer, a, b, c, explain]) => ({
+        ...withChoices(r, prompt, answer, [a, b, c]),
+        explain,
+      })),
+      published: false,
+    };
+  });
+}
+
 export function starterExercises(): Draft[] {
-  return [...mathSets(), ...pairSets(), ...scienceSets()];
+  return [...mathSets(), ...pairSets(), ...scienceSets(), ...writtenSets()];
 }
