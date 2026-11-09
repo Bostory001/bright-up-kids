@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>คณิตเตรียมสอบเข้า ม.1</title>
+<style>
+:root{
+  --bg:#fbf8f2; --card:#ffffff; --ink:#1f2328; --muted:#5c6673; --line:#e6ded0;
+  --accent:#b0501a; --accent-soft:#fdf0e4; --green:#1f6f58; --green-soft:#e8f4ef;
+  --blue:#1e5b8f; --blue-soft:#e7f0f8; --chip:#f4ecdf;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a; --card:#1d2126; --ink:#e9eaec; --muted:#a2abb6; --line:#2e343b;
+    --accent:#f0a068; --accent-soft:#2a2118; --green:#6fd2b2; --green-soft:#16241f;
+    --blue:#7fb8e8; --blue-soft:#141f29; --chip:#262c33;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a; --card:#1d2126; --ink:#e9eaec; --muted:#a2abb6; --line:#2e343b;
+  --accent:#f0a068; --accent-soft:#2a2118; --green:#6fd2b2; --green-soft:#16241f;
+  --blue:#7fb8e8; --blue-soft:#141f29; --chip:#262c33;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Sarabun","Leelawadee UI","Noto Sans Thai",Tahoma,sans-serif;
+  font-size:17px; line-height:1.75;
+}
+.wrap{max-width:860px; margin:0 auto; padding:32px 16px 80px}
+header.hero{
+  background:var(--card); border:1px solid var(--line); border-radius:16px;
+  padding:28px 26px; margin-bottom:26px;
+}
+h1{margin:0 0 6px; font-size:1.7rem; letter-spacing:-.01em}
+.sub{color:var(--muted); margin:0}
+.badges{margin-top:14px; display:flex; flex-wrap:wrap; gap:8px}
+.badge{background:var(--chip); border-radius:999px; padding:4px 12px; font-size:.85rem}
+h2{margin:40px 0 14px; font-size:1.3rem; padding-bottom:8px; border-bottom:2px solid var(--accent)}
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:14px 0}
+.tip{background:var(--green-soft); border-left:4px solid var(--green); border-radius:0 10px 10px 0; padding:13px 18px; margin:13px 0}
+.tip b{color:var(--green)}
+.q{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin:12px 0}
+.qnum{display:inline-block; min-width:2.1em; font-weight:700; color:var(--accent)}
+details{margin-top:10px; border-top:1px dashed var(--line); padding-top:8px}
+summary{cursor:pointer; color:var(--blue); font-size:.92rem; font-weight:600; list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"\25B8  "}
+details[open] summary::before{content:"\25BE  "}
+.sol{background:var(--blue-soft); border-radius:10px; padding:12px 16px; margin-top:10px; font-size:.97rem}
+.sol ol{margin:6px 0 6px 1.1em; padding:0}
+.ans{display:inline-block; margin-top:8px; background:var(--chip); border-radius:8px; padding:3px 10px; font-weight:700}
+table{width:100%; border-collapse:collapse; margin:12px 0; font-size:.95rem}
+th,td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+th{background:var(--chip); font-weight:700}
+ol.main>li{margin-bottom:10px}
+.toolbar{display:flex; gap:10px; flex-wrap:wrap; margin:18px 0 0}
+button{font:inherit; font-size:.9rem; cursor:pointer; border:1px solid var(--line);
+  background:var(--chip); color:var(--ink); border-radius:999px; padding:7px 16px}
+button:hover{border-color:var(--accent)}
+.toc{columns:2; column-gap:24px; font-size:.95rem}
+@media (max-width:600px){.toc{columns:1}}
+.toc a{color:var(--ink); text-decoration:none; display:block; padding:3px 0}
+.toc a:hover{color:var(--accent)}
+footer{margin-top:50px; color:var(--muted); font-size:.88rem; text-align:center}
+@media print{
+  body{background:#fff; font-size:12.5pt}
+  .toolbar,.toc{display:none}
+  .card,.q,header.hero{break-inside:avoid; border-color:#ccc}
+  h2{break-after:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>คณิตศาสตร์ เตรียมสอบเข้า ม.1</h1>
+  <p class="sub">50 ข้อ พร้อมวิธีทำละเอียดทีละขั้น + เทคนิคคิดเร็ว + สูตรที่ต้องจำ + แผนฝึก 4 สัปดาห์</p>
+  <div class="badges">
+    <span class="badge">ระดับ ป.6 &rarr; ม.1</span>
+    <span class="badge">10 หมวดเนื้อหา</span>
+    <span class="badge">พิมพ์ลงกระดาษได้</span>
+    <span class="badge">ซ่อน/เปิดเฉลยได้</span>
+  </div>
+  <div class="toolbar">
+    <button onclick="toggleAll(true)">เปิดเฉลยทั้งหมด</button>
+    <button onclick="toggleAll(false)">ซ่อนเฉลยทั้งหมด (โหมดทำข้อสอบ)</button>
+    <button onclick="window.print()">พิมพ์ / บันทึกเป็น PDF</button>
+  </div>
+</header>
+
+<div class="card">
+  <b>สารบัญ</b>
+  <div class="toc" style="margin-top:8px">
+    <a href="#how">วิธีใช้ชุดนี้</a>
+    <a href="#tech">เทคนิคหลัก 10 ข้อ</a>
+    <a href="#formula">สูตรที่ต้องจำ</a>
+    <a href="#s1">1. คิดเลขเร็ว (1&ndash;5)</a>
+    <a href="#s2">2. ห.ร.ม. / ค.ร.น. (6&ndash;10)</a>
+    <a href="#s3">3. เศษส่วน ทศนิยม (11&ndash;15)</a>
+    <a href="#s4">4. ร้อยละ กำไร-ขาดทุน (16&ndash;20)</a>
+    <a href="#s5">5. อัตราส่วน สัดส่วน (21&ndash;25)</a>
+    <a href="#s6">6. สมการและโจทย์ปัญหา (26&ndash;30)</a>
+    <a href="#s7">7. เรขาคณิต พื้นที่ ปริมาตร (31&ndash;36)</a>
+    <a href="#s8">8. แบบรูปและลำดับ (37&ndash;40)</a>
+    <a href="#s9">9. สถิติ ความน่าจะเป็น (41&ndash;45)</a>
+    <a href="#s10">10. โจทย์ประยุกต์ / เชาวน์ (46&ndash;50)</a>
+    <a href="#plan">แผนฝึก 4 สัปดาห์</a>
+    <a href="#exam">เทคนิคในห้องสอบ</a>
+  </div>
+</div>
+
+<h2 id="how">วิธีใช้ชุดนี้</h2>
+<div class="card">
+  <ol class="main">
+    <li><b>รอบที่ 1 &mdash; จับเวลา:</b> กด &ldquo;ซ่อนเฉลยทั้งหมด&rdquo; แล้วทำทีละหมวด หมวดละ 10 นาที ห้ามเปิดเฉลย</li>
+    <li><b>รอบที่ 2 &mdash; ตรวจและเรียน:</b> เปิดเฉลย อ่าน <i>ขั้นตอน</i> ไม่ใช่ดูแค่คำตอบ ข้อที่ผิดให้ทำเครื่องหมายไว้</li>
+    <li><b>รอบที่ 3 &mdash; ทำซ้ำเฉพาะข้อที่ผิด:</b> เว้นไป 3 วันแล้วกลับมาทำใหม่โดยไม่ดูเฉลย ถ้ายังผิดคือยังไม่เข้าใจหลักการ ไม่ใช่สะเพร่า</li>
+    <li><b>เป้าหมาย:</b> ถูก 80% ขึ้นไป และใช้เวลาข้อละไม่เกิน 1.5 นาที</li>
+  </ol>
+</div>
+
+<h2 id="tech">เทคนิคหลัก 10 ข้อ (ต้องติดตัวก่อนเข้าห้องสอบ)</h2>
+
+<div class="tip"><b>1. แยกตัวประกอบเพื่อจับคู่ให้เป็นสิบ/ร้อย</b><br>
+25 &times; 36 ให้มอง 36 = 4 &times; 9 &rarr; (25 &times; 4) &times; 9 = 100 &times; 9 = 900 &middot; จำคู่ที่ทำให้เลขกลม: 25&times;4=100, 125&times;8=1000, 5&times;2=10</div>
+
+<div class="tip"><b>2. ปัดขึ้นแล้วหักออก</b><br>
+998 &times; 7 = (1000 &minus; 2) &times; 7 = 7000 &minus; 14 = 6,986 &middot; ใช้ทุกครั้งที่เห็นเลขใกล้ 10, 100, 1000</div>
+
+<div class="tip"><b>3. ผลบวกเลขเรียง = (หัว + ท้าย) &times; จำนวนพจน์ &divide; 2</b><br>
+1+2+&hellip;+50 = (1+50) &times; 50 &divide; 2 = 1,275 &middot; ใช้ได้กับทุกลำดับที่เพิ่มขึ้นเท่า ๆ กัน</div>
+
+<div class="tip"><b>4. เจอ &ldquo;แบ่งให้เท่ากัน / ใหญ่ที่สุด&rdquo; ใช้ ห.ร.ม. &mdash; เจอ &ldquo;พร้อมกันครั้งต่อไป / น้อยที่สุด&rdquo; ใช้ ค.ร.น.</b><br>
+นี่คือจุดที่เด็กเสียคะแนนมากที่สุด ท่องประโยคนี้ให้ได้</div>
+
+<div class="tip"><b>5. ร้อยละ แปลงเป็นตัวคูณทันที</b><br>
+ลด 15% = &times;0.85 &middot; บวก 7% = &times;1.07 &middot; กำไร 25% = &times;1.25 &middot; ขาดทุน 20% = &times;0.8 &middot; ถ้าโจทย์ให้ <i>ราคาขาย</i> แล้วถามทุน ต้อง <b>หาร</b> กลับ ไม่ใช่คูณ</div>
+
+<div class="tip"><b>6. โจทย์สัดส่วน ดูว่าไปทางเดียวกันหรือตรงข้าม</b><br>
+ของมากขึ้น&rarr;ราคามากขึ้น = สัดส่วนตรง คูณไขว้ได้เลย &middot; คนมากขึ้น&rarr;เวลาน้อยลง = สัดส่วนผกผัน ให้คิดว่า &ldquo;งานรวม = คน &times; วัน&rdquo; เป็นค่าคงที่</div>
+
+<div class="tip"><b>7. ตั้งตัวแปรตัวเดียว ที่ปริมาณน้อยที่สุด</b><br>
+&ldquo;ปากกาถูกกว่าสมุด 30 บาท&rdquo; &rarr; ให้ปากกา = x แล้วสมุด = x + 30 ได้สมการตัวแปรเดียว ไม่ต้องแก้สองสมการ</div>
+
+<div class="tip"><b>8. เรขาคณิตต้องวาดรูปและเขียนตัวเลขลงบนรูปทุกครั้ง</b><br>
+ห้ามคิดในหัว &middot; ตรวจหน่วยให้ตรงกันก่อนคำนวณ (ซม. ปนกับ ม. คือกับดักที่เจอบ่อยสุด) &middot; พื้นที่ตอบเป็นตารางหน่วย ปริมาตรตอบเป็นลูกบาศก์หน่วย</div>
+
+<div class="tip"><b>9. โจทย์ตัวเลือก ใช้แทนค่าย้อนกลับ</b><br>
+ถ้าแก้สมการไม่ออก เอาตัวเลือกไปแทนในโจทย์ เริ่มจากตัวเลือกกลาง ๆ เร็วกว่าคิดตรงมาก</div>
+
+<div class="tip"><b>10. ประมาณค่าเพื่อตัดตัวเลือกทิ้ง</b><br>
+ก่อนคำนวณจริง เดาคร่าว ๆ ว่าคำตอบควรราวเท่าไร ตัวเลือกที่ผิดมหาศาลตัดทิ้งได้ทันที เหลือ 2 ตัวแล้วค่อยคิดละเอียด</div>
+
+<h2 id="formula">สูตรที่ต้องจำ</h2>
+<table>
+<tr><th>เรื่อง</th><th>สูตร</th></tr>
+<tr><td>สี่เหลี่ยมผืนผ้า</td><td>พื้นที่ = กว้าง &times; ยาว &middot; เส้นรอบรูป = 2 &times; (กว้าง + ยาว)</td></tr>
+<tr><td>สี่เหลี่ยมจัตุรัส</td><td>พื้นที่ = ด้าน &times; ด้าน &middot; เส้นรอบรูป = 4 &times; ด้าน</td></tr>
+<tr><td>สามเหลี่ยม</td><td>พื้นที่ = &frac12; &times; ฐาน &times; สูง &middot; มุมภายในรวม = 180&deg;</td></tr>
+<tr><td>สี่เหลี่ยมคางหมู</td><td>พื้นที่ = &frac12; &times; (ผลบวกด้านขนาน) &times; สูง</td></tr>
+<tr><td>รูปว่าว / ขนมเปียกปูน</td><td>พื้นที่ = &frac12; &times; ผลคูณเส้นทแยงมุม</td></tr>
+<tr><td>วงกลม</td><td>พื้นที่ = &pi;r&sup2; &middot; เส้นรอบวง = 2&pi;r = &pi;d (&pi; &asymp; 22/7 หรือ 3.14)</td></tr>
+<tr><td>ทรงสี่เหลี่ยมมุมฉาก</td><td>ปริมาตร = กว้าง &times; ยาว &times; สูง &middot; พื้นที่ผิว = 2(กย + ยส + สก)</td></tr>
+<tr><td>ปริซึม / ทรงกระบอก</td><td>ปริมาตร = พื้นที่ฐาน &times; สูง</td></tr>
+<tr><td>ความเร็ว</td><td>ระยะทาง = ความเร็ว &times; เวลา</td></tr>
+<tr><td>ค่าเฉลี่ย</td><td>ค่าเฉลี่ย = ผลรวม &divide; จำนวนข้อมูล &rarr; ผลรวม = ค่าเฉลี่ย &times; จำนวน</td></tr>
+<tr><td>ความน่าจะเป็น</td><td>P = จำนวนผลที่ต้องการ &divide; จำนวนผลทั้งหมด (ค่าอยู่ระหว่าง 0 ถึง 1)</td></tr>
+<tr><td>ลำดับเพิ่มเท่ากัน</td><td>พจน์ที่ n = พจน์แรก + (n &minus; 1) &times; ผลต่าง</td></tr>
+<tr><td>หน่วยที่สับสนบ่อย</td><td>1 ม. = 100 ซม. &middot; 1 ตร.ม. = 10,000 ตร.ซม. &middot; 1 ลบ.ม. = 1,000,000 ลบ.ซม. &middot; 1 ลิตร = 1,000 ลบ.ซม. &middot; 1 กม. = 1,000 ม.</td></tr>
+</table>
+
+<h2 id="s1">หมวด 1 &mdash; จำนวนและการคิดเลขเร็ว</h2>
+<div class="tip"><b>เทคนิคหมวดนี้:</b> ห้ามตั้งคูณยาวถ้าเลี่ยงได้ ให้มองหา &ldquo;คู่ที่ทำให้กลม&rdquo; หรือ &ldquo;เลขใกล้หลักสิบ/ร้อย&rdquo; ก่อนเสมอ</div>
+
+<div class="q"><span class="qnum">1.</span> จงหาค่าของ 25 &times; 36
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>แยก 36 = 4 &times; 9</li>
+<li>25 &times; 36 = 25 &times; 4 &times; 9</li>
+<li>= 100 &times; 9 = 900</li></ol>
+<span class="ans">ตอบ 900</span></div></details></div>
+
+<div class="q"><span class="qnum">2.</span> จงหาค่าของ 998 &times; 7
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>มอง 998 = 1000 &minus; 2</li>
+<li>(1000 &minus; 2) &times; 7 = 7000 &minus; 14</li>
+<li>= 6,986</li></ol>
+<span class="ans">ตอบ 6,986</span></div></details></div>
+
+<div class="q"><span class="qnum">3.</span> 1 + 2 + 3 + &hellip; + 50 มีค่าเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>จับคู่หัวกับท้าย: 1+50 = 51</li>
+<li>มีทั้งหมด 50 พจน์ จับคู่ได้ 25 คู่</li>
+<li>51 &times; 25 = 1,275</li></ol>
+<span class="ans">ตอบ 1,275</span></div></details></div>
+
+<div class="q"><span class="qnum">4.</span> 17&sup2; มีค่าเท่าไร (ห้ามตั้งคูณ)
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>มอง 17 = 20 &minus; 3</li>
+<li>(20 &minus; 3)&sup2; = 20&sup2; &minus; 2(20)(3) + 3&sup2;</li>
+<li>= 400 &minus; 120 + 9 = 289</li></ol>
+<span class="ans">ตอบ 289</span></div></details></div>
+
+<div class="q"><span class="qnum">5.</span> จำนวนเฉพาะที่อยู่ระหว่าง 20 ถึง 40 มีกี่จำนวน และคือจำนวนใด
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>จำนวนเฉพาะ = มีตัวประกอบแค่ 1 กับตัวมันเอง</li>
+<li>ตัดเลขคู่ออกทั้งหมด ตัดที่หารด้วย 3 และ 5 ลงตัวออก</li>
+<li>เหลือ 23, 29, 31, 37</li></ol>
+<span class="ans">ตอบ 4 จำนวน คือ 23, 29, 31, 37</span></div></details></div>
+
+<h2 id="s2">หมวด 2 &mdash; ห.ร.ม. และ ค.ร.น.</h2>
+<div class="tip"><b>เทคนิคหมวดนี้:</b> แยกตัวประกอบเฉพาะก่อนทุกครั้ง &middot; ห.ร.ม. = เอาตัวประกอบที่มีร่วมกันทุกจำนวน ยกกำลัง<b>น้อยสุด</b> &middot; ค.ร.น. = เอาตัวประกอบทุกตัวที่โผล่มา ยกกำลัง<b>มากสุด</b></div>
+
+<div class="q"><span class="qnum">6.</span> จงหา ห.ร.ม. และ ค.ร.น. ของ 36, 48 และ 60
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>36 = 2&sup2; &times; 3&sup2; &nbsp;|&nbsp; 48 = 2&#8308; &times; 3 &nbsp;|&nbsp; 60 = 2&sup2; &times; 3 &times; 5</li>
+<li>ห.ร.ม. เอาตัวร่วม กำลังน้อยสุด = 2&sup2; &times; 3 = 12</li>
+<li>ค.ร.น. เอาทุกตัว กำลังมากสุด = 2&#8308; &times; 3&sup2; &times; 5 = 16 &times; 9 &times; 5 = 720</li></ol>
+<span class="ans">ตอบ ห.ร.ม. = 12 , ค.ร.น. = 720</span></div></details></div>
+
+<div class="q"><span class="qnum">7.</span> เชือก 3 เส้น ยาว 84, 120 และ 156 ซม. ต้องการตัดเป็นท่อนสั้น ๆ ยาวเท่ากันและยาวที่สุดโดยไม่มีเศษ จะได้ท่อนยาวกี่เซนติเมตร และได้ทั้งหมดกี่ท่อน
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>โจทย์บอก &ldquo;เท่ากันและยาวที่สุด&rdquo; &rarr; ใช้ ห.ร.ม.</li>
+<li>84 = 2&sup2;&times;3&times;7 &nbsp;|&nbsp; 120 = 2&sup3;&times;3&times;5 &nbsp;|&nbsp; 156 = 2&sup2;&times;3&times;13</li>
+<li>ห.ร.ม. = 2&sup2; &times; 3 = 12 ซม.</li>
+<li>จำนวนท่อน = 84&divide;12 + 120&divide;12 + 156&divide;12 = 7 + 10 + 13 = 30 ท่อน</li></ol>
+<span class="ans">ตอบ ท่อนละ 12 ซม. ได้ 30 ท่อน</span></div></details></div>
+
+<div class="q"><span class="qnum">8.</span> ระฆัง 3 ใบ ดังทุก 6 นาที, 8 นาที และ 12 นาที ถ้าดังพร้อมกันครั้งแรกเวลา 08:00 น. จะดังพร้อมกันอีกครั้งเวลาใด
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>โจทย์บอก &ldquo;พร้อมกันครั้งต่อไป&rdquo; &rarr; ใช้ ค.ร.น.</li>
+<li>6 = 2&times;3 &nbsp;|&nbsp; 8 = 2&sup3; &nbsp;|&nbsp; 12 = 2&sup2;&times;3</li>
+<li>ค.ร.น. = 2&sup3; &times; 3 = 24 นาที</li>
+<li>08:00 + 24 นาที = 08:24 น.</li></ol>
+<span class="ans">ตอบ 08:24 น.</span></div></details></div>
+
+<div class="q"><span class="qnum">9.</span> จำนวนนับที่น้อยที่สุดที่หารด้วย 4, 5 และ 6 แล้วเหลือเศษ 3 เท่ากัน คือจำนวนใด
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ถ้าเศษ 0 คำตอบคือ ค.ร.น. ของ 4, 5, 6</li>
+<li>ค.ร.น. = 2&sup2; &times; 3 &times; 5 = 60</li>
+<li>ต้องการเหลือเศษ 3 จึงบวก 3 เข้าไป: 60 + 3 = 63</li>
+<li>ตรวจ: 63&divide;4 เศษ 3 &#10003; &nbsp; 63&divide;5 เศษ 3 &#10003; &nbsp; 63&divide;6 เศษ 3 &#10003;</li></ol>
+<span class="ans">ตอบ 63</span></div></details></div>
+
+<div class="q"><span class="qnum">10.</span> จำนวนสองจำนวนมี ห.ร.ม. = 6 และ ค.ร.น. = 72 ถ้าจำนวนหนึ่งคือ 18 อีกจำนวนคือเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>สมบัติสำคัญ: ห.ร.ม. &times; ค.ร.น. = ผลคูณของสองจำนวน</li>
+<li>6 &times; 72 = 18 &times; (อีกจำนวน)</li>
+<li>432 = 18 &times; x &rarr; x = 24</li></ol>
+<span class="ans">ตอบ 24</span></div></details></div>
+
+<h2 id="s3">หมวด 3 &mdash; เศษส่วนและทศนิยม</h2>
+<div class="tip"><b>เทคนิคหมวดนี้:</b> บวก-ลบต้องทำตัวส่วนให้เท่ากัน (ใช้ ค.ร.น. ของตัวส่วน) &middot; หารเศษส่วน = คูณด้วยส่วนกลับ (กลับหัวแล้วคูณ) &middot; เทียบว่าเศษส่วนใดมากกว่า ใช้คูณไขว้</div>
+
+<div class="q"><span class="qnum">11.</span> จงหาค่าของ 2/3 + 3/4 &minus; 1/2
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ค.ร.น. ของ 3, 4, 2 = 12</li>
+<li>= 8/12 + 9/12 &minus; 6/12</li>
+<li>= (8 + 9 &minus; 6)/12 = 11/12</li></ol>
+<span class="ans">ตอบ 11/12</span></div></details></div>
+
+<div class="q"><span class="qnum">12.</span> จงหาค่าของ 1/2 &divide; 3/4 &times; 2/5
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ทำการหารก่อน โดยกลับเศษส่วนตัวหลัง: 1/2 &divide; 3/4 = 1/2 &times; 4/3 = 4/6 = 2/3</li>
+<li>2/3 &times; 2/5 = 4/15</li></ol>
+<span class="ans">ตอบ 4/15</span></div></details></div>
+
+<div class="q"><span class="qnum">13.</span> ถังน้ำใบหนึ่งมีน้ำอยู่ 3/5 ของถัง เมื่อเติมน้ำอีก 12 ลิตร น้ำจะเป็น 9/10 ของถัง ถังนี้มีความจุเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>น้ำที่เติมคิดเป็นส่วนที่เพิ่มขึ้น = 9/10 &minus; 3/5</li>
+<li>= 9/10 &minus; 6/10 = 3/10 ของถัง</li>
+<li>3/10 ของถัง = 12 ลิตร</li>
+<li>ความจุทั้งถัง = 12 &times; 10/3 = 40 ลิตร</li></ol>
+<span class="ans">ตอบ 40 ลิตร</span></div></details></div>
+
+<div class="q"><span class="qnum">14.</span> 5/8 กับ 7/11 จำนวนใดมากกว่า
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>คูณไขว้: 5 &times; 11 = 55 (คู่กับ 5/8) และ 7 &times; 8 = 56 (คู่กับ 7/11)</li>
+<li>56 &gt; 55 ดังนั้น 7/11 มากกว่า</li></ol>
+<span class="ans">ตอบ 7/11 มากกว่า</span></div></details></div>
+
+<div class="q"><span class="qnum">15.</span> 0.125 + 1/4 เท่ากับเศษส่วนใด
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>0.125 = 125/1000 = 1/8 (ควรจำ: 0.125 = 1/8, 0.25 = 1/4, 0.5 = 1/2, 0.75 = 3/4)</li>
+<li>1/8 + 1/4 = 1/8 + 2/8 = 3/8</li></ol>
+<span class="ans">ตอบ 3/8 (หรือ 0.375)</span></div></details></div>
+
+<h2 id="s4">หมวด 4 &mdash; ร้อยละ กำไร-ขาดทุน</h2>
+<div class="tip"><b>เทคนิคหมวดนี้:</b> กำไร/ขาดทุนคิดจาก <b>ราคาทุน</b> เสมอ &middot; ถ้าโจทย์ให้ทุนแล้วถามราคาขาย ให้ <b>คูณ</b> &middot; ถ้าโจทย์ให้ราคาขายแล้วถามทุน ให้ <b>หาร</b></div>
+
+<div class="q"><span class="qnum">16.</span> สินค้าราคาป้าย 1,200 บาท ลดราคา 15% แล้วคิด VAT เพิ่ม 7% ผู้ซื้อต้องจ่ายเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ลด 15% = จ่าย 85% &rarr; 1,200 &times; 0.85 = 1,020 บาท</li>
+<li>บวก VAT 7% &rarr; 1,020 &times; 1.07 = 1,091.40 บาท</li></ol>
+<span class="ans">ตอบ 1,091.40 บาท</span></div></details></div>
+
+<div class="q"><span class="qnum">17.</span> ซื้อสินค้ามาราคา 800 บาท ต้องการกำไร 25% ต้องตั้งราคาขายเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>กำไรคิดจากทุน: กำไร = 800 &times; 25/100 = 200 บาท</li>
+<li>ราคาขาย = 800 + 200 = 1,000 บาท (หรือคิดเร็ว 800 &times; 1.25)</li></ol>
+<span class="ans">ตอบ 1,000 บาท</span></div></details></div>
+
+<div class="q"><span class="qnum">18.</span> ขายสินค้าได้ 960 บาท ปรากฏว่าขาดทุน 20% สินค้านี้มีราคาทุนเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ขาดทุน 20% หมายถึง ราคาขาย = 80% ของทุน</li>
+<li>0.8 &times; ทุน = 960</li>
+<li>ทุน = 960 &divide; 0.8 = 1,200 บาท</li>
+<li><b>กับดัก:</b> ถ้าเอา 960 &times; 1.2 = 1,152 จะผิด เพราะ 20% คิดจากทุน ไม่ใช่จากราคาขาย</li></ol>
+<span class="ans">ตอบ 1,200 บาท</span></div></details></div>
+
+<div class="q"><span class="qnum">19.</span> สินค้าชิ้นหนึ่งขึ้นราคา 20% แล้วต่อมาลดราคาลง 20% ราคาสุดท้ายเปลี่ยนไปอย่างไรจากราคาเดิม
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ให้ราคาเดิม = 100 บาท</li>
+<li>ขึ้น 20% &rarr; 100 &times; 1.2 = 120 บาท</li>
+<li>ลด 20% จาก 120 &rarr; 120 &times; 0.8 = 96 บาท</li>
+<li>96 เทียบกับ 100 คือลดลง 4 บาท = ลดลง 4%</li>
+<li><b>หลักคิด:</b> เปอร์เซ็นต์ขึ้นแล้วลงเท่ากัน ไม่เท่าเดิมเสมอ เพราะฐานที่คิดเปลี่ยนไป</li></ol>
+<span class="ans">ตอบ ถูกลง 4% จากราคาเดิม</span></div></details></div>
+
+<div class="q"><span class="qnum">20.</span> 30% ของจำนวนหนึ่งเท่ากับ 45 จำนวนนั้นคือเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ให้จำนวนนั้นเป็น x &rarr; 0.3x = 45</li>
+<li>x = 45 &divide; 0.3 = 150</li></ol>
+<span class="ans">ตอบ 150</span></div></details></div>
+
+<h2 id="s5">หมวด 5 &mdash; อัตราส่วนและสัดส่วน</h2>
+<div class="tip"><b>เทคนิคหมวดนี้:</b> โจทย์แบ่งของตามอัตราส่วน ให้หา &ldquo;ค่า 1 ส่วน&rdquo; ก่อนเสมอ (ของทั้งหมด &divide; ผลบวกของส่วน) แล้วจึงคูณกลับ</div>
+
+<div class="q"><span class="qnum">21.</span> แบ่งเงิน 2,400 บาท ให้ ก ข ค ตามอัตราส่วน 3 : 4 : 5 แต่ละคนได้เงินเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ผลบวกของส่วน = 3 + 4 + 5 = 12 ส่วน</li>
+<li>1 ส่วน = 2,400 &divide; 12 = 200 บาท</li>
+<li>ก = 3&times;200 = 600 &nbsp;|&nbsp; ข = 4&times;200 = 800 &nbsp;|&nbsp; ค = 5&times;200 = 1,000</li>
+<li>ตรวจ: 600+800+1,000 = 2,400 &#10003;</li></ol>
+<span class="ans">ตอบ 600, 800 และ 1,000 บาท</span></div></details></div>
+
+<div class="q"><span class="qnum">22.</span> ถ้า ก : ข = 2 : 3 และ ข : ค = 4 : 5 แล้ว ก : ข : ค เป็นเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ตัวร่วมคือ ข ซึ่งเป็น 3 กับ 4 &rarr; ค.ร.น. = 12</li>
+<li>คูณอัตราส่วนแรกด้วย 4: ก : ข = 8 : 12</li>
+<li>คูณอัตราส่วนหลังด้วย 3: ข : ค = 12 : 15</li>
+<li>รวมได้ ก : ข : ค = 8 : 12 : 15</li></ol>
+<span class="ans">ตอบ 8 : 12 : 15</span></div></details></div>
+
+<div class="q"><span class="qnum">23.</span> แผนที่มาตราส่วน 1 : 50,000 วัดระยะระหว่างสองเมืองในแผนที่ได้ 6 ซม. ระยะทางจริงกี่กิโลเมตร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>1 ซม. ในแผนที่ = 50,000 ซม. จริง</li>
+<li>6 ซม. = 6 &times; 50,000 = 300,000 ซม.</li>
+<li>แปลงหน่วย: 300,000 ซม. = 3,000 ม. = 3 กม.</li></ol>
+<span class="ans">ตอบ 3 กิโลเมตร</span></div></details></div>
+
+<div class="q"><span class="qnum">24.</span> คนงาน 6 คน ทำงานชิ้นหนึ่งเสร็จใน 12 วัน ถ้าใช้คนงาน 9 คน จะเสร็จในกี่วัน (ทำงานเร็วเท่ากัน)
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>คนเพิ่มขึ้น เวลาต้องลดลง &rarr; สัดส่วนผกผัน</li>
+<li>งานรวม = คน &times; วัน = 6 &times; 12 = 72 คน-วัน (ค่าคงที่)</li>
+<li>9 &times; วัน = 72 &rarr; วัน = 8</li></ol>
+<span class="ans">ตอบ 8 วัน</span></div></details></div>
+
+<div class="q"><span class="qnum">25.</span> รถยนต์วิ่งได้ 180 กิโลเมตร ใช้น้ำมัน 12 ลิตร ถ้ามีน้ำมัน 20 ลิตร จะวิ่งได้กี่กิโลเมตร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>น้ำมันมากขึ้น ระยะทางมากขึ้น &rarr; สัดส่วนตรง</li>
+<li>หาค่าต่อหน่วย: 180 &divide; 12 = 15 กม. ต่อลิตร</li>
+<li>15 &times; 20 = 300 กม.</li></ol>
+<span class="ans">ตอบ 300 กิโลเมตร</span></div></details></div>
+
+<h2 id="s6">หมวด 6 &mdash; สมการและโจทย์ปัญหา</h2>
+<div class="tip"><b>เทคนิคหมวดนี้:</b> อ่านโจทย์แล้วเขียนทันทีว่า &ldquo;ให้ x = &hellip;&rdquo; &middot; แปลประโยคเป็นสมการทีละวรรค &middot; แก้เสร็จต้องแทนค่ากลับไปตรวจในโจทย์ ไม่ใช่ตรวจในสมการของตัวเอง</div>
+
+<div class="q"><span class="qnum">26.</span> จงแก้สมการ 3x + 7 = 25
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ย้าย 7 ไปอีกข้าง: 3x = 25 &minus; 7 = 18</li>
+<li>หารด้วย 3: x = 6</li>
+<li>ตรวจ: 3(6) + 7 = 25 &#10003;</li></ol>
+<span class="ans">ตอบ x = 6</span></div></details></div>
+
+<div class="q"><span class="qnum">27.</span> ปัจจุบันพ่อมีอายุเป็น 3 เท่าของลูก อีก 5 ปี พ่อจะมีอายุเป็น 2 เท่าของลูก ปัจจุบันทั้งสองคนอายุเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ให้ลูกอายุ x ปี &rarr; พ่ออายุ 3x ปี</li>
+<li>อีก 5 ปี: ลูก = x + 5, พ่อ = 3x + 5</li>
+<li>เงื่อนไข: 3x + 5 = 2(x + 5)</li>
+<li>3x + 5 = 2x + 10 &rarr; x = 5</li>
+<li>ลูก 5 ปี พ่อ 15 ปี &mdash; ตรวจ: อีก 5 ปี ลูก 10 พ่อ 20 เป็น 2 เท่า &#10003;</li></ol>
+<span class="ans">ตอบ ลูก 5 ปี พ่อ 15 ปี</span></div></details></div>
+
+<div class="q"><span class="qnum">28.</span> ปากกากับสมุดรวมกันราคา 120 บาท สมุดแพงกว่าปากกา 30 บาท แต่ละอย่างราคาเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ให้ปากกา = x บาท (ตั้งที่ตัวน้อย) &rarr; สมุด = x + 30</li>
+<li>x + (x + 30) = 120</li>
+<li>2x = 90 &rarr; x = 45</li>
+<li>ปากกา 45 บาท สมุด 75 บาท</li></ol>
+<span class="ans">ตอบ ปากกา 45 บาท สมุด 75 บาท</span></div></details></div>
+
+<div class="q"><span class="qnum">29.</span> จำนวนสองจำนวนรวมกันได้ 48 และต่างกัน 6 จำนวนทั้งสองคือเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li><b>เทคนิคเร็ว:</b> ตัวมาก = (ผลบวก + ผลต่าง) &divide; 2 = (48 + 6) &divide; 2 = 27</li>
+<li>ตัวน้อย = (48 &minus; 6) &divide; 2 = 21</li>
+<li>ตรวจ: 27 + 21 = 48 &#10003; และ 27 &minus; 21 = 6 &#10003;</li></ol>
+<span class="ans">ตอบ 27 และ 21</span></div></details></div>
+
+<div class="q"><span class="qnum">30.</span> ก ทำงานชิ้นหนึ่งเสร็จใน 6 วัน ข ทำงานชิ้นเดียวกันเสร็จใน 12 วัน ถ้าช่วยกันทำจะเสร็จในกี่วัน
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>คิดเป็นงานต่อวัน: ก ทำได้ 1/6 ของงานต่อวัน, ข ทำได้ 1/12</li>
+<li>ช่วยกัน 1 วันได้ 1/6 + 1/12 = 2/12 + 1/12 = 3/12 = 1/4 ของงาน</li>
+<li>ได้ 1/4 ต่อวัน &rarr; งานทั้งชิ้นใช้ 4 วัน</li>
+<li><b>กับดัก:</b> ห้ามเอา (6+12)&divide;2 = 9 วัน ซึ่งผิด เพราะช่วยกันต้องเร็วกว่าคนที่เก่งที่สุด</li></ol>
+<span class="ans">ตอบ 4 วัน</span></div></details></div>
+
+<h2 id="s7">หมวด 7 &mdash; เรขาคณิต พื้นที่ และปริมาตร</h2>
+<div class="tip"><b>เทคนิคหมวดนี้:</b> วาดรูปแล้วเขียนตัวเลขลงบนรูป &middot; เช็กหน่วยให้เหมือนกันก่อนคำนวณ &middot; ถ้าโจทย์ให้เส้นรอบรูปแล้วถามพื้นที่ ต้องหาความกว้าง-ยาวก่อน</div>
+
+<div class="q"><span class="qnum">31.</span> สี่เหลี่ยมผืนผ้ามีเส้นรอบรูป 36 ซม. ด้านยาวเป็น 2 เท่าของด้านกว้าง พื้นที่เท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ให้กว้าง = x &rarr; ยาว = 2x</li>
+<li>เส้นรอบรูป: 2(x + 2x) = 36 &rarr; 6x = 36 &rarr; x = 6</li>
+<li>กว้าง 6 ซม. ยาว 12 ซม.</li>
+<li>พื้นที่ = 6 &times; 12 = 72 ตร.ซม.</li></ol>
+<span class="ans">ตอบ 72 ตารางเซนติเมตร</span></div></details></div>
+
+<div class="q"><span class="qnum">32.</span> สามเหลี่ยมมีฐาน 14 ซม. สูง 9 ซม. พื้นที่เท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>พื้นที่ = &frac12; &times; ฐาน &times; สูง</li>
+<li>= &frac12; &times; 14 &times; 9 = 7 &times; 9 = 63 ตร.ซม.</li></ol>
+<span class="ans">ตอบ 63 ตารางเซนติเมตร</span></div></details></div>
+
+<div class="q"><span class="qnum">33.</span> วงกลมรัศมี 7 ซม. จงหาพื้นที่และความยาวเส้นรอบวง (ใช้ &pi; = 22/7)
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>พื้นที่ = &pi;r&sup2; = 22/7 &times; 7 &times; 7 = 22 &times; 7 = 154 ตร.ซม.</li>
+<li>เส้นรอบวง = 2&pi;r = 2 &times; 22/7 &times; 7 = 44 ซม.</li>
+<li><b>เทคนิค:</b> ถ้ารัศมีเป็นพหุคูณของ 7 ให้ใช้ &pi; = 22/7 จะตัดกันพอดี</li></ol>
+<span class="ans">ตอบ พื้นที่ 154 ตร.ซม. เส้นรอบวง 44 ซม.</span></div></details></div>
+
+<div class="q"><span class="qnum">34.</span> กล่องทรงสี่เหลี่ยมมุมฉาก กว้าง 8 ซม. ยาว 10 ซม. สูง 5 ซม. จงหาปริมาตรและพื้นที่ผิวทั้งหมด
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ปริมาตร = 8 &times; 10 &times; 5 = 400 ลบ.ซม.</li>
+<li>พื้นที่ผิว = 2(กย + ยส + สก) = 2(8&times;10 + 10&times;5 + 5&times;8)</li>
+<li>= 2(80 + 50 + 40) = 2 &times; 170 = 340 ตร.ซม.</li></ol>
+<span class="ans">ตอบ ปริมาตร 400 ลบ.ซม. พื้นที่ผิว 340 ตร.ซม.</span></div></details></div>
+
+<div class="q"><span class="qnum">35.</span> สามเหลี่ยมรูปหนึ่งมีมุมภายในสองมุมเท่ากับ 65&deg; และ 48&deg; มุมที่สามกี่องศา
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>มุมภายในของสามเหลี่ยมรวมกันได้ 180&deg;</li>
+<li>มุมที่สาม = 180 &minus; (65 + 48) = 180 &minus; 113 = 67&deg;</li></ol>
+<span class="ans">ตอบ 67 องศา</span></div></details></div>
+
+<div class="q"><span class="qnum">36.</span> สี่เหลี่ยมคางหมูมีด้านขนานยาว 8 ซม. และ 12 ซม. สูง 5 ซม. พื้นที่เท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>พื้นที่ = &frac12; &times; (ผลบวกด้านขนาน) &times; สูง</li>
+<li>= &frac12; &times; (8 + 12) &times; 5 = &frac12; &times; 20 &times; 5</li>
+<li>= 10 &times; 5 = 50 ตร.ซม.</li></ol>
+<span class="ans">ตอบ 50 ตารางเซนติเมตร</span></div></details></div>
+
+<h2 id="s8">หมวด 8 &mdash; แบบรูปและลำดับ</h2>
+<div class="tip"><b>เทคนิคหมวดนี้:</b> เขียนผลต่างระหว่างพจน์ไว้ใต้ลำดับก่อน ถ้าผลต่างเท่ากันคือลำดับเพิ่มคงที่ (ใช้สูตร) ถ้าผลต่างไม่เท่า ให้ลองหาว่าเป็นการคูณหรือเป็นกำลังสอง</div>
+
+<div class="q"><span class="qnum">37.</span> ลำดับ 3, 7, 11, 15, &hellip; พจน์ที่ 20 คือเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ผลต่างคงที่ = 4</li>
+<li>พจน์ที่ n = พจน์แรก + (n &minus; 1) &times; ผลต่าง</li>
+<li>= 3 + (20 &minus; 1) &times; 4 = 3 + 76 = 79</li></ol>
+<span class="ans">ตอบ 79</span></div></details></div>
+
+<div class="q"><span class="qnum">38.</span> ลำดับ 2, 6, 18, 54, &hellip; พจน์ถัดไปคือเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ผลต่างไม่เท่ากัน (4, 12, 36) ลองหาอัตราการคูณ</li>
+<li>6&divide;2 = 3, 18&divide;6 = 3, 54&divide;18 = 3 &rarr; คูณ 3 ทุกครั้ง</li>
+<li>54 &times; 3 = 162</li></ol>
+<span class="ans">ตอบ 162</span></div></details></div>
+
+<div class="q"><span class="qnum">39.</span> ลำดับ 1, 4, 9, 16, 25, &hellip; พจน์ที่ 12 คือเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>สังเกตว่าเป็นจำนวนกำลังสอง: 1&sup2;, 2&sup2;, 3&sup2;, 4&sup2;, 5&sup2;</li>
+<li>พจน์ที่ n = n&sup2;</li>
+<li>พจน์ที่ 12 = 12&sup2; = 144</li></ol>
+<span class="ans">ตอบ 144</span></div></details></div>
+
+<div class="q"><span class="qnum">40.</span> ลำดับ 1, 3, 6, 10, 15, &hellip; พจน์ที่ 10 คือเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ผลต่างคือ 2, 3, 4, 5, &hellip; เพิ่มขึ้นทีละ 1 (จำนวนสามเหลี่ยม)</li>
+<li>พจน์ที่ n = 1 + 2 + 3 + &hellip; + n = n(n + 1) &divide; 2</li>
+<li>พจน์ที่ 10 = 10 &times; 11 &divide; 2 = 55</li></ol>
+<span class="ans">ตอบ 55</span></div></details></div>
+
+<h2 id="s9">หมวด 9 &mdash; สถิติและความน่าจะเป็นเบื้องต้น</h2>
+<div class="tip"><b>เทคนิคหมวดนี้:</b> โจทย์ค่าเฉลี่ยให้เปลี่ยนเป็น &ldquo;ผลรวม&rdquo; ทันที (ผลรวม = ค่าเฉลี่ย &times; จำนวน) แล้วค่อยบวก-ลบ &middot; หามัธยฐานต้องเรียงข้อมูลก่อนทุกครั้ง</div>
+
+<div class="q"><span class="qnum">41.</span> นักเรียน 5 คนได้คะแนนเฉลี่ย 72 คะแนน ถ้ามีคนที่ 6 ได้ 90 คะแนน ค่าเฉลี่ยใหม่เป็นเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ผลรวมเดิม = 72 &times; 5 = 360</li>
+<li>ผลรวมใหม่ = 360 + 90 = 450</li>
+<li>ค่าเฉลี่ยใหม่ = 450 &divide; 6 = 75</li></ol>
+<span class="ans">ตอบ 75 คะแนน</span></div></details></div>
+
+<div class="q"><span class="qnum">42.</span> ข้อมูลชุดหนึ่งคือ 4, 7, 7, 9, 13 จงหาค่าเฉลี่ย มัธยฐาน และฐานนิยม
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ค่าเฉลี่ย = (4+7+7+9+13) &divide; 5 = 40 &divide; 5 = 8</li>
+<li>มัธยฐาน = ค่ากลางเมื่อเรียงแล้ว มี 5 ตัว ตัวกลางคือตัวที่ 3 = 7</li>
+<li>ฐานนิยม = ค่าที่ซ้ำมากที่สุด = 7</li></ol>
+<span class="ans">ตอบ เฉลี่ย 8, มัธยฐาน 7, ฐานนิยม 7</span></div></details></div>
+
+<div class="q"><span class="qnum">43.</span> ห้องหนึ่งมีนักเรียน 30 คน คะแนนเฉลี่ยทั้งห้อง 70 คะแนน ถ้านักเรียนชาย 18 คนได้เฉลี่ย 65 คะแนน นักเรียนหญิงได้เฉลี่ยเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ผลรวมทั้งห้อง = 70 &times; 30 = 2,100</li>
+<li>ผลรวมของชาย = 65 &times; 18 = 1,170</li>
+<li>ผลรวมของหญิง = 2,100 &minus; 1,170 = 930</li>
+<li>หญิงมี 30 &minus; 18 = 12 คน &rarr; เฉลี่ย = 930 &divide; 12 = 77.5</li></ol>
+<span class="ans">ตอบ 77.5 คะแนน</span></div></details></div>
+
+<div class="q"><span class="qnum">44.</span> ทอดลูกเต๋า 1 ลูก 1 ครั้ง ความน่าจะเป็นที่จะได้แต้มคู่ และความน่าจะเป็นที่จะได้แต้มมากกว่า 4 เป็นเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ผลทั้งหมด 6 แบบ คือ 1, 2, 3, 4, 5, 6</li>
+<li>แต้มคู่ = 2, 4, 6 มี 3 แบบ &rarr; P = 3/6 = 1/2</li>
+<li>แต้มมากกว่า 4 = 5, 6 มี 2 แบบ &rarr; P = 2/6 = 1/3 (ระวัง &ldquo;มากกว่า 4&rdquo; ไม่นับ 4)</li></ol>
+<span class="ans">ตอบ 1/2 และ 1/3</span></div></details></div>
+
+<div class="q"><span class="qnum">45.</span> ในกล่องมีลูกบอลสีแดง 5 ลูก สีน้ำเงิน 3 ลูก หยิบขึ้นมา 1 ลูกโดยไม่มอง ความน่าจะเป็นที่จะได้ลูกสีแดงเป็นเท่าไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ลูกบอลทั้งหมด = 5 + 3 = 8 ลูก</li>
+<li>ผลที่ต้องการ (สีแดง) = 5 ลูก</li>
+<li>P = 5/8</li></ol>
+<span class="ans">ตอบ 5/8</span></div></details></div>
+
+<h2 id="s10">หมวด 10 &mdash; โจทย์ประยุกต์และเชาวน์ (ระดับแข่งขัน)</h2>
+<div class="tip"><b>เทคนิคหมวดนี้:</b> ข้อแบบนี้มักมีกับดักที่การ &ldquo;นับ&rdquo; ให้ลองวาดภาพหรือยกตัวอย่างเล็ก ๆ ก่อน เช่น ถ้าโจทย์ให้ 100 ต้น ให้ลองคิดกับ 3 ต้นก่อนเพื่อหาแบบรูป</div>
+
+<div class="q"><span class="qnum">46.</span> ในฟาร์มมีไก่และหมูรวมกัน 20 ตัว นับขาได้ทั้งหมด 56 ขา มีไก่และหมูอย่างละกี่ตัว
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ให้ไก่ = x ตัว &rarr; หมู = 20 &minus; x ตัว (ไก่ 2 ขา หมู 4 ขา)</li>
+<li>2x + 4(20 &minus; x) = 56</li>
+<li>2x + 80 &minus; 4x = 56 &rarr; &minus;2x = &minus;24 &rarr; x = 12</li>
+<li>ไก่ 12 ตัว หมู 8 ตัว &mdash; ตรวจ: 24 + 32 = 56 ขา &#10003;</li>
+<li><b>เทคนิคคิดเร็ว:</b> สมมติเป็นไก่ทั้ง 20 ตัวจะได้ 40 ขา ขาขาดไป 16 ขา เปลี่ยนไก่เป็นหมู 1 ตัวเพิ่ม 2 ขา &rarr; ต้องเปลี่ยน 8 ตัว จึงมีหมู 8 ตัว</li></ol>
+<span class="ans">ตอบ ไก่ 12 ตัว หมู 8 ตัว</span></div></details></div>
+
+<div class="q"><span class="qnum">47.</span> รถไฟยาว 200 เมตร วิ่งด้วยความเร็ว 20 เมตรต่อวินาที ผ่านสะพานยาว 300 เมตร ต้องใช้เวลากี่วินาทีจนพ้นสะพาน
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>ระยะที่รถไฟต้องวิ่งจริง = ความยาวสะพาน + ความยาวรถไฟ (เพราะต้องให้ท้ายขบวนพ้นสะพาน)</li>
+<li>= 300 + 200 = 500 เมตร</li>
+<li>เวลา = ระยะทาง &divide; ความเร็ว = 500 &divide; 20 = 25 วินาที</li>
+<li><b>กับดัก:</b> ถ้าใช้แค่ 300 &divide; 20 = 15 วินาที จะผิด เพราะลืมความยาวตัวรถไฟ</li></ol>
+<span class="ans">ตอบ 25 วินาที</span></div></details></div>
+
+<div class="q"><span class="qnum">48.</span> เวลา 03:30 น. เข็มสั้นและเข็มยาวของนาฬิกาทำมุมกันกี่องศา
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>หน้าปัดมี 360&deg; แบ่ง 12 ช่อง ช่องละ 30&deg;</li>
+<li>เข็มยาวชี้เลข 6 &rarr; อยู่ที่ 180&deg; จาก 12</li>
+<li>เข็มสั้นไม่ได้ชี้เลข 3 พอดี แต่เลื่อนไปครึ่งช่อง (ครึ่งชั่วโมง) = 90 + 15 = 105&deg;</li>
+<li>มุมระหว่างเข็ม = 180 &minus; 105 = 75&deg;</li></ol>
+<span class="ans">ตอบ 75 องศา</span></div></details></div>
+
+<div class="q"><span class="qnum">49.</span> วันที่ 1 มกราคม เป็นวันพฤหัสบดี วันที่ 25 มกราคม ปีเดียวกันเป็นวันอะไร
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>นับระยะห่าง = 25 &minus; 1 = 24 วัน</li>
+<li>หนึ่งสัปดาห์มี 7 วัน &rarr; 24 &divide; 7 = 3 เศษ 3</li>
+<li>เศษ 3 หมายถึงเลื่อนจากพฤหัสบดีไป 3 วัน: ศุกร์ &rarr; เสาร์ &rarr; อาทิตย์</li></ol>
+<span class="ans">ตอบ วันอาทิตย์</span></div></details></div>
+
+<div class="q"><span class="qnum">50.</span> ปลูกต้นไม้เป็นแนวตรงยาว 90 เมตร ปลูกห่างกันต้นละ 5 เมตร โดยปลูกที่ปลายทั้งสองข้าง จะใช้ต้นไม้กี่ต้น
+<details><summary>ดูวิธีทำ</summary><div class="sol">
+<ol><li>หาจำนวนช่วงก่อน: 90 &divide; 5 = 18 ช่วง</li>
+<li>แนวตรงที่ปลูกปลายทั้งสองข้าง จำนวนต้น = จำนวนช่วง + 1</li>
+<li>= 18 + 1 = 19 ต้น</li>
+<li><b>ตรวจด้วยตัวอย่างเล็ก:</b> ยาว 10 ม. ห่าง 5 ม. = 2 ช่วง แต่ปลูกได้ 3 ต้น (ที่ 0, 5, 10) &#10003;</li>
+<li><b>เทียบไว้:</b> ถ้าปลูกรอบสระน้ำเป็นวงปิด จำนวนต้น = จำนวนช่วงพอดี ไม่ต้องบวก 1</li></ol>
+<span class="ans">ตอบ 19 ต้น</span></div></details></div>
+
+<h2 id="plan">แผนฝึก 4 สัปดาห์ก่อนสอบ</h2>
+<table>
+<tr><th>สัปดาห์</th><th>เนื้อหาที่ฝึก</th><th>เป้าหมาย</th></tr>
+<tr><td>1</td><td>คิดเลขเร็ว, ห.ร.ม./ค.ร.น., เศษส่วน-ทศนิยม (ข้อ 1&ndash;15)</td><td>คิดเลขในใจคล่อง ไม่พึ่งเครื่องคิดเลข ท่องสูตรคูณแม่ 2&ndash;25 และกำลังสอง 1&ndash;20</td></tr>
+<tr><td>2</td><td>ร้อยละ, อัตราส่วน-สัดส่วน (ข้อ 16&ndash;25)</td><td>แปลงร้อยละเป็นตัวคูณได้ทันที แยกสัดส่วนตรงกับผกผันออกจากกันได้</td></tr>
+<tr><td>3</td><td>สมการ-โจทย์ปัญหา, เรขาคณิต (ข้อ 26&ndash;36)</td><td>ตั้งสมการจากโจทย์ภาษาไทยได้เอง และจำสูตรพื้นที่-ปริมาตรได้ครบ</td></tr>
+<tr><td>4</td><td>ลำดับ, สถิติ-ความน่าจะเป็น, โจทย์เชาวน์ (ข้อ 37&ndash;50) + ทำทั้งชุดรวบยอดจับเวลา 75 นาที</td><td>ทำทั้ง 50 ข้อได้ถูกเกิน 80% ภายในเวลา และรู้ว่าตัวเองพลาดหมวดไหน</td></tr>
+</table>
+<div class="card">
+<b>วินัยประจำวัน (วันละ 30 นาทีพอ)</b>
+<ol class="main">
+<li>10 นาทีแรก &mdash; คิดเลขเร็ว 20 ข้อ (ท่องสูตรคูณ/ยกกำลังสอง)</li>
+<li>15 นาทีถัดมา &mdash; ทำโจทย์ใหม่ 5 ข้อแบบจับเวลา</li>
+<li>5 นาทีสุดท้าย &mdash; จดข้อที่ผิดลงใน &ldquo;สมุดข้อผิด&rdquo; พร้อมเขียนว่าผิดเพราะอะไร (อ่านโจทย์พลาด / ไม่รู้สูตร / คิดเลขพลาด)</li>
+</ol>
+<b>สมุดข้อผิดสำคัญกว่าการทำโจทย์เยอะ ๆ</b> &mdash; ก่อนสอบ 1 วัน อ่านเฉพาะสมุดข้อผิด ไม่ต้องทำโจทย์ใหม่
+</div>
+
+<h2 id="exam">เทคนิคในห้องสอบ</h2>
+<div class="card">
+<ol class="main">
+<li><b>รอบแรกเก็บข้อง่ายให้หมด</b> ข้อไหนอ่านแล้วไม่เห็นทางใน 15 วินาที ให้ทำเครื่องหมายแล้วข้ามทันที คะแนนทุกข้อเท่ากัน อย่าเสียเวลา 5 นาทีกับข้อเดียว</li>
+<li><b>ขีดเส้นใต้คำที่โจทย์ถาม</b> เช่น &ldquo;ยาวที่สุด&rdquo; &ldquo;น้อยที่สุด&rdquo; &ldquo;เหลือเศษ&rdquo; &ldquo;มากกว่า&rdquo; &ldquo;ไม่น้อยกว่า&rdquo; คนพลาดเพราะอ่านข้ามมากกว่าเพราะทำไม่ได้</li>
+<li><b>เขียนหน่วยทุกครั้ง</b> โจทย์ถามกิโลเมตรแต่ตอบเมตร = ผิดทั้งข้อ</li>
+<li><b>ตรวจคำตอบด้วยการแทนค่ากลับในโจทย์</b> ไม่ใช่คิดใหม่ซ้ำวิธีเดิม เพราะจะพลาดซ้ำทางเดิม</li>
+<li><b>ประมาณค่าก่อนตัดตัวเลือก</b> ถ้ารู้ว่าคำตอบต้องมากกว่า 100 ตัวเลือกที่น้อยกว่านั้นตัดทิ้งได้เลย</li>
+<li><b>กันเวลาไว้ตรวจ 10 นาทีสุดท้าย</b> เริ่มจากข้อที่ทำเครื่องหมายไว้ และข้อที่คำนวณหลายขั้น</li>
+<li><b>ข้อที่ตอบไม่ได้จริง ๆ ให้เดา</b> ถ้าไม่มีการหักคะแนนผิด การเว้นว่างคือการทิ้งคะแนนฟรี</li>
+</ol>
+</div>
+
+<footer>
+ชุดฝึก 50 ข้อ &middot; คณิตศาสตร์เตรียมสอบเข้า ม.1 &middot; ใช้คู่กับสมุดข้อผิดเพื่อผลลัพธ์ที่ดีที่สุด
+</footer>
+
+</div>
+<script>
+function toggleAll(open){
+  document.querySelectorAll('details').forEach(function(d){ d.open = open; });
+}
+</script>
+</body>
+</html>

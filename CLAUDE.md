@@ -9,7 +9,8 @@
 | โฟลเดอร์ | เนื้อหา |
 |---|---|
 | `web/` | แอป Next.js 16 (App Router, TS, Tailwind 4) |
-| `marketing/` | แผนการตลาด, ปฏิทินคอนเทนต์, brief โบรชัวร์ |
+| `marketing/` | แผนการตลาด, brief โบรชัวร์ · **แผนคอนเทนต์ที่ใช้จริง = [marketing/content-roadmap-daily.md](marketing/content-roadmap-daily.md)** (วันละ 1 โพสต์ · `content-4-weeks.md` เป็นแผนก่อนเปิด เลิกใช้แล้ว) |
+| `marketing/social/` | **ไกด์ทำคอนเทนต์เพจ** — [IMAGE_GUIDE.md](marketing/social/IMAGE_GUIDE.md) (ภาพ 3 เลน: รูปถ่ายจริง / Tier A / Tier B) · [VIDEO_GUIDE.md](marketing/social/VIDEO_GUIDE.md) (แม่แบบคลิป V1-V5) · `PROMPTS.md` → `node scripts/build-prompts.mjs --src=marketing/social/PROMPTS.md` ได้ 22 ใบ |
 | `marketing/content/<วิชา-ชั้น-เทอม>/` | **prompt ภาพประกอบเนื้อหา (Tier B flat vector)** — มีชุดแรกแล้ว: `english-p1-term2` · สร้างไฟล์พร้อมก๊อปด้วย `node scripts/build-prompts.mjs --src=<ไฟล์ PROMPTS.md>` |
 | `docs/` | เอกสารธุรกิจ/ระบบ (ฟีเจอร์, ข้อตัดสินใจ, ทีม agent) |
 | `docs/BENCHMARK_ONION.md` | สำรวจ Onion Academy (洋葱学园) — โครงที่เอามาใช้ได้ / ที่ยังไม่ต้องสนใจ (งาน B4) |
