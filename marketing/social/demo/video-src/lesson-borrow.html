@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>render — ลบแบบมีการกระจาย</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@600;700&family=IBM+Plex+Sans+Thai:wght@500;600;700&display=swap">
+<style>
+  html,body{margin:0;padding:0;background:#000;overflow:hidden}
+  canvas{display:block}
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+/* ────────────────────────────────────────────────────────────────
+   หน้านี้ไม่ได้มีไว้เปิดดู — มีไว้ให้ capture.mjs เรียก drawAt(t)
+   ทีละเฟรมแล้วถ่ายภาพ ทุกอย่างเป็นฟังก์ชันของเวลา t (มิลลิวินาที)
+   จึงเรนเดอร์ซ้ำกี่ครั้งก็ได้ภาพเดิมเป๊ะ
+   โลก: "สถาบันโคมไฟ" · คณิต = โคมน้ำเงิน (ครูเก้า) · ความรู้ = แสง
+   ──────────────────────────────────────────────────────────────── */
+
+const W = 1080, H = 1920;
+const cv = document.getElementById("c");
+const g = cv.getContext("2d");
+
+const C = {
+  bg0:"#0d1830", bg1:"#0a1326", glow:"#1b2d57",
+  lantern:"#ffc24a", hot:"#fff0c9", deep:"#c8871f",
+  blue:"#52a8ff", ink:"#eaf1fc", ink2:"#9db1d4", ink3:"#64779c",
+  rack:"#16254a", rackLine:"#1f3566", bad:"#ff8071", capBg:"rgba(6,12,26,.88)"
+};
+
+const DISPLAY = "'Bai Jamjuree','IBM Plex Sans Thai',sans-serif";
+const BODY    = "'IBM Plex Sans Thai','Bai Jamjuree',sans-serif";
+
+/* ── ไทม์ไลน์ 7 จังหวะ รวม 38 วินาที ─────────────────────────── */
+const BEATS = [
+  { ms:3600, lines:[["52 − 7 ข้อนี้","ink"],["ป.2 ผิดกันเกินครึ่งห้อง","lantern"]] },
+  { ms:5000, lines:[["52 คือ โคมสิบ 5 ดวง","ink"],["กับ โคมหนึ่ง 2 ดวง","ink"]] },
+  { ms:5200, lines:[["จะเอาออก 7","ink"],["แต่โคมหนึ่งมีแค่ 2 — ไม่พอ","bad"]] },
+  { ms:6400, lines:[["ยืมโคมสิบ 1 ดวง","ink"],["แตกเป็นโคมหนึ่ง 10 ดวง","lantern"]] },
+  { ms:6600, lines:[["ตอนนี้โคมหนึ่งมี 12 ดวง","ink"],["เอาออก 7 ได้แล้ว","lantern"]] },
+  { ms:6000, lines:[["เหลือโคมสิบ 4 โคมหนึ่ง 5","ink"],["= 45","lantern"]] },
+  { ms:5200, lines:[["ลูกใครติดข้อแบบนี้ ทักมาคุยได้เลย","ink"],["ทดลองเรียนฟรี · 065 447 4691","lantern"]] }
+];
+const STARTS = [];
+(function(){ let a=0; for (const b of BEATS){ STARTS.push(a); a += b.ms; } })();
+const TOTAL = STARTS[6] + BEATS[6].ms;      /* 38000 */
+window.TOTAL_MS = TOTAL;
+
+/* ── ตัวช่วย ─────────────────────────────────────────────────── */
+const cl  = (v,a,b) => v < a ? a : v > b ? b : v;
+const p01 = (t,a,b) => cl((t-a)/(b-a), 0, 1);
+const outC = x => 1 - Math.pow(1-x, 3);
+const inC  = x => x*x*x;
+const outB = x => { const c=1.70158+1; return 1 + c*Math.pow(x-1,3) + 1.70158*Math.pow(x-1,2); };
+
+function beatOf(t){ let i=0; for (let k=0;k<BEATS.length;k++) if (t >= STARTS[k]) i=k; return i; }
+
+function glowDot(x,y,r,col,blur,alpha){
+  g.save(); g.globalAlpha *= (alpha===undefined?1:alpha);
+  g.shadowColor = col; g.shadowBlur = blur;
+  const gr = g.createRadialGradient(x-r*0.3, y-r*0.35, r*0.1, x, y, r);
+  gr.addColorStop(0, C.hot); gr.addColorStop(.62, col); gr.addColorStop(1, C.deep);
+  g.fillStyle = gr; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); g.restore();
+}
+function rr(x,y,w,h,r){ g.beginPath(); g.roundRect(x,y,w,h,r); }
+function text(s,x,y,font,col,align){
+  g.save(); g.font = font; g.fillStyle = col;
+  g.textAlign = align||"left"; g.textBaseline = "alphabetic";
+  g.fillText(s,x,y); g.restore();
+}
+
+/* ── ตำแหน่งคงที่ (อยู่ในเขตปลอดภัย บน 15% ล่าง 20%) ────────── */
+const RACK_W=110, RACK_H=190, RACK_GAP=40;
+const RACK_Y=680, RACK_X0=(W-(5*RACK_W+4*RACK_GAP))/2;
+const rackX = i => RACK_X0 + i*(RACK_W+RACK_GAP);
+
+/* แถวละ 7 ดวง — "ต้องเอาออก 7" จึงอยู่ในแถวเดียวพอดี เห็นว่าขาดกี่ดวงทันที */
+const ONE_R=34, ONE_GAP=110, ONE_PER=7, ONE_X0=210, ONE_Y0=1030, ONE_ROW=120;
+const oneSlot = i => ({ x: ONE_X0 + (i%ONE_PER)*ONE_GAP, y: ONE_Y0 + Math.floor(i/ONE_PER)*ONE_ROW });
+
+/* ── พื้นหลัง ───────────────────────────────────────────────── */
+const BOKEH = [];
+(function(){
+  let s = 20260308;
+  const rnd = () => (s = (s*1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  for (let i=0;i<10;i++) BOKEH.push({ x:60+rnd()*960, y:300+rnd()*1150, r:16+rnd()*34, ph:rnd()*6.28, sp:.35+rnd()*.5 });
+})();
+
+function background(t){
+  const lg = g.createLinearGradient(0,0,0,H);
+  lg.addColorStop(0, C.bg0); lg.addColorStop(1, C.bg1);
+  g.fillStyle = lg; g.fillRect(0,0,W,H);
+
+  const rg = g.createRadialGradient(W/2,-120,40, W/2,-120,900);
+  rg.addColorStop(0, C.glow); rg.addColorStop(1, "rgba(27,45,87,0)");
+  g.fillStyle = rg; g.fillRect(0,0,W,1000);
+
+  g.save();
+  for (const b of BOKEH){
+    const yy = b.y + Math.sin(t/1000*b.sp + b.ph)*22;
+    g.globalAlpha = .16; g.filter = "blur(16px)";
+    g.fillStyle = C.lantern; g.beginPath(); g.arc(b.x, yy, b.r, 0, Math.PI*2); g.fill();
+  }
+  g.restore();
+}
+
+/* ── หัวคลิป ────────────────────────────────────────────────── */
+function header(t, beat){
+  const pulse = .7 + .3*Math.sin(t/520);
+  g.save(); g.shadowColor = C.blue; g.shadowBlur = 24*pulse;
+  g.fillStyle = C.blue; g.beginPath(); g.arc(78, 330, 13, 0, Math.PI*2); g.fill(); g.restore();
+
+  text("ครูเก้า", 108, 342, "600 38px "+DISPLAY, C.ink);
+  text("· คณิต ป.2–3", 108 + g.measureText("ครูเก้า").width + 128, 342, "500 30px "+BODY, C.ink3);
+
+  const lbl = (beat+1) + " / 7";
+  g.save(); g.font = "600 28px "+DISPLAY;
+  const w = g.measureText(lbl).width + 40;
+  g.fillStyle = "rgba(255,255,255,.05)"; g.strokeStyle = C.rackLine; g.lineWidth = 2;
+  rr(W-60-w, 310, w, 46, 23); g.fill(); g.stroke(); g.restore();
+  text(lbl, W-60-w/2, 342, "600 28px "+DISPLAY, C.ink2, "center");
+}
+
+/* ── สมการ ──────────────────────────────────────────────────── */
+function equation(t){
+  const showRes = t >= STARTS[5];
+  const a = showRes ? outC(p01(t, STARTS[5], STARTS[5]+700)) : 0;
+
+  g.save(); g.font = "700 150px "+DISPLAY; g.textAlign = "left"; g.textBaseline = "alphabetic";
+  const s1="52 ", s2="− ", s3="7", s4="  = 45";
+  const w1=g.measureText(s1).width, w2=g.measureText(s2).width, w3=g.measureText(s3).width;
+  const w4=g.measureText(s4).width;
+  const full = w1+w2+w3 + w4*a;
+  let x = (W - full)/2;
+  g.shadowColor = "rgba(255,194,74,.26)"; g.shadowBlur = 50;
+  g.fillStyle = C.ink;     g.fillText(s1,x,520); x += w1;
+  g.fillStyle = C.lantern; g.fillText(s2,x,520); x += w2;
+  g.fillStyle = C.ink;     g.fillText(s3,x,520); x += w3;
+  if (a > 0){ g.globalAlpha = a; g.fillStyle = C.lantern; g.fillText(s4,x,520); }
+  g.restore();
+}
+
+/* ── โคมสิบ (แร็กไฟ 10 ดวง) ─────────────────────────────────── */
+function drawRack(x, y, lift, scale, alpha, hot){
+  g.save(); g.globalAlpha = alpha;
+  g.translate(x + RACK_W/2, y + RACK_H/2 - lift);
+  g.scale(scale, scale);
+  g.translate(-RACK_W/2, -RACK_H/2);
+
+  const lg = g.createLinearGradient(0,0,0,RACK_H);
+  lg.addColorStop(0, C.rack); lg.addColorStop(1, "#101c3a");
+  g.fillStyle = lg;
+  g.strokeStyle = hot ? C.lantern : C.rackLine; g.lineWidth = hot ? 3 : 2;
+  rr(0,0,RACK_W,RACK_H,16); g.fill(); g.stroke();
+
+  g.strokeStyle = C.rackLine; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(RACK_W/2-16,-2); g.quadraticCurveTo(RACK_W/2,-18, RACK_W/2+16,-2); g.stroke();
+
+  for (let r=0;r<5;r++) for (let c=0;c<2;c++)
+    glowDot(28 + c*54, 30 + r*34, 11, C.lantern, 14, 1);
+  g.restore();
+}
+
+function racks(t){
+  const bs = STARTS[3];
+  const lift  = outC(p01(t, bs+600,  bs+1300)) * 46;
+  const burst = p01(t, bs+1300, bs+1700);
+  const gone  = p01(t, bs+1500, bs+1900);
+  const beckon = (t > bs+150 && t < bs+900) ? Math.sin((t-bs)/110)*7 : 0;
+
+  for (let i=0;i<5;i++){
+    if (i < 4){ drawRack(rackX(i), RACK_Y, 0, 1, 1, false); continue; }
+    if (t < bs){ drawRack(rackX(i), RACK_Y, 0, 1, 1, false); continue; }
+    drawRack(rackX(i), RACK_Y, lift + beckon, 1 + burst*0.16, 1 - gone, true);
+  }
+
+  const n = t >= STARTS[3]+1900 ? 4 : 5;
+  text("โคมสิบ", 185, 630, "500 32px "+BODY, C.ink3);
+  text("× "+n, 185 + 118, 630, "600 32px "+BODY, C.ink2);
+}
+
+/* ── โคมหนึ่ง ───────────────────────────────────────────────── */
+function ones(t){
+  const bB = STARTS[3], bS = STARTS[4];
+  const srcX = rackX(4) + RACK_W/2, srcY = RACK_Y + RACK_H/2;
+
+  /* ช่องว่างเส้นประ — ให้เห็นว่ายังขาดอีก 5 */
+  if (t >= STARTS[2] && t < bB + 1700){
+    const a = outC(p01(t, STARTS[2], STARTS[2]+500)) * (1 - p01(t, bB+1300, bB+1700));
+    g.save(); g.globalAlpha = a; g.setLineDash([9,9]); g.lineWidth = 4; g.strokeStyle = C.bad;
+    for (let i=2;i<7;i++){ const s = oneSlot(i); g.beginPath(); g.arc(s.x, s.y, ONE_R, 0, Math.PI*2); g.stroke(); }
+    g.restore();
+  }
+
+  let lit = 0;
+  for (let i=0;i<12;i++){
+    let x, y, a = 1, r = ONE_R;
+    const s = oneSlot(i);
+
+    if (i < 2){
+      if (t < STARTS[1]) continue;
+      a = outC(p01(t, STARTS[1]+200 + i*160, STARTS[1]+800 + i*160));
+      x = s.x; y = s.y;
+      if (t >= STARTS[2]+600 && t < bB)
+        x += Math.sin((t-STARTS[2])/55) * 7 * (1 - p01(t, STARTS[2]+600, STARTS[2]+2400));
+    } else {
+      const t0 = bB + 1600 + (i-2)*110;
+      if (t < t0) continue;
+      const k = outC(p01(t, t0, t0+620));
+      x = srcX + (s.x - srcX)*k;
+      y = srcY + (s.y - srcY)*k - Math.sin(Math.PI*k)*70;
+      r = ONE_R * (0.45 + 0.55*k);
+    }
+
+    /* ลอยหายไป 7 ดวง (ดวงที่ 6–12) */
+    if (i >= 5 && t >= bS + 500){
+      const t0 = bS + 500 + (11-i)*230;
+      const k = p01(t, t0, t0+560);
+      if (k > 0){ y -= inC(k)*120; a *= (1-k); r *= (1 - .5*k); }
+      if (k >= 1) continue;
+    }
+
+    const bobA = (i<2 ? 1 : 1) * 4;
+    glowDot(x, y + Math.sin(t/900 + i)*bobA, r, C.lantern, 18, a);
+    if (a > .55) lit++;
+  }
+
+  let n;
+  if (t < STARTS[1]) n = 0;
+  else if (t < bB+1600) n = 2;
+  else if (t < bS+500)  n = Math.max(2, lit);   /* นับขึ้น 2 → 12 ตามดวงที่ลอยมาถึง */
+  else n = Math.max(5, lit);                     /* นับลง 12 → 5 ตามดวงที่ลอยออก */
+  text("โคมหนึ่ง", 185, 960, "500 32px "+BODY, C.ink3);
+  text("× "+n, 185 + 140, 960, "600 32px "+BODY, C.ink2);
+}
+
+/* ── สรุปคำตอบ ──────────────────────────────────────────────── */
+function tally(t){
+  if (t < STARTS[5]) return;
+  const a = outC(p01(t, STARTS[5]+400, STARTS[5]+1100));
+  g.save(); g.globalAlpha = a; g.textAlign = "center"; g.textBaseline = "alphabetic";
+  g.font = "600 40px "+DISPLAY;
+  const s1 = "โคมสิบ 4  +  โคมหนึ่ง 5  =  ", s2 = "45";
+  const w1 = g.measureText(s1).width, w2 = g.measureText(s2).width;
+  const x0 = (W - (w1+w2))/2;
+  g.textAlign = "left";
+  g.fillStyle = C.ink2;    g.fillText(s1, x0, 1262);
+  g.shadowColor = C.lantern; g.shadowBlur = 26;
+  g.fillStyle = C.lantern; g.fillText(s2, x0+w1, 1262);
+  g.restore();
+}
+
+/* ── ซับไทเทิล ──────────────────────────────────────────────── */
+const COL = { ink:C.ink, lantern:C.lantern, bad:C.bad };
+
+function caption(t, beat){
+  const b = BEATS[beat], st = STARTS[beat];
+  const a = outC(p01(t, st, st+320));
+  const boxW = 980, boxH = 224, x = (W-boxW)/2, y = 1296;
+
+  g.save(); g.globalAlpha = a;
+  g.fillStyle = C.capBg; rr(x, y, boxW, boxH, 22); g.fill();
+  g.strokeStyle = "rgba(255,194,74,.16)"; g.lineWidth = 2; g.stroke();
+
+  g.textAlign = "center"; g.textBaseline = "alphabetic";
+  for (let i=0;i<b.lines.length;i++){
+    const slide = (1 - outC(p01(t, st + i*110, st + 420 + i*110))) * 14;
+    g.globalAlpha = a * outC(p01(t, st + i*110, st + 420 + i*110));
+    g.font = "600 56px "+DISPLAY;
+    g.fillStyle = COL[b.lines[i][1]];
+    g.fillText(b.lines[i][0], W/2, y + 92 + i*78 + slide);
+  }
+  g.restore();
+}
+
+/* ── แถบเวลา ────────────────────────────────────────────────── */
+function progress(t){
+  g.fillStyle = "rgba(255,255,255,.08)"; g.fillRect(0, H-8, W, 8);
+  g.save(); g.shadowColor = C.lantern; g.shadowBlur = 18;
+  g.fillStyle = C.lantern; g.fillRect(0, H-8, W * cl(t/TOTAL,0,1), 8); g.restore();
+}
+
+/* ── เฟรมเดียว ──────────────────────────────────────────────── */
+function drawAt(t){
+  const beat = beatOf(t);
+  background(t);
+  header(t, beat);
+  equation(t);
+  racks(t);
+  ones(t);
+  tally(t);
+  caption(t, beat);
+  progress(t);
+  return true;
+}
+window.drawAt = drawAt;
+
+drawAt(0);
+</script>
+</body>
+</html>
