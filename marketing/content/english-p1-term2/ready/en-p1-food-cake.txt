@@ -1,0 +1,23 @@
+STYLE: flat vector illustration for a children learning app, friendly rounded
+shapes, one single thick uniform outline weight throughout, bright cheerful
+flat colors, minimal soft shading, no gradient mesh, no texture, no outline
+thinner or thicker anywhere, instantly recognizable when shrunk to 90 pixels
+wide, generous negative space
+
+LAYOUT: exactly ONE object, centered, filling about 70% of a 1:1 square
+canvas, plain very light warm-neutral background, a single soft flat ellipse
+shadow under the object and nothing else, no props, no scenery, no border,
+no frame. Use the SAME framing, the SAME object height and the SAME outline
+weight as every other card in this set.
+
+SUBJECT: one triangular slice of layer cake with white cream between two sponge layers
+
+MUST READ UNMISTAKABLY AS THIS FOOD: wedge shape seen from the side, visible layers — must not look like bread or cheese
+
+DO NOT INCLUDE: any text, letters, words, numbers, numerals, labels, captions
+or written symbols of any kind, not even on packaging or on clothing; logos,
+watermarks, signatures, speech bubbles; the quantity written as a digit;
+photorealism, 3d render, clay render; cute cartoon eyes or smiling faces on
+inanimate objects; varying outline weights within one image; scary, sad or
+violent content; branded characters or branded packaging; cluttered or
+detailed background; the subject cropped or touching the canvas edge.

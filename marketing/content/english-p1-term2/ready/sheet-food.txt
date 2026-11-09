@@ -1,0 +1,27 @@
+STYLE: flat vector illustration for a children learning app, friendly rounded
+shapes, one single thick uniform outline weight throughout, bright cheerful
+flat colors, minimal soft shading, no gradient mesh, no texture, no outline
+thinner or thicker anywhere, instantly recognizable when shrunk to 90 pixels
+wide, generous negative space
+
+LAYOUT: one 4:3 landscape canvas split into an even grid of equal cells with
+thin white gutters, ONE object centered in each cell, every object drawn at
+the same visual weight and the same outline thickness, plain very light
+warm-neutral background in every cell, nothing spanning across two cells,
+no labels under the cells.
+
+GRID: 4 columns by 3 rows, 12 cells.
+
+OBJECTS, left to right then top to bottom: a bowl of cooked white rice, a
+whole chicken egg, a clear glass of milk, a clear glass of plain water, a
+slice of bread, a banana, a red apple, a ripe mango, a bowl of noodles, a
+wrapped sweet, a slice of layer cake, an ice cream cone.
+Plain food, nothing decorated, no patterned plates.
+
+DO NOT INCLUDE: any text, letters, words, numbers, numerals, labels, captions
+or written symbols of any kind, not even on packaging or on clothing; logos,
+watermarks, signatures, speech bubbles; the quantity written as a digit;
+photorealism, 3d render, clay render; cute cartoon eyes or smiling faces on
+inanimate objects; varying outline weights within one image; scary, sad or
+violent content; branded characters or branded packaging; cluttered or
+detailed background; the subject cropped or touching the canvas edge.

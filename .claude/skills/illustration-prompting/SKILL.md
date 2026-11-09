@@ -24,6 +24,10 @@ ribbons and translucent floating shapes — never dark smoke or purple-black
 
 **B — Flat vector (ภาพประกอบโจทย์: แอปเปิล นาฬิกา รูปทรง):** ไม่ต้องมีตัวละคร
 
+> 📦 **ชุดที่เขียนเสร็จแล้ว ใช้เป็นแม่แบบได้:** อังกฤษ ป.1 เทอม 2 (56 ใบ) ที่
+> [marketing/content/english-p1-term2/PROMPTS.md](../../../marketing/content/english-p1-term2/PROMPTS.md)
+> มีบล็อก `[SHEET]` `[SCENE]` เพิ่มจากที่นี่ และกติกา **"การ์ด 4 ใบในข้อเดียวกันต้องดูเป็นชุดเดียวกัน"**
+
 ```
 flat vector illustration, friendly rounded shapes, thick clean outlines,
 bright cheerful palette, soft pastel background, no gradients mesh,

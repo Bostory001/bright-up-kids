@@ -1,7 +1,7 @@
 # ลำดับสั่งสร้างภาพ (สร้างอัตโนมัติ — อย่าแก้ไฟล์นี้ด้วยมือ)
 
 ไฟล์ในโฟลเดอร์นี้สร้างจาก `marketing/video/characters/PROMPTS.md`
-แก้ prompt ที่ไฟล์นั้น แล้วรัน `node scripts/build-prompts.mjs` ใหม่
+แก้ prompt ที่ไฟล์นั้น แล้วรัน `node scripts/build-prompts.mjs --src=marketing/video/characters/PROMPTS.md` ใหม่
 
 ## วิธีสั่ง
 

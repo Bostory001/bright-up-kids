@@ -1,0 +1,20 @@
+STYLE: flat vector illustration for a children learning app, friendly rounded
+shapes, one single thick uniform outline weight throughout, bright cheerful
+flat colors, minimal soft shading, no gradient mesh, no texture, no outline
+thinner or thicker anywhere, instantly recognizable when shrunk to 90 pixels
+wide, generous negative space
+
+LAYOUT: a simple 1:1 square cover illustration, one small group of objects
+arranged in the centre with a clear empty band across the bottom third where
+Thai text will be added later in code, soft pale background wash, nothing in
+the corners.
+
+SUBJECT: a bowl of rice, a banana and a glass of milk arranged side by side on a plain table edge
+
+DO NOT INCLUDE: any text, letters, words, numbers, numerals, labels, captions
+or written symbols of any kind, not even on packaging or on clothing; logos,
+watermarks, signatures, speech bubbles; the quantity written as a digit;
+photorealism, 3d render, clay render; cute cartoon eyes or smiling faces on
+inanimate objects; varying outline weights within one image; scary, sad or
+violent content; branded characters or branded packaging; cluttered or
+detailed background; the subject cropped or touching the canvas edge.

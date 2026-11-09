@@ -127,6 +127,7 @@
 | H0a | **character sheet ครูประจำวิชา 4 คน** (ครูเก้า/ดร.ภู/ครูมายด์/ครูจัน) + ภาพทีมครู | `art-prompt-writer` | TODO |
 | H0b | character sheet เด็ก 4 คน + มะนาว | `art-prompt-writer` | TODO |
 | H0c | character sheet ครูแอน + โกโก้ | `art-prompt-writer` | TODO |
+| H0d | **ภาพประกอบเนื้อหา อังกฤษ ป.1 เทอม 2** — prompt 56 ใบเขียนเสร็จแล้วที่ `marketing/content/english-p1-term2/` (แผ่นล็อกสไตล์ 4 + การ์ดศัพท์ 40 + ฉาก 9 + ปก 3) เหลือ **สั่งสร้างภาพ + เทียบหน่วยกับหนังสือที่โรงเรียนใช้จริง** | `art-prompt-writer` → `content-reviewer` | TODO (prompt พร้อมแล้ว) |
 | H1 | R18 — ภาพ avatar ฝีมือนักวาด (ใช้ sheet จาก H0 เป็น reference) | `art-prompt-writer` | TODO |
 | H2 | M2 เติม launch-plan (ที่ตั้ง, โรงเรียนรอบสาขา, งบ) | `growth-marketer` | TODO |
 | H3 | M3 ปฏิทินคอนเทนต์ 4 สัปดาห์ + เปิดเพจ | `growth-marketer` | TODO |

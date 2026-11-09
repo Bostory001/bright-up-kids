@@ -8,9 +8,11 @@
  *
  * PROMPTS.md คือความจริงฉบับเดียว — ไม่มี prompt ฝังในโค้ดนี้
  *
- *   node scripts/build-prompts.mjs            # เขียนไฟล์ทั้งหมดลง ready/
+ *   node scripts/build-prompts.mjs            # ตัวละคร → marketing/video/characters/ready/
  *   node scripts/build-prompts.mjs --list     # ดูรายชื่องาน
  *   node scripts/build-prompts.mjs --only=kru-kao --print
+ *   node scripts/build-prompts.mjs --src=marketing/content/english-p1-term2/PROMPTS.md
+ *                                             # ชุดอื่น → ready/ ข้างไฟล์ต้นทางนั้น
  */
 
 import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
@@ -18,7 +20,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const PROMPTS_PATH = path.join(ROOT, "marketing", "video", "characters", "PROMPTS.md");
 
 const argv = process.argv.slice(2);
 const flag = (n) => argv.includes(`--${n}`);
@@ -27,7 +28,12 @@ const value = (n) => argv.find((a) => a.startsWith(`--${n}=`))?.split("=").slice
 const LIST = flag("list");
 const PRINT = flag("print");
 const ONLY = value("only");
-const OUT_DIR = path.resolve(ROOT, value("out") ?? path.join("marketing", "video", "characters", "ready"));
+
+/** ไฟล์ต้นทาง — เปลี่ยนด้วย --src เพื่อใช้กับ prompt ชุดอื่น เช่นภาพประกอบเนื้อหา */
+const SRC = path.resolve(ROOT, value("src") ?? path.join("marketing", "video", "characters", "PROMPTS.md"));
+const SRC_DIR = path.dirname(SRC);
+/** ปลายทางปริยาย: โฟลเดอร์ ready/ ข้าง ๆ ไฟล์ต้นทาง */
+const OUT_DIR = path.resolve(ROOT, value("out") ?? path.join(SRC_DIR, "ready"));
 
 /** ชื่อไฟล์ผลลัพธ์ — ภาษาไทยใช้เป็นชื่อไฟล์ไม่ได้ */
 const SLUGS = {
@@ -91,6 +97,8 @@ function jobsFrom(section, blocks) {
   if (!fence) return [];
   const template = fence[1].trim();
   const table = parseTable(section.body.slice(fence.index + fence[0].length));
+  // คำนำหน้าชื่อไฟล์ของ section นี้ ประกาศในไฟล์ต้นทางด้วย <!-- slug-prefix: xxx- -->
+  const prefix = section.body.match(/<!--\s*slug-prefix:\s*([a-z0-9_-]*)\s*-->/)?.[1] ?? "";
 
   const fill = (tpl, values = {}) => {
     let out = tpl;
@@ -121,8 +129,8 @@ function jobsFrom(section, blocks) {
         row.find((c, i) => plain(i) && clean(c) && !/^\d+$/.test(clean(c))) ??
         "",
     );
-    const idInBackticks = (row[0] ?? "").match(/`([a-z_]+)`/)?.[1];
-    const slug = idInBackticks ? `avatar-${idInBackticks}` : (SLUGS[label] || slugify(label) || `section-${section.number}`);
+    const idInBackticks = (row[0] ?? "").match(/`([a-z0-9][a-z0-9_-]*)`/)?.[1];
+    const slug = idInBackticks ? `${prefix}${idInBackticks}` : (SLUGS[label] || slugify(label) || `section-${section.number}`);
 
     for (const [k, v] of Object.entries(values)) if (DISPLAY[clean(v)]) values[k] = DISPLAY[clean(v)];
     jobs.push({ slug, title: `${section.title} — ${label || slug}`, prompt: fill(template, values) });
@@ -134,23 +142,24 @@ const REFERENCE_LINE =
   "Use the image above as the style reference. Keep the exact same art style, line weight, shading and proportions.";
 
 function orderFile(jobs) {
+  const rel = (p) => path.relative(ROOT, p).split(path.sep).join("/");
   return [
     "# ลำดับสั่งสร้างภาพ (สร้างอัตโนมัติ — อย่าแก้ไฟล์นี้ด้วยมือ)",
     "",
-    "ไฟล์ในโฟลเดอร์นี้สร้างจาก `marketing/video/characters/PROMPTS.md`",
-    "แก้ prompt ที่ไฟล์นั้น แล้วรัน `node scripts/build-prompts.mjs` ใหม่",
+    `ไฟล์ในโฟลเดอร์นี้สร้างจาก \`${rel(SRC)}\``,
+    `แก้ prompt ที่ไฟล์นั้น แล้วรัน \`node scripts/build-prompts.mjs --src=${rel(SRC)}\` ใหม่`,
     "",
     "## วิธีสั่ง",
     "",
     "1. ทำ **ในแชทเดียวกันทั้งหมด** ไม่งั้นสไตล์หลุด",
-    "2. ใบแรก (`kru-kao`) ก๊อป `.txt` วางตรง ๆ",
+    `2. ใบแรก (\`${jobs[0]?.slug ?? "-"}\`) ก๊อป \`.txt\` วางตรง ๆ`,
     "3. ใบที่ 2 เป็นต้นไป วางบรรทัดนี้ก่อน แล้วตามด้วยเนื้อ `.txt`",
     "",
     "```",
     REFERENCE_LINE,
     "```",
     "",
-    "4. ได้ภาพที่พอใจ → เซฟเป็น `marketing/video/characters/<slug>.png`",
+    `4. ได้ภาพที่พอใจ → เซฟเป็น \`${rel(SRC_DIR)}/<slug>.png\``,
     "5. ภาพทุกใบผ่าน `content-reviewer` ก่อนใช้",
     "",
     "## รายการ",
@@ -163,7 +172,7 @@ function orderFile(jobs) {
 }
 
 async function main() {
-  const md = await readFile(PROMPTS_PATH, "utf8");
+  const md = await readFile(SRC, "utf8");
   const blocks = parseBlocks(md);
   const all = parseSections(md).flatMap((s) => jobsFrom(s, blocks));
   const jobs = ONLY ? all.filter((j) => j.slug === ONLY || j.slug.includes(ONLY)) : all;

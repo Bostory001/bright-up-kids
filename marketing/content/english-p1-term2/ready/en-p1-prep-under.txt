@@ -1,0 +1,25 @@
+STYLE: flat vector illustration for a children learning app, friendly rounded
+shapes, one single thick uniform outline weight throughout, bright cheerful
+flat colors, minimal soft shading, no gradient mesh, no texture, no outline
+thinner or thicker anywhere, instantly recognizable when shrunk to 90 pixels
+wide, generous negative space
+
+LAYOUT: one simple scene on a 4:3 landscape canvas, flat vector, only the
+objects listed below and nothing else, plain pale background, clear empty
+space between every object so each one can be counted or located without
+overlapping, viewed straight on at child eye level.
+
+OBJECTS: the same orange tabby cat and the same plain cardboard box in every
+image of this set, drawn at the same size and from the same angle.
+
+POSITION: the cat lying under a wooden table, the closed box beside the table
+
+The position must be obvious at a glance with no overlap hiding it. the table top must be fully above the cat with clear space, the cat entirely below it
+
+DO NOT INCLUDE: any text, letters, words, numbers, numerals, labels, captions
+or written symbols of any kind, not even on packaging or on clothing; logos,
+watermarks, signatures, speech bubbles; the quantity written as a digit;
+photorealism, 3d render, clay render; cute cartoon eyes or smiling faces on
+inanimate objects; varying outline weights within one image; scary, sad or
+violent content; branded characters or branded packaging; cluttered or
+detailed background; the subject cropped or touching the canvas edge.
