@@ -64,6 +64,8 @@ const STARTS = [];
 (function(){ let a=0; for (const b of BEATS){ STARTS.push(a); a += b.ms; } })();
 const TOTAL = STARTS[6] + BEATS[6].ms;      /* 31000 */
 window.TOTAL_MS = TOTAL;
+/* เวลาที่โหมด probe จะถ่ายมาตรวจ — เลือกจุดที่มีของเปลี่ยนในแต่ละจังหวะ */
+window.PROBE_MS = [1400, 4500, 8500, 12800, 14600, 18500, 23500, 28500];
 
 const T_SCENE = STARTS[1];   /* ฮุก → กระดาน */
 const T_CTA   = STARTS[6];   /* กระดาน → ปิดท้าย */

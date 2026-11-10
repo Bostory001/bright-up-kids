@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>render — โจทย์ปัญหา + หรือ − (คลิปสอน #2)</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@600;700&family=IBM+Plex+Sans+Thai:wght@500;600;700&display=swap">
+<style>
+  html,body{margin:0;padding:0;background:#000;overflow:hidden}
+  canvas{display:block}
+  img{display:none}
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<img id="imgHero" src="assets/kao-hero.png" alt="">
+<img id="imgArms" src="assets/kao-arms.png" alt="">
+<img id="imgFace" src="assets/kao-face.png" alt="">
+<script>
+/* ────────────────────────────────────────────────────────────────
+   คลิปสอน #2 — โจทย์ปัญหา: อ่านแล้วไม่รู้จะ + หรือ −
+
+   วิธีสอนที่ใช้ = "กล่องส่วนย่อย–ทั้งหมด" (part–whole)
+     ช่องใหญ่ว่าง  (โจทย์ถามหาทั้งหมด)  → บวก
+     ช่องเล็กว่าง  (โจทย์บอกทั้งหมดมาแล้ว) → ลบ
+   ตั้งใจไม่สอนให้จับคำว่า "รวม / เหลือ" เพราะคำพวกนี้หลอกเด็กบ่อย
+   ("ซื้อเพิ่มอีก 5 แล้วเหลือ 20" ยังเป็นลบ) กล่องนี้ใช้ได้ทุกโจทย์
+
+   โจทย์ทั้งสองข้อแต่งขึ้นใหม่ ไม่ได้คัดลอกจากเอกสาร HQ หรือหนังสือใด
+   หน้านี้ไม่ได้มีไว้เปิดดู — มีไว้ให้ capture.mjs เรียก drawAt(t) ทีละเฟรม
+   ──────────────────────────────────────────────────────────────── */
+
+const W = 1080, H = 1920;
+const cv = document.getElementById("c");
+const g = cv.getContext("2d");
+const IMG = {
+  hero: document.getElementById("imgHero"),
+  arms: document.getElementById("imgArms"),
+  face: document.getElementById("imgFace")
+};
+
+const C = {
+  bg0:"#0d1830", bg1:"#0a1326", glow:"#1b2d57",
+  lantern:"#ffc24a", hot:"#fff0c9", deep:"#c8871f",
+  blue:"#52a8ff", ink:"#eaf1fc", ink2:"#9db1d4", ink3:"#64779c",
+  rack:"#16254a", rackLine:"#1f3566", bad:"#ff8071", capBg:"rgba(6,12,26,.9)"
+};
+const NAVY = "10,19,38";
+
+const DISPLAY = "'Bai Jamjuree','IBM Plex Sans Thai',sans-serif";
+const BODY    = "'IBM Plex Sans Thai','Bai Jamjuree',sans-serif";
+
+/* ── ไทม์ไลน์ 8 จังหวะ รวม 32 วินาที ────────────────────────── */
+const BEATS = [
+  { ms:2900, lines:[["ลูกบวกลบเลขคล่อง","ink"],["แต่โจทย์ปัญหา อ่านแล้วนิ่ง","lantern"]] },
+  { ms:3800, lines:[["อย่าเดาจากคำว่า รวม หรือ เหลือ","ink"],["ให้วาดกล่องนี้ก่อน","lantern"]] },
+  { ms:4600, lines:[["เลขที่โจทย์บอก ใส่ช่องเล็ก","ink"],["ช่องใหญ่ยังว่างอยู่","bad"]] },
+  { ms:4000, lines:[["ช่องใหญ่ว่าง = หาทั้งหมด","ink"],["หาทั้งหมด ต้องบวก","lantern"]] },
+  { ms:4600, lines:[["โจทย์ใหม่ บอกทั้งหมดมาแล้ว","ink"],["คราวนี้ช่องเล็กว่าง","bad"]] },
+  { ms:4200, lines:[["ช่องเล็กว่าง = หาส่วนย่อย","ink"],["หาส่วนย่อย ต้องลบ","lantern"]] },
+  { ms:3600, lines:[["กล่องเดียว ใช้ได้ทุกโจทย์","ink"],["ไม่ต้องเดาคำในโจทย์อีก","lantern"]] },
+  { ms:4300, lines:[["ลูกติดตรงไหน ครูรู้ตรงนั้น","ink"],["ทดลองเรียนฟรี · 065 447 4691","lantern"]] }
+];
+const STARTS = [];
+(function(){ let a=0; for (const b of BEATS){ STARTS.push(a); a += b.ms; } })();
+const LAST = BEATS.length - 1;
+const TOTAL = STARTS[LAST] + BEATS[LAST].ms;      /* 32000 */
+window.TOTAL_MS = TOTAL;
+/* เวลาที่โหมด probe จะถ่ายมาตรวจ — จุดที่ของในแต่ละจังหวะขึ้นครบแล้ว */
+window.PROBE_MS = [1400, 4800, 9200, 13600, 17800, 22500, 26200, 29800];
+
+const T_SCENE = STARTS[1];      /* ฮุก → กระดาน */
+const T_CTA   = STARTS[LAST];   /* กระดาน → ปิดท้าย */
+const XF = 220;
+
+/* ── ตัวช่วย ─────────────────────────────────────────────────── */
+const cl  = (v,a,b) => v < a ? a : v > b ? b : v;
+const p01 = (t,a,b) => cl((t-a)/(b-a), 0, 1);
+const outC = x => 1 - Math.pow(1-x, 3);
+
+let NOW = 0;   /* เวลาเฟรมปัจจุบัน ใช้ทำจังหวะกะพริบในฟังก์ชันย่อย */
+
+function beatOf(t){ let i=0; for (let k=0;k<BEATS.length;k++) if (t >= STARTS[k]) i=k; return i; }
+
+function rr(x,y,w,h,r){ g.beginPath(); g.roundRect(x,y,w,h,r); }
+function text(s,x,y,font,col,align){
+  g.save(); g.font = font; g.fillStyle = col;
+  g.textAlign = align||"left"; g.textBaseline = "alphabetic";
+  g.fillText(s,x,y); g.restore();
+}
+/* เขียนข้อความให้ไม่ล้นกรอบ — ย่อขนาดฟอนต์ลงถ้ายาวเกิน
+   (ไทยไม่มีช่องว่างระหว่างคำ ตัดบรรทัดอัตโนมัติไม่ได้ จึงต้องย่อแทน) */
+function fitText(s,x,y,size,maxW,weight,family,col,align){
+  g.save();
+  let fs = size;
+  g.font = weight+" "+fs+"px "+family;
+  const w = g.measureText(s).width;
+  if (w > maxW){ fs = Math.max(20, Math.floor(fs*maxW/w)); g.font = weight+" "+fs+"px "+family; }
+  g.fillStyle = col; g.textAlign = align||"left"; g.textBaseline = "alphabetic";
+  g.fillText(s,x,y); g.restore();
+}
+function coverInto(ctx,img,x,y,w,h){
+  if (!img || !img.naturalWidth) return;
+  const s = Math.max(w/img.naturalWidth, h/img.naturalHeight);
+  const dw = img.naturalWidth*s, dh = img.naturalHeight*s;
+  ctx.drawImage(img, x+(w-dw)/2, y+(h-dh)/2, dw, dh);
+}
+const cover = (img,x,y,w,h) => coverInto(g,img,x,y,w,h);
+
+/* รูปที่ขอบถูกลบให้โปร่งจริงด้วย destination-out
+   (ทาสีพื้นหลังทับไม่ได้ผล — จะเห็นเป็นกรอบสี่เหลี่ยม) */
+function featheredImage(img, bw, bh, dark, fadeTop, fadeBottom, fadeLeft){
+  const off = document.createElement("canvas");
+  off.width = bw; off.height = bh;
+  const o = off.getContext("2d");
+  coverInto(o, img, 0, 0, bw, bh);
+  if (dark > 0){ o.fillStyle = "rgba("+NAVY+","+dark+")"; o.fillRect(0,0,bw,bh); }
+
+  o.globalCompositeOperation = "destination-out";
+  const ramp = (x0,y0,x1,y1,stops) => {
+    const gr = o.createLinearGradient(x0,y0,x1,y1);
+    for (const s of stops) gr.addColorStop(s[0], "rgba(0,0,0,"+s[1]+")");
+    return gr;
+  };
+  if (fadeTop)    { o.fillStyle = ramp(0,0,0,fadeTop,[[0,1],[1,0]]); o.fillRect(0,0,bw,fadeTop); }
+  if (fadeBottom) { o.fillStyle = ramp(0,bh-fadeBottom,0,bh,[[0,0],[1,1]]); o.fillRect(0,bh-fadeBottom,bw,fadeBottom); }
+  if (fadeLeft)   { o.fillStyle = ramp(0,0,fadeLeft,0,[[0,1],[.38,.72],[1,0]]); o.fillRect(0,0,fadeLeft,bh); }
+  o.globalCompositeOperation = "source-over";
+  return off;
+}
+function vgrad(x,y,w,h,stops){
+  const lg = g.createLinearGradient(x,y,x,y+h);
+  for (const s of stops) lg.addColorStop(s[0], s[1]);
+  g.fillStyle = lg; g.fillRect(x,y,w,h);
+}
+
+/* ── ตำแหน่งคงที่ (อยู่ในเขตปลอดภัย บน 15% ล่าง 20%) ────────── */
+const CARD = { x:60,  y:430, w:960, h:176 };                 /* การ์ดโจทย์ / การ์ดกฎ */
+const BX   = { wx:160, wy:680, ww:760, h:150, px:160, pw:340, gap:80, py:900 };
+const CAP_X=40, CAP_Y=1296, CAP_W=1000, CAP_H=240;
+const pbX = BX.px + BX.pw + BX.gap;                          /* 580 */
+
+/* โจทย์ทั้งสองข้อแต่งเอง — รูปร่างเหมือนกัน แต่ตัวที่หายไปอยู่ต่างช่อง */
+const PROBS = [
+  { q:["พี่มีโคม 15 ดวง  น้องมีโคม 8 ดวง","สองคนรวมกันได้กี่ดวง ?"] },
+  { q:["มีโคมทั้งหมด 23 ดวง  สีฟ้า 15 ดวง","ที่เหลือเป็นสีเขียวกี่ดวง ?"] }
+];
+
+/* ── พื้นหลัง ───────────────────────────────────────────────── */
+const BOKEH = [];
+(function(){
+  let s = 20261110;
+  const rnd = () => (s = (s*1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  for (let i=0;i<10;i++) BOKEH.push({ x:60+rnd()*960, y:300+rnd()*1150, r:16+rnd()*34, ph:rnd()*6.28, sp:.35+rnd()*.5 });
+})();
+
+function background(t){
+  vgrad(0,0,W,H,[[0,C.bg0],[1,C.bg1]]);
+  const rg = g.createRadialGradient(W/2,-120,40, W/2,-120,900);
+  rg.addColorStop(0, C.glow); rg.addColorStop(1, "rgba(27,45,87,0)");
+  g.fillStyle = rg; g.fillRect(0,0,W,1000);
+
+  g.save();
+  for (const b of BOKEH){
+    const yy = b.y + Math.sin(t/1000*b.sp + b.ph)*22;
+    g.globalAlpha = .16; g.filter = "blur(16px)";
+    g.fillStyle = C.lantern; g.beginPath(); g.arc(b.x, yy, b.r, 0, Math.PI*2); g.fill();
+  }
+  g.restore();
+}
+
+function vignette(){
+  const rg = g.createRadialGradient(W/2,H*0.45,W*0.35, W/2,H*0.45,W*1.05);
+  rg.addColorStop(0,"rgba(0,0,0,0)"); rg.addColorStop(1,"rgba(0,0,0,.42)");
+  g.fillStyle = rg; g.fillRect(0,0,W,H);
+}
+
+/* ── องก์ 1 · ฮุก — ครูเก้าเต็มเฟรม ─────────────────────────── */
+function hookFrame(t, a){
+  g.save(); g.globalAlpha = a;
+
+  const iy = 110, ih = 1180;
+  cover(IMG.hero, 0, iy, W, ih);
+  vgrad(0, iy, W, 300, [[0,"rgba("+NAVY+",1)"],[1,"rgba("+NAVY+",0)"]]);
+  vgrad(0, 760, W, 540, [[0,"rgba("+NAVY+",0)"],[.55,"rgba("+NAVY+",.85)"],[1,"rgba("+NAVY+",1)"]]);
+  g.fillStyle = "rgba("+NAVY+",1)"; g.fillRect(0, iy+ih, W, H-iy-ih);
+
+  const pop = outC(p01(t, 300, 900));
+  g.globalAlpha = a * pop;
+  g.save();
+  g.font = "700 150px "+DISPLAY; g.textAlign = "center"; g.textBaseline = "alphabetic";
+  g.shadowColor = "rgba(255,194,74,.3)"; g.shadowBlur = 55;
+  g.fillStyle = C.ink;
+  g.fillText("+ หรือ − ?", W/2, 1180 + (1-pop)*18);
+  g.restore();
+
+  g.restore();
+}
+
+/* ── องก์ 3 · ปิดท้าย — ครูเก้ากอดอก ────────────────────────── */
+let ctaCache = null;
+function ctaFrame(t, a){
+  g.save(); g.globalAlpha = a;
+  const slide = (1 - outC(p01(t, T_CTA, T_CTA+700))) * 70;
+  const bw = 560, bh = 820, bx = W - bw + 45 + slide, by = 600;
+  if (!ctaCache) ctaCache = featheredImage(IMG.arms, bw, bh, .34, 170, 250, 350);
+  g.drawImage(ctaCache, bx, by);
+  g.restore();
+}
+
+/* ── หัวคลิป — ตราหน้าครูเก้า + จุดบอกขั้น ──────────────────── */
+function header(t, beat){
+  const cx = 104, cy = 340, r = 46;
+
+  g.save();
+  g.shadowColor = C.blue; g.shadowBlur = 22 + 8*Math.sin(t/520);
+  g.beginPath(); g.arc(cx, cy, r+3, 0, Math.PI*2);
+  g.fillStyle = C.rack; g.fill(); g.restore();
+
+  g.save();
+  g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2); g.clip();
+  cover(IMG.face, cx-r, cy-r, r*2, r*2);
+  g.restore();
+
+  g.save(); g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2);
+  g.strokeStyle = C.blue; g.lineWidth = 3; g.stroke(); g.restore();
+
+  text("ครูเก้า", 170, 332, "600 40px "+DISPLAY, C.ink);
+  text("คณิต ป.2–3", 170, 374, "500 30px "+BODY, C.ink3);
+
+  for (let i=0;i<BEATS.length;i++){
+    const x = W - 60 - (BEATS.length-1-i)*30;
+    g.save(); g.globalAlpha = i <= beat ? 1 : .28;
+    if (i === beat){ g.shadowColor = C.lantern; g.shadowBlur = 14; }
+    g.fillStyle = i <= beat ? C.lantern : C.ink3;
+    g.beginPath(); g.arc(x, 340, i === beat ? 8 : 6, 0, Math.PI*2); g.fill(); g.restore();
+  }
+}
+
+/* ── การ์ดโจทย์ (จังหวะ 1–5) ─────────────────────────────────── */
+function problemCard(t){
+  const a = outC(p01(t, STARTS[1], STARTS[1]+400)) * (1 - outC(p01(t, STARTS[6], STARTS[6]+450)));
+  if (a <= .002) return;
+
+  g.save(); g.globalAlpha *= a;
+  g.fillStyle = "rgba(20,34,68,.72)"; rr(CARD.x, CARD.y, CARD.w, CARD.h, 22); g.fill();
+  g.strokeStyle = "rgba(82,168,255,.30)"; g.lineWidth = 2; g.stroke();
+  text("โจทย์", CARD.x+34, CARD.y+48, "600 28px "+BODY, C.blue);
+
+  const which = t < STARTS[4] ? 0 : 1;
+  const st = which === 0 ? STARTS[2] : STARTS[4];
+  g.globalAlpha *= outC(p01(t, st, st+420));
+  const q = PROBS[which].q;
+  fitText(q[0], CARD.x+CARD.w/2, CARD.y+106, 42, CARD.w-70, "600", BODY, C.ink,     "center");
+  fitText(q[1], CARD.x+CARD.w/2, CARD.y+156, 40, CARD.w-70, "600", BODY, C.lantern, "center");
+  g.restore();
+}
+
+/* ── การ์ดกฎ (จังหวะ 6 → ค้างถึงปิดท้าย) ────────────────────── */
+function ruleCard(t){
+  if (t < STARTS[6]) return;
+  const a = outC(p01(t, STARTS[6], STARTS[6]+500));
+  g.save(); g.globalAlpha *= a;
+  g.fillStyle = "rgba(20,34,68,.78)"; rr(CARD.x, CARD.y, CARD.w, CARD.h, 22); g.fill();
+  g.strokeStyle = "rgba(255,194,74,.32)"; g.lineWidth = 2; g.stroke();
+
+  const row = (left, right, y) => {
+    g.font = "600 48px "+DISPLAY; g.textBaseline = "alphabetic"; g.textAlign = "left";
+    const sL = left + "  =  ";
+    const wT = g.measureText(sL).width + g.measureText(right).width;
+    let x = CARD.x + (CARD.w - wT)/2;
+    g.fillStyle = C.ink2; g.fillText(sL, x, y); x += g.measureText(sL).width;
+    g.save(); g.shadowColor = C.lantern; g.shadowBlur = 24;
+    g.fillStyle = C.lantern; g.fillText(right, x, y); g.restore();
+  };
+  row("ช่องใหญ่ว่าง", "บวก", CARD.y+80);
+  row("ช่องเล็กว่าง", "ลบ",  CARD.y+148);
+  g.restore();
+}
+
+/* ── กล่องส่วนย่อย–ทั้งหมด ──────────────────────────────────── */
+function slotBox(x, y, w, h, val, unknown, pop, hot, label){
+  g.save();
+  const lg = g.createLinearGradient(x,y,x,y+h);
+  lg.addColorStop(0, C.rack); lg.addColorStop(1, "#101c3a");
+  g.fillStyle = lg; rr(x,y,w,h,20); g.fill();
+
+  if (unknown){
+    g.setLineDash([11,10]);
+    g.strokeStyle = C.bad; g.lineWidth = 4;
+    g.shadowColor = C.bad; g.shadowBlur = 14 + 10*Math.sin(NOW/230);
+  } else {
+    g.strokeStyle = hot ? C.lantern : C.rackLine; g.lineWidth = hot ? 4 : 2;
+    if (hot){ g.shadowColor = C.lantern; g.shadowBlur = 24; }
+  }
+  rr(x,y,w,h,20); g.stroke();
+  g.restore();
+
+  if (label) text(label, x+22, y+36, "500 26px "+BODY, C.ink3);
+
+  if (unknown){
+    g.save(); g.shadowColor = C.bad; g.shadowBlur = 20;
+    g.font = "700 86px "+DISPLAY; g.textAlign = "center"; g.textBaseline = "alphabetic";
+    g.fillStyle = C.bad; g.fillText("?", x+w/2, y+h/2+32); g.restore();
+  } else if (val !== null){
+    const k = pop === undefined ? 1 : pop;
+    if (k <= .002) return;
+    g.save(); g.globalAlpha *= k;
+    g.translate(x+w/2, y+h/2+30); g.scale(.84+.16*k, .84+.16*k);
+    g.shadowColor = hot ? C.lantern : "rgba(255,194,74,.22)"; g.shadowBlur = hot ? 34 : 18;
+    g.font = "700 82px "+DISPLAY; g.textAlign = "center"; g.textBaseline = "alphabetic";
+    g.fillStyle = hot ? C.lantern : C.ink;
+    g.fillText(String(val), 0, 0); g.restore();
+  }
+}
+
+function connectors(){
+  const cxW = BX.wx + BX.ww/2, yTop = BX.wy + BX.h, yMid = yTop + 34;
+  const cA = BX.px + BX.pw/2, cB = pbX + BX.pw/2;
+  g.save(); g.strokeStyle = C.rackLine; g.lineWidth = 3;
+  g.beginPath();
+  g.moveTo(cxW, yTop); g.lineTo(cxW, yMid);
+  g.moveTo(cA, yMid);  g.lineTo(cB, yMid);
+  g.moveTo(cA, yMid);  g.lineTo(cA, BX.py);
+  g.moveTo(cB, yMid);  g.lineTo(cB, BX.py);
+  g.stroke(); g.restore();
+}
+
+function boxDiagram(t){
+  const a = outC(p01(t, STARTS[1], STARTS[1]+600));
+  if (a <= .002) return;
+
+  let whole=null, pa=null, pb=null, unk=null;
+  let hotW=false, hotB=false, popW=1, popA=1, popB=1;
+
+  if (t < STARTS[2]) {
+    /* กล่องเปล่า — "ให้วาดกล่องนี้ก่อน" */
+  } else if (t < STARTS[3]) {
+    pa = 15; pb = 8; unk = "whole";
+    popA = outC(p01(t, STARTS[2]+150, STARTS[2]+780));
+    popB = outC(p01(t, STARTS[2]+420, STARTS[2]+1050));
+  } else if (t < STARTS[4]) {
+    pa = 15; pb = 8; whole = 23; hotW = true;
+    popW = outC(p01(t, STARTS[3]+450, STARTS[3]+1150));
+  } else if (t < STARTS[5]) {
+    whole = 23; pa = 15; unk = "pb";
+    popW = outC(p01(t, STARTS[4]+150, STARTS[4]+780));
+    popA = outC(p01(t, STARTS[4]+420, STARTS[4]+1050));
+  } else {
+    whole = 23; pa = 15; pb = 8; hotB = t < STARTS[6];
+    popB = outC(p01(t, STARTS[5]+450, STARTS[5]+1150));
+  }
+
+  g.save(); g.globalAlpha *= a;
+  connectors();
+  slotBox(BX.wx, BX.wy, BX.ww, BX.h, whole, unk==="whole", popW, hotW, "ทั้งหมด");
+  slotBox(BX.px, BX.py, BX.pw, BX.h, pa,    false,          popA, false, "ส่วนย่อย");
+  slotBox(pbX,   BX.py, BX.pw, BX.h, pb,    unk==="pb",     popB, hotB,  "ส่วนย่อย");
+  g.restore();
+}
+
+/* ── บรรทัดสมการใต้กล่อง ────────────────────────────────────── */
+function bigEq(parts, a){
+  g.save(); g.globalAlpha *= a;
+  g.font = "700 80px "+DISPLAY; g.textBaseline = "alphabetic"; g.textAlign = "left";
+  const segs = [[parts[0]+" ", C.ink], [parts[1]+" ", C.lantern], [parts[2]+"  =  ", C.ink], [parts[3], C.lantern]];
+  let tw = 0; for (const s of segs) tw += g.measureText(s[0]).width;
+  let x = (W - tw)/2;
+  g.shadowColor = "rgba(255,194,74,.26)"; g.shadowBlur = 44;
+  for (const s of segs){ g.fillStyle = s[1]; g.fillText(s[0], x, 1212); x += g.measureText(s[0]).width; }
+  g.restore();
+}
+
+function pill(label, cx, a){
+  g.save(); g.globalAlpha *= a;
+  g.font = "600 46px "+DISPLAY; g.textBaseline = "alphabetic"; g.textAlign = "center";
+  const w = g.measureText(label).width + 64, h = 86, x = cx - w/2, y = 1146;
+  g.fillStyle = "rgba(20,34,68,.80)"; rr(x,y,w,h,20); g.fill();
+  g.strokeStyle = "rgba(255,194,74,.34)"; g.lineWidth = 2; g.stroke();
+  g.shadowColor = "rgba(255,194,74,.3)"; g.shadowBlur = 22;
+  g.fillStyle = C.lantern; g.fillText(label, cx, y+58);
+  g.restore();
+}
+
+function eqZone(t){
+  if (t >= STARTS[6]){
+    const a = outC(p01(t, STARTS[6]+120, STARTS[6]+700));
+    pill("15 + 8 = 23", 288, a);
+    pill("23 − 15 = 8", 792, a);
+    return;
+  }
+  if (t >= STARTS[5]){
+    bigEq(["23","−","15","8"], outC(p01(t, STARTS[5]+250, STARTS[5]+950)));
+  } else if (t >= STARTS[3]){
+    /* ต้องจางหายก่อนโจทย์ข้อใหม่ขึ้น ไม่งั้นคำตอบข้อเก่าค้างอยู่ใต้โจทย์ใหม่ */
+    const a = outC(p01(t, STARTS[3]+250, STARTS[3]+950)) * (1 - p01(t, STARTS[4]-350, STARTS[4]+50));
+    if (a > .002) bigEq(["15","+","8","23"], a);
+  }
+}
+
+/* ── องก์ 2 · กระดาน ────────────────────────────────────────── */
+function teachFrame(t, a){
+  g.save(); g.globalAlpha = a;
+  boxDiagram(t); eqZone(t);
+  g.restore();
+}
+
+/* ── ซับไทเทิล ──────────────────────────────────────────────── */
+const COL = { ink:C.ink, lantern:C.lantern, bad:C.bad };
+
+function caption(t, beat){
+  const b = BEATS[beat], st = STARTS[beat];
+  const a = outC(p01(t, st, st+300));
+
+  g.save(); g.globalAlpha = a;
+  g.fillStyle = C.capBg; rr(CAP_X, CAP_Y, CAP_W, CAP_H, 24); g.fill();
+  g.strokeStyle = "rgba(255,194,74,.18)"; g.lineWidth = 2; g.stroke();
+
+  for (let i=0;i<b.lines.length;i++){
+    const k = outC(p01(t, st + i*100, st + 400 + i*100));
+    g.globalAlpha = a * k;
+    fitText(b.lines[i][0], W/2, CAP_Y + 98 + i*84 + (1-k)*14,
+            60, CAP_W-70, "600", DISPLAY, COL[b.lines[i][1]], "center");
+  }
+  g.restore();
+}
+
+/* ── แถบเวลา + บรรทัดที่อยู่ ────────────────────────────────── */
+function footer(t){
+  const x = CAP_X, y = 1572, w = CAP_W;
+  g.fillStyle = "rgba(255,255,255,.09)"; rr(x,y,w,7,4); g.fill();
+  g.save(); g.shadowColor = C.lantern; g.shadowBlur = 16;
+  g.fillStyle = C.lantern; rr(x, y, Math.max(7, w*cl(t/TOTAL,0,1)), 7, 4); g.fill(); g.restore();
+
+  text("ซอยวัดหลวงพ่อโต บางพลี", W/2, 1712, "500 32px "+BODY, "rgba(157,177,212,.38)", "center");
+}
+
+/* ── เฟรมเดียว ──────────────────────────────────────────────── */
+function drawAt(t){
+  NOW = t;
+  const beat = beatOf(t);
+
+  const toScene = p01(t, T_SCENE-XF, T_SCENE+XF);
+  const toCta   = p01(t, T_CTA-XF,   T_CTA+XF);
+  const aHook  = 1 - toScene;
+  const aTeach = toScene * (1 - toCta);
+  const aCta   = toCta;
+
+  background(t);
+  if (aHook  > 0.002) hookFrame(t, aHook);
+  if (aTeach > 0.002) teachFrame(t, aTeach);
+  if (aCta   > 0.002) ctaFrame(t, aCta);
+
+  /* การ์ดบนค้างข้ามองก์ — โจทย์อยู่ช่วงสอน กฎอยู่ช่วงสอน+ปิดท้าย */
+  if (aTeach > 0.002){ g.save(); g.globalAlpha = aTeach; problemCard(t); g.restore(); }
+  if (aTeach > 0.002 || aCta > 0.002){
+    g.save(); g.globalAlpha = Math.max(aTeach, aCta); ruleCard(t); g.restore();
+  }
+
+  vignette();
+  header(t, beat);
+  caption(t, beat);
+  footer(t);
+  return true;
+}
+window.drawAt = drawAt;
+
+window.ASSETS_READY = Promise.all(
+  Object.values(IMG).map(im => im.complete
+    ? Promise.resolve()
+    : new Promise(r => { im.onload = r; im.onerror = r; }))
+).then(() => Object.values(IMG).every(im => im.naturalWidth > 0));
+
+drawAt(0);
+</script>
+</body>
+</html>

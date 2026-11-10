@@ -14,9 +14,13 @@ import os from "node:os";
 import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const PAGE = path.join(HERE, "lesson-borrow.html");
-const OUT = path.resolve(process.argv[2] || path.join(HERE, "frames"));
-const FPS = Number(process.argv[3] || 30);
+/* --page=xxx.html เลือกคลิปที่จะเรนเดอร์ · ไม่ใส่ = คลิปสอน #1 */
+const FLAGS = process.argv.slice(2).filter((a) => a.startsWith("--"));
+const ARGV  = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+const pageFlag = FLAGS.find((a) => a.startsWith("--page="));
+const PAGE = path.join(HERE, pageFlag ? pageFlag.slice(7) : "lesson-borrow.html");
+const OUT = path.resolve(ARGV[0] || path.join(HERE, "frames"));
+const FPS = Number(ARGV[1] || 30);
 const PORT = 9333 + (process.pid % 300);
 
 const CHROMES = [
@@ -132,9 +136,11 @@ if (await evalJs("typeof window.ASSETS_READY !== 'undefined'")) {
 const total = await evalJs("window.TOTAL_MS");
 if (!total) throw new Error("หน้าเว็บไม่ได้ประกาศ TOTAL_MS");
 
-/* โหมด probe: เก็บแค่ 8 ภาพตัวอย่างไว้ตรวจหน้าตาก่อนเรนเดอร์จริง */
-const PROBE = process.argv[4] === "probe";
-const probeTimes = [1400, 4500, 8500, 12800, 14600, 18500, 23500, 28500];
+/* โหมด probe: เก็บแค่ 8 ภาพตัวอย่างไว้ตรวจหน้าตาก่อนเรนเดอร์จริง
+   เวลาที่จะถ่ายมาจาก window.PROBE_MS ของหน้านั้น ถ้าไม่มีก็แบ่งเท่า ๆ กัน */
+const PROBE = ARGV[2] === "probe";
+const probeTimes = (await evalJs("window.PROBE_MS || null"))
+  || Array.from({ length: 8 }, (_, i) => Math.round((total * (i + 0.5)) / 8));
 
 const frames = PROBE ? probeTimes.length : Math.round((total / 1000) * FPS);
 console.log(`เรนเดอร์ ${frames} เฟรม (${(total / 1000).toFixed(1)} วิ @ ${FPS}fps) → ${OUT}`);
