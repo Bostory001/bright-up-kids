@@ -67,7 +67,7 @@ const LAST = BEATS.length - 1;
 const TOTAL = STARTS[LAST] + BEATS[LAST].ms;      /* 32000 */
 window.TOTAL_MS = TOTAL;
 /* เวลาที่โหมด probe จะถ่ายมาตรวจ — จุดที่ของในแต่ละจังหวะขึ้นครบแล้ว */
-window.PROBE_MS = [1400, 4800, 9200, 13600, 17800, 22500, 26200, 29800];
+window.PROBE_MS = [800, 3900, 7600, 11800, 14750, 17600, 20400, 29000];
 
 const T_SCENE = STARTS[1];      /* ฮุก → กระดาน */
 const T_CTA   = STARTS[LAST];   /* กระดาน → ปิดท้าย */
@@ -146,6 +146,146 @@ const PROBS = [
   { q:["มีโคมทั้งหมด 23 ดวง  สีฟ้า 15 ดวง","ที่เหลือเป็นสีเขียวกี่ดวง ?"] }
 ];
 
+/* ── เอฟเฟกต์ ────────────────────────────────────────────────
+   เลือกมาเฉพาะตัวที่ "ช่วยเล่าเนื้อหา" ไม่ใช่ตัวที่สวยอย่างเดียว
+     blade slice  — ผ่ากล่องทั้งหมดให้หล่นลงมาเป็นส่วนย่อยสองช่อง
+     orbit ring   — วงโคจรรอบช่องที่ยังว่าง ดึงตาไปที่คำถาม
+     impact frame — แฟลชสั้นตอนคำตอบโผล่ (คลิปละ 2 ครั้ง ห่างกันมาก)
+     paper tear   — ฉีกโจทย์ข้อเก่า
+     blow away    — เศษกระดาษปลิวออกนอกเฟรม
+     letter dive  — หัวเรื่องฮุกตกลงมาทีละคำ
+     rack focus   — เบลอกระดานตอนสายตาย้ายไปอ่านกฎ
+     dolly zoom   — ฉากหลังถอยออกตอนปิดท้าย
+   ──────────────────────────────────────────────────────────── */
+const lerp = (a,b,k) => a + (b-a)*k;
+const inC  = x => x*x*x;
+const seeded = s => () => (s = (s*1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+
+/* แสงพุ่งออกจากกล่องที่เพิ่งเฉลย — ใช้โหมดบวกสี ไม่ใช่ทาขาวทับทั้งจอ
+   ทาขาวบนฉากกลางคืนจะได้ภาพสีเทาซีด ดูเหมือนไฟล์เสียมากกว่าแสงกระแทก */
+function impactFlash(t, at, cx, cy){
+  const k = 1 - p01(t, at, at+190);
+  if (k <= 0) return;
+  g.save();
+  g.globalCompositeOperation = "lighter";
+  g.globalAlpha = .9*k*k;
+  const rg = g.createRadialGradient(cx, cy, 0, cx, cy, 920);
+  rg.addColorStop(0,  "rgba(255,240,201,.95)");
+  rg.addColorStop(.3, "rgba(255,194,74,.38)");
+  rg.addColorStop(1,  "rgba(255,194,74,0)");
+  g.fillStyle = rg; g.fillRect(0,0,W,H);
+  g.restore();
+}
+function shockwave(t, at, cx, cy){
+  const k = p01(t, at, at+560);
+  if (k <= 0 || k >= 1) return;
+  const e = outC(k);
+  g.save(); g.globalAlpha = (1-k)*.7;
+  g.strokeStyle = C.lantern; g.lineWidth = 2 + 10*(1-k);
+  g.shadowColor = C.lantern; g.shadowBlur = 30;
+  g.beginPath(); g.ellipse(cx, cy, 120+470*e, 70+250*e, 0, 0, Math.PI*2); g.stroke();
+  g.restore();
+}
+/* ครึ่งหลังวาดก่อนกล่อง ครึ่งหน้าวาดทับ — จะได้ดูเหมือนวงโคจรรอบกล่องจริง */
+function orbitRing(t, cx, cy, rx, ry, half){
+  const ang = (t/700) % (Math.PI*2);
+  const front = Math.sin(ang) > 0;
+  g.save();
+  g.globalAlpha *= half === "back" ? .34 : .78;
+  g.strokeStyle = "rgba(255,194,74,.62)"; g.lineWidth = 3;
+  g.shadowColor = C.lantern; g.shadowBlur = half === "back" ? 9 : 18;
+  g.beginPath();
+  if (half === "back") g.ellipse(cx, cy, rx, ry, 0, Math.PI, Math.PI*2);
+  else                 g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI);
+  g.stroke();
+  if ((half === "front") === front){
+    g.globalAlpha = 1; g.shadowColor = C.lantern; g.shadowBlur = 26; g.fillStyle = C.hot;
+    g.beginPath(); g.arc(cx + Math.cos(ang)*rx, cy + Math.sin(ang)*ry, 11, 0, Math.PI*2); g.fill();
+  }
+  g.restore();
+}
+function bladeSlice(t, at, x0, y0, x1, y1){
+  const k = p01(t, at, at+280);
+  if (k <= 0 || k >= 1) return;
+  const head = Math.min(1, k*1.7), tail = Math.max(0, (k-0.32)*1.9);
+  g.save(); g.globalAlpha = 1 - k*.35;
+  g.strokeStyle = C.hot; g.lineWidth = 6; g.lineCap = "round";
+  g.shadowColor = C.lantern; g.shadowBlur = 34;
+  g.beginPath();
+  g.moveTo(lerp(x0,x1,tail), lerp(y0,y1,tail));
+  g.lineTo(lerp(x0,x1,head), lerp(y0,y1,head));
+  g.stroke(); g.restore();
+}
+
+/* การ์ดโจทย์วาดลงแคนวาสแยกไว้ก่อน เพื่อให้ "ฉีก" ได้ (ต้องมีภาพถึงจะ clip เป็นชิ้น ๆ) */
+const cardCache = {};
+function renderCard(which){
+  if (cardCache[which]) return cardCache[which];
+  const off = document.createElement("canvas");
+  off.width = CARD.w; off.height = CARD.h;
+  const o = off.getContext("2d");
+  o.fillStyle = "rgba(20,34,68,.72)";
+  o.beginPath(); o.roundRect(1, 1, CARD.w-2, CARD.h-2, 22); o.fill();
+  o.strokeStyle = "rgba(82,168,255,.30)"; o.lineWidth = 2; o.stroke();
+  o.textBaseline = "alphabetic";
+  o.font = "600 28px "+BODY; o.fillStyle = C.blue; o.textAlign = "left";
+  o.fillText("โจทย์", 34, 48);
+  if (which >= 0){
+    const q = PROBS[which].q, maxW = CARD.w-70;
+    const put = (s, y, size, col) => {
+      let fs = size; o.font = "600 "+fs+"px "+BODY;
+      const w = o.measureText(s).width;
+      if (w > maxW){ fs = Math.max(20, Math.floor(fs*maxW/w)); o.font = "600 "+fs+"px "+BODY; }
+      o.fillStyle = col; o.textAlign = "center"; o.fillText(s, CARD.w/2, y);
+    };
+    put(q[0], 106, 42, C.ink);
+    put(q[1], 156, 40, C.lantern);
+  }
+  cardCache[which] = off; return off;
+}
+/* รอยฉีกหยัก ๆ สุ่มด้วยเมล็ดคงที่ — เรนเดอร์กี่รอบก็ได้รอยเดิม */
+const TEAR = (function(){
+  const r = seeded(991), pts = [];
+  for (let y=0; y<=CARD.h; y+=16) pts.push({ y, x: CARD.w*0.52 + (r()-0.5)*46 });
+  return pts;
+})();
+function tearPiece(img, side, dx, dy, rot, alpha){
+  if (alpha <= .002) return;
+  g.save(); g.globalAlpha *= alpha;
+  g.translate(CARD.x + CARD.w/2 + dx, CARD.y + CARD.h/2 + dy);
+  g.rotate(rot); g.translate(-CARD.w/2, -CARD.h/2);
+  g.beginPath();
+  g.moveTo(side === "L" ? 0 : CARD.w, 0);
+  for (const p of TEAR) g.lineTo(p.x, p.y);
+  g.lineTo(side === "L" ? 0 : CARD.w, CARD.h);
+  g.closePath(); g.clip();
+  g.drawImage(img, 0, 0);
+  g.restore();
+}
+const BLOW = (function(){
+  const r = seeded(4477), a = [];
+  for (let i=0;i<46;i++) a.push({
+    x:r()*CARD.w, y:r()*CARD.h, s:5+r()*13,
+    vx:150+r()*540, vy:-70-r()*300, rt:r()*6.28, sp:(r()-.5)*7, d:r()*.35
+  });
+  return a;
+})();
+function blowAway(k){
+  if (k <= 0 || k >= 1) return;
+  for (const p of BLOW){
+    const kk = cl((k-p.d)/(1-p.d), 0, 1);
+    if (kk <= 0) continue;
+    const e = inC(kk);
+    g.save();
+    g.globalAlpha *= (1-kk)*.85;
+    g.translate(CARD.x + p.x + p.vx*e, CARD.y + p.y + p.vy*e + 430*e*e);
+    g.rotate(p.rt + p.sp*kk);
+    g.fillStyle = kk > .5 ? C.lantern : "#cfe0fb";
+    g.fillRect(-p.s/2, -p.s/2, p.s, p.s*.7);
+    g.restore();
+  }
+}
+
 /* ── พื้นหลัง ───────────────────────────────────────────────── */
 const BOKEH = [];
 (function(){
@@ -160,7 +300,10 @@ function background(t){
   rg.addColorStop(0, C.glow); rg.addColorStop(1, "rgba(27,45,87,0)");
   g.fillStyle = rg; g.fillRect(0,0,W,1000);
 
+  /* dolly zoom — ตอนปิดท้าย ฉากหลังถอยออก ส่วนตัวครูขนาดเท่าเดิม */
+  const dz = 1 + 0.26*outC(p01(t, T_CTA-200, T_CTA+1300));
   g.save();
+  g.translate(W/2, H/2); g.scale(dz, dz); g.translate(-W/2, -H/2);
   for (const b of BOKEH){
     const yy = b.y + Math.sin(t/1000*b.sp + b.ph)*22;
     g.globalAlpha = .16; g.filter = "blur(16px)";
@@ -185,13 +328,28 @@ function hookFrame(t, a){
   vgrad(0, 760, W, 540, [[0,"rgba("+NAVY+",0)"],[.55,"rgba("+NAVY+",.85)"],[1,"rgba("+NAVY+",1)"]]);
   g.fillStyle = "rgba("+NAVY+",1)"; g.fillRect(0, iy+ih, W, H-iy-ih);
 
-  const pop = outC(p01(t, 300, 900));
-  g.globalAlpha = a * pop;
+  /* letter dive — ตกลงมาทีละคำ ไม่ใช่ทีละตัวอักษร
+     เพราะสระ/วรรณยุกต์ไทยลอยอยู่บนพยัญชนะ ตัดทีละตัวแล้วคำจะแตก */
   g.save();
-  g.font = "700 150px "+DISPLAY; g.textAlign = "center"; g.textBaseline = "alphabetic";
-  g.shadowColor = "rgba(255,194,74,.3)"; g.shadowBlur = 55;
-  g.fillStyle = C.ink;
-  g.fillText("+ หรือ − ?", W/2, 1180 + (1-pop)*18);
+  g.font = "700 150px "+DISPLAY; g.textAlign = "left"; g.textBaseline = "alphabetic";
+  const TOK = ["+", "หรือ", "−", "?"];
+  const sp = g.measureText(" ").width*1.3;
+  const ws = TOK.map(s => g.measureText(s).width);
+  let x = (W - (ws.reduce((p,c)=>p+c,0) + sp*(TOK.length-1)))/2;
+  for (let i=0;i<TOK.length;i++){
+    const k = outC(p01(t, 260 + i*130, 900 + i*130));
+    if (k > .002){
+      g.save();
+      g.globalAlpha = a * k;
+      g.shadowColor = "rgba(255,194,74,.3)"; g.shadowBlur = 55;
+      g.fillStyle = (i === 0 || i === 2) ? C.lantern : C.ink;
+      g.translate(x + ws[i]/2, 1180 - (1-k)*240);
+      const s = lerp(1.35, 1, k); g.scale(s, s);
+      g.fillText(TOK[i], -ws[i]/2, 0);
+      g.restore();
+    }
+    x += ws[i] + sp;
+  }
   g.restore();
 
   g.restore();
@@ -242,17 +400,28 @@ function problemCard(t){
   const a = outC(p01(t, STARTS[1], STARTS[1]+400)) * (1 - outC(p01(t, STARTS[6], STARTS[6]+450)));
   if (a <= .002) return;
 
-  g.save(); g.globalAlpha *= a;
-  g.fillStyle = "rgba(20,34,68,.72)"; rr(CARD.x, CARD.y, CARD.w, CARD.h, 22); g.fill();
-  g.strokeStyle = "rgba(82,168,255,.30)"; g.lineWidth = 2; g.stroke();
-  text("โจทย์", CARD.x+34, CARD.y+48, "600 28px "+BODY, C.blue);
+  /* paper tear + blow away — ฉีกโจทย์ข้อเก่าทิ้งในช่วง 0.9 วินาทีก่อนข้อใหม่ขึ้น */
+  const tk = p01(t, STARTS[4]-900, STARTS[4]);
 
-  const which = t < STARTS[4] ? 0 : 1;
-  const st = which === 0 ? STARTS[2] : STARTS[4];
-  g.globalAlpha *= outC(p01(t, st, st+420));
-  const q = PROBS[which].q;
-  fitText(q[0], CARD.x+CARD.w/2, CARD.y+106, 42, CARD.w-70, "600", BODY, C.ink,     "center");
-  fitText(q[1], CARD.x+CARD.w/2, CARD.y+156, 40, CARD.w-70, "600", BODY, C.lantern, "center");
+  g.save(); g.globalAlpha *= a;
+
+  if (t < STARTS[4]){
+    if (tk > 0){
+      const img = renderCard(0), e = outC(tk), fade = 1 - tk*tk;
+      tearPiece(img, "L", -55*e - 110*e*e,  50*e*e, -0.17*e, fade);
+      tearPiece(img, "R",  55*e + 170*e*e,  34*e*e,  0.14*e, fade);
+      blowAway(tk);
+    } else {
+      g.drawImage(renderCard(-1), CARD.x, CARD.y);
+      if (t >= STARTS[2]){
+        g.save(); g.globalAlpha *= outC(p01(t, STARTS[2], STARTS[2]+420));
+        g.drawImage(renderCard(0), CARD.x, CARD.y); g.restore();
+      }
+    }
+  } else {
+    g.globalAlpha *= outC(p01(t, STARTS[4]+120, STARTS[4]+640));
+    g.drawImage(renderCard(1), CARD.x, CARD.y);
+  }
   g.restore();
 }
 
@@ -327,8 +496,11 @@ function connectors(){
 }
 
 function boxDiagram(t){
-  const a = outC(p01(t, STARTS[1], STARTS[1]+600));
+  const a = outC(p01(t, STARTS[1]+100, STARTS[1]+700));
   if (a <= .002) return;
+  /* blade slice — ผ่ากล่อง "ทั้งหมด" แล้วสองซีกหล่นลงไปเป็นช่องส่วนย่อย */
+  const split = outC(p01(t, STARTS[1]+1050, STARTS[1]+1800));
+  const link  = outC(p01(t, STARTS[1]+1600, STARTS[1]+2100));
 
   let whole=null, pa=null, pb=null, unk=null;
   let hotW=false, hotB=false, popW=1, popA=1, popB=1;
@@ -351,12 +523,35 @@ function boxDiagram(t){
     popB = outC(p01(t, STARTS[5]+450, STARTS[5]+1150));
   }
 
+  /* ช่องที่ยังว่าง — ให้วงโคจรล้อมไว้ ตาคนดูจะวิ่งไปหาเอง */
+  const ring = unk === "whole" ? { x:BX.wx, y:BX.wy, w:BX.ww }
+             : unk === "pb"    ? { x:pbX,   y:BX.py, w:BX.pw } : null;
+  const rcx = ring && ring.x + ring.w/2, rcy = ring && ring.y + BX.h/2;
+  const rrx = ring && ring.w*0.60,       rry = ring && BX.h*0.95;
+
+  /* rack focus — พอการ์ดกฎขึ้น กระดานถอยไปเป็นฉากหลัง */
+  const soft = outC(p01(t, STARTS[6], STARTS[6]+600)) * 5;
+
   g.save(); g.globalAlpha *= a;
-  connectors();
+  if (soft > .05) g.filter = "blur("+soft.toFixed(2)+"px)";
+
+  if (link > .002){ g.save(); g.globalAlpha *= link; connectors(); g.restore(); }
+  if (ring) orbitRing(t, rcx, rcy, rrx, rry, "back");
+
   slotBox(BX.wx, BX.wy, BX.ww, BX.h, whole, unk==="whole", popW, hotW, "ทั้งหมด");
-  slotBox(BX.px, BX.py, BX.pw, BX.h, pa,    false,          popA, false, "ส่วนย่อย");
-  slotBox(pbX,   BX.py, BX.pw, BX.h, pb,    unk==="pb",     popB, hotB,  "ส่วนย่อย");
+
+  /* ก่อนผ่า สองซีกซ้อนอยู่บนกล่องใหญ่พอดี เห็นเป็นรอยต่อกลางกล่อง */
+  const half = BX.ww/2;
+  const ax = lerp(BX.wx,      BX.px, split), bx2 = lerp(BX.wx+half, pbX, split);
+  const ay = lerp(BX.wy,      BX.py, split), aw  = lerp(half,       BX.pw, split);
+  const lb = split > .25 ? "ส่วนย่อย" : null;
+  slotBox(ax,  ay, aw, BX.h, pa, false,      popA, false, lb);
+  slotBox(bx2, ay, aw, BX.h, pb, unk==="pb", popB, hotB,  lb);
+
+  if (ring) orbitRing(t, rcx, rcy, rrx, rry, "front");
   g.restore();
+
+  bladeSlice(t, STARTS[1]+900, BX.wx+half+200, BX.wy-70, BX.wx+half-200, BX.wy+BX.h+70);
 }
 
 /* ── บรรทัดสมการใต้กล่อง ────────────────────────────────────── */
@@ -455,6 +650,17 @@ function drawAt(t){
   if (aTeach > 0.002){ g.save(); g.globalAlpha = aTeach; problemCard(t); g.restore(); }
   if (aTeach > 0.002 || aCta > 0.002){
     g.save(); g.globalAlpha = Math.max(aTeach, aCta); ruleCard(t); g.restore();
+  }
+
+  /* impact frame — แฟลชตอนคำตอบโผล่ ทั้งคลิปมี 2 ครั้ง ห่างกัน 11 วินาที
+     (เกิน 3 ครั้งต่อวินาทีเมื่อไหร่จะกลายเป็นความเสี่ยงกับคนแพ้แสงกะพริบ) */
+  if (aTeach > 0.002){
+    for (const [bi, cx, cy] of [[3, BX.wx+BX.ww/2, BX.wy+BX.h/2], [5, pbX+BX.pw/2, BX.py+BX.h/2]]){
+      if (t >= STARTS[bi] && t < STARTS[bi]+1100){
+        shockwave(t, STARTS[bi]+450, cx, cy);
+        impactFlash(t, STARTS[bi]+450, cx, cy);
+      }
+    }
   }
 
   vignette();
