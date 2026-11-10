@@ -123,12 +123,18 @@ await evalJs(`Promise.all([
   document.fonts.load("500 32px 'IBM Plex Sans Thai'")
 ]).then(() => document.fonts.ready).then(() => true)`, true);
 
+/* รูปตัวละครต้องโหลดครบก่อน ไม่งั้นเฟรมแรก ๆ จะไม่มีครู */
+if (await evalJs("typeof window.ASSETS_READY !== 'undefined'")) {
+  const ok = await evalJs("window.ASSETS_READY", true);
+  if (!ok) throw new Error("โหลดรูปตัวละครใน assets/ ไม่สำเร็จ");
+}
+
 const total = await evalJs("window.TOTAL_MS");
 if (!total) throw new Error("หน้าเว็บไม่ได้ประกาศ TOTAL_MS");
 
 /* โหมด probe: เก็บแค่ 8 ภาพตัวอย่างไว้ตรวจหน้าตาก่อนเรนเดอร์จริง */
 const PROBE = process.argv[4] === "probe";
-const probeTimes = [1800, 6000, 11000, 15500, 17500, 23000, 30000, 35000];
+const probeTimes = [1400, 4500, 8500, 12800, 14600, 18500, 23500, 28500];
 
 const frames = PROBE ? probeTimes.length : Math.round((total / 1000) * FPS);
 console.log(`เรนเดอร์ ${frames} เฟรม (${(total / 1000).toFixed(1)} วิ @ ${FPS}fps) → ${OUT}`);
