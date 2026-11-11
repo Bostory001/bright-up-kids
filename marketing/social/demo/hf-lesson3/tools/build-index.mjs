@@ -117,10 +117,14 @@ const audios = VO
       : "").join("")
   : "";
 
-/* เพลงคลอ — 0.14 คือระดับที่ไกด์เสียงของ HyperFrames บอกไว้สำหรับเพลงใต้เสียงพูด
-   ตัดความยาวกับเฟดท้ายไว้ในไฟล์ bed.wav แล้ว ไม่ได้ทำตอนรัน */
+/* เพลงคลอ — ไกด์ของ HyperFrames บอก 0.14 แต่เลขนั้นตั้งบนสมมติฐานว่าเสียงพูดดังปกติ
+   เสียงพากย์ของเราอยู่ที่ -24 dB ส่วน bed.wav อยู่ที่ -18.6 dB
+   ที่ 0.14 เพลงจะอยู่ที่ -35.7 dB ห่างเสียงพูดแค่ 11.7 dB — กลบเสียงครู
+   0.055 ทำให้เพลงอยู่ที่ -43.8 dB ห่าง 19.8 dB ซึ่งอยู่ในช่วง 18-20 dB ที่เสียงพูดชัด
+   ถ้าเปลี่ยนเสียงพากย์หรือเปลี่ยนเพลง ต้องวัดใหม่แล้วคิดเลขนี้ใหม่ */
+const BGM_VOL = 0.055;
 const bgm = existsSync("assets/bgm/bed.wav")
-  ? `\n      <audio class="clip" id="bgm" src="assets/bgm/bed.wav" data-start="0" data-volume="0.14" data-track-index="7"></audio>`
+  ? `\n      <audio class="clip" id="bgm" src="assets/bgm/bed.wav" data-start="0" data-volume="${BGM_VOL}" data-track-index="7"></audio>`
   : "";
 
 const faces = await readFile("assets/fonts/faces.css", "utf8");
