@@ -7,6 +7,7 @@
  *   node tools/build-index.mjs
  */
 import { readFile, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 
 const W = 1080, H = 1920;
 
@@ -114,6 +115,12 @@ const audios = VO
   ? BEATS.map((b, i) => VO["b" + i]
       ? `\n      <audio class="clip" id="vo${i}" src="assets/vo/b${i}.wav" data-start="${(T[i] + VO_LEAD).toFixed(2)}" data-volume="1" data-track-index="6"></audio>`
       : "").join("")
+  : "";
+
+/* เพลงคลอ — 0.14 คือระดับที่ไกด์เสียงของ HyperFrames บอกไว้สำหรับเพลงใต้เสียงพูด
+   ตัดความยาวกับเฟดท้ายไว้ในไฟล์ bed.wav แล้ว ไม่ได้ทำตอนรัน */
+const bgm = existsSync("assets/bgm/bed.wav")
+  ? `\n      <audio class="clip" id="bgm" src="assets/bgm/bed.wav" data-start="0" data-volume="0.14" data-track-index="7"></audio>`
   : "";
 
 const faces = await readFile("assets/fonts/faces.css", "utf8");
@@ -408,6 +415,8 @@ ${faces}
       <!-- ซับไทเทิล -->${captions}
 
       <!-- เสียงพากย์ -->${audios}
+
+      <!-- เพลงคลอ -->${bgm}
 
       <!-- ท้ายคลิป -->
       <div class="clip" id="footer" data-start="0" data-duration="${DUR}" data-track-index="4" data-track-kind="graphics">
