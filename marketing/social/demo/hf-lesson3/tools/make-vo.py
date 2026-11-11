@@ -24,12 +24,10 @@ MODEL = os.environ.get("VOXCPM_MODEL", "openbmb/VoxCPM2")
 SEED = int(os.environ.get("VOXCPM_SEED", "42"))
 
 # เสียงต้นแบบ + ข้อความที่พูดในไฟล์นั้นคำต่อคำ (ต้องตรงกัน ไม่งั้นคุณภาพโคลนตก)
-VOICE_WAV = os.environ.get("BU_VOICE_WAV", r"E:/Work/tk18/ep01/song/voice/narrator.wav")
-PROMPT_TEXT = (
-    "เขามีกวนอูกับเตียวหุย สองคนที่ศัตรูกลัวที่สุดในแผ่นดิน "
-    "แล้วทำไมยังแพ้มาตลอดยี่สิบปี คำตอบไม่ใช่เรื่องฝีมือรบ "
-    "แต่คือคนคนเดียวที่เขายังหาไม่เจอ"
-)
+# ref.wav = เสียงเจ้าของอ่าน VOICE_REF_SCRIPT.txt ตัดเงียบหัวท้ายเหลือ 18.2 วินาที
+VOICE_DIR = HERE.parent / "assets" / "voice"
+VOICE_WAV = os.environ.get("BU_VOICE_WAV", str(VOICE_DIR / "ref.wav"))
+PROMPT_TEXT = (VOICE_DIR / "ref.txt").read_text(encoding="utf-8").strip()
 
 # บทพากย์ — เขียนตัวเลขเป็นคำอ่านทั้งหมด ไม่ปล่อยเลขอารบิกให้โมเดลเดาเอง
 LINES = [
@@ -40,8 +38,8 @@ LINES = [
     "ยิ่งแบ่งหลายคน ชิ้นก็ยิ่งเล็กลง",
     "ชิ้นของสองคนใหญ่กว่า ครึ่งหนึ่งจึงมากกว่าหนึ่งในสาม",
     "ลองเองนะครับ หนึ่งในสี่ กับ หนึ่งในหก แบ่งหกคนย่อมได้ชิ้นเล็กกว่า",
-    "ลูกติดตรงไหน ครูรู้ตรงนั้น ทดลองประเมินพื้นฐานฟรี "
-    "โทร ศูนย์ หก ห้า สี่ สี่ เจ็ด สี่ หก เก้า หนึ่ง",
+    # ไม่อ่านเบอร์ทีละตัวแล้ว ของเดิมกินไป 9.76 วินาที ให้เบอร์อยู่บนจอแทน
+    "ลูกติดตรงไหน ครูรู้ตรงนั้น ทดลองประเมินพื้นฐานฟรี โทรหาเราได้เลยครับ",
 ]
 
 only = {int(a) for a in sys.argv[1:]} if len(sys.argv) > 1 else None
@@ -61,9 +59,7 @@ for i, text in enumerate(LINES):
     out = OUT / f"b{i}.wav"
     if only and i not in only:
         continue
-    if out.exists() and not only:
-        print(f"ข้าม b{i} (มีแล้ว)", flush=True)
-        continue
+    # ไม่ข้ามไฟล์ที่มีอยู่ — เปลี่ยนเสียงต้นแบบเมื่อไหร่ต้องพากย์ใหม่ทั้งชุด
     torch.manual_seed(SEED)  # voxcpm 2.x ไม่รับ seed ใน generate แล้ว
     audio = model.generate(
         text=text, prompt_wav_path=VOICE_WAV, prompt_text=PROMPT_TEXT,

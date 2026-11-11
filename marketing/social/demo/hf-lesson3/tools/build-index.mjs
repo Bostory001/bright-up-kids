@@ -23,6 +23,20 @@ const BEATS = [
   { d: 4.0, lines: [["ลองเอง หนึ่งในสี่ กับ หนึ่งในหก", "ink"], ["แบ่ง 6 คน ย่อมได้ชิ้นเล็กกว่า", "green"]] },
   { d: 4.2, lines: [["ลูกติดตรงไหน ครูรู้ตรงนั้น", "ink"], ["ทดลองประเมินพื้นฐานฟรี", "pink"]] }
 ];
+/* ถ้าพากย์แล้ว ความยาวของแต่ละจังหวะมาจากเสียงจริง ไม่ใช่ตัวเลขที่เดาไว้ข้างบน
+   (ค่า d ใน BEATS ใช้เฉพาะตอนยังไม่มีเสียง)
+   รอบแรกที่เดาเอง เสียงยาวกว่าภาพ 13 วินาที ซับเลยวิ่งหนีเสียง */
+const VO_LEAD = 0.2;   // ภาพขึ้นก่อนเสียงนิดหนึ่ง
+const VO_PAD = 0.5;    // เผื่อหายใจท้ายประโยค
+let VO = null;
+try {
+  VO = JSON.parse(await readFile("assets/vo/timing.json", "utf8"));
+} catch { /* ยังไม่ได้พากย์ */ }
+if (VO) for (let i = 0; i < BEATS.length; i++) {
+  const s = VO["b" + i];
+  if (s) BEATS[i].d = +(s + VO_LEAD + VO_PAD).toFixed(2);
+}
+
 const T = [];
 (function () { let a = 0; for (const b of BEATS) { T.push(+a.toFixed(2)); a += b.d; } })();
 const DUR = +(T[7] + BEATS[7].d).toFixed(2);
@@ -94,16 +108,28 @@ const captions = BEATS.map((b, i) => `
         </div>
       </div>`).join("");
 
+/* เสียงพากย์หนึ่งไฟล์ต่อหนึ่งจังหวะ — ไม่ใส่ data-duration ให้เล่นจนจบไฟล์
+   ทุกตัวต้องมี id ไม่งั้น HyperFrames ไม่เอาเข้ามิกซ์ */
+const audios = VO
+  ? BEATS.map((b, i) => VO["b" + i]
+      ? `\n      <audio class="clip" id="vo${i}" src="assets/vo/b${i}.wav" data-start="${(T[i] + VO_LEAD).toFixed(2)}" data-volume="1" data-track-index="6"></audio>`
+      : "").join("")
+  : "";
+
 const faces = await readFile("assets/fonts/faces.css", "utf8");
 
 /* ── ช่วงเวลาของแต่ละฉาก ───────────────────────────────────── */
+/* ฉากคาบเกี่ยวจังหวะที่มันครอบ และยืดตาม T เอง ไม่ใช่เลขตายตัว
+   ไม่งั้นพอเสียงยาวขึ้น ฉากจะจบก่อนที่คนพูดจะพูดจบ */
+const XF = 0.2;
+const span = (a, b) => [+(a - XF).toFixed(2), +(b + XF - (a - XF)).toFixed(2)];
 const S = {
-  hook:  [0,    3.4],
-  wrong: [3.0,  4.4],
-  denom: [7.0,  4.8],
-  cakes: [11.4, 14.8],
-  ex2:   [25.8, 4.4],
-  cta:   [29.8, DUR - 29.8]
+  hook:  [0, +(T[1] + XF).toFixed(2)],
+  wrong: span(T[1], T[2]),
+  denom: span(T[2], T[3]),
+  cakes: span(T[3], T[6]),
+  ex2:   span(T[6], T[7]),
+  cta:   [+(T[7] - XF).toFixed(2), +(DUR - T[7] + XF).toFixed(2)]
 };
 const sc = (k) => `data-start="${S[k][0]}" data-duration="${S[k][1].toFixed(2)}"`;
 
@@ -380,6 +406,8 @@ ${faces}
       </div>
 
       <!-- ซับไทเทิล -->${captions}
+
+      <!-- เสียงพากย์ -->${audios}
 
       <!-- ท้ายคลิป -->
       <div class="clip" id="footer" data-start="0" data-duration="${DUR}" data-track-index="4" data-track-kind="graphics">
