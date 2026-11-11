@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+/* thai */
+@font-face {
+  font-family: 'Bai Jamjuree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url(assets/fonts/baijamjuree-v13-LDIqapSCOBt_aeQQ7ftydoa0gebegJo0yyg.woff2) format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Bai Jamjuree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url(assets/fonts/baijamjuree-v13-LDIqapSCOBt_aeQQ7ftydoa0gebem5o0yyg.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Bai Jamjuree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url(assets/fonts/baijamjuree-v13-LDIqapSCOBt_aeQQ7ftydoa0gebempo0yyg.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Bai Jamjuree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url(assets/fonts/baijamjuree-v13-LDIqapSCOBt_aeQQ7ftydoa0gebelJo0.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* thai */
+@font-face {
+  font-family: 'Bai Jamjuree';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url(assets/fonts/baijamjuree-v13-LDIqapSCOBt_aeQQ7ftydoa05efegJo0yyg.woff2) format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Bai Jamjuree';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url(assets/fonts/baijamjuree-v13-LDIqapSCOBt_aeQQ7ftydoa05efem5o0yyg.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Bai Jamjuree';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url(assets/fonts/baijamjuree-v13-LDIqapSCOBt_aeQQ7ftydoa05efempo0yyg.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Bai Jamjuree';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url(assets/fonts/baijamjuree-v13-LDIqapSCOBt_aeQQ7ftydoa05efelJo0.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE-vU1Z-JHa74.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* thai */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE-vU1fuJHa74.woff2) format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE-vU1ZOJHa74.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE-vU1auJH.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE1vI1Z-JHa74.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* thai */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE1vI1fuJHa74.woff2) format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE1vI1ZOJHa74.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqE1vI1auJH.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqEsvM1Z-JHa74.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* thai */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqEsvM1fuJHa74.woff2) format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqEsvM1ZOJHa74.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Sans Thai';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url(assets/fonts/ibmplexsansthai-v11-m8JMje1VVIzcq1HzJq2AEdo2Tj_qvLqEsvM1auJH.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+      :root {
+        --ground: #0a1326;
+        --bg0: #0d1830;
+        --glow: #1b2d57;
+        --lantern: #ffc24a;
+        --hot: #fff0c9;
+        --blue: #52a8ff;
+        --ink: #eaf1fc;
+        --ink2: #9db1d4;
+        --ink3: #64779c;
+        --bad: #ff8071;
+        --rack: #16254a;
+        --rackline: #1f3566;
+        --font-display: "Bai Jamjuree", "IBM Plex Sans Thai", sans-serif;
+        --font-body: "IBM Plex Sans Thai", "Bai Jamjuree", sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--ground); }
+      #root { width: 100%; height: 100%; position: relative; font-family: var(--font-body); }
+
+      /* ── ฉากหลัง ───────────────────────────────────────── */
+      #bg { position: absolute; inset: 0; background: linear-gradient(180deg, var(--bg0), var(--ground)); }
+      #bgtop { position: absolute; left: 0; top: -300px; width: 100%; height: 1300px;
+        background: radial-gradient(ellipse 900px 700px at 50% 300px, var(--glow), rgba(27,45,87,0)); }
+      #bokeh { position: absolute; inset: 0; }
+      .bk { position: absolute; border-radius: 50%; background: var(--lantern); opacity: .16; filter: blur(16px); }
+      #vignette { position: absolute; inset: 0; pointer-events: none; z-index: 60;
+        background: radial-gradient(ellipse 680px 1100px at 50% 45%, rgba(0,0,0,0) 40%, rgba(0,0,0,.45) 100%); }
+
+      /* ── องก์ 1 · ฮุก ──────────────────────────────────── */
+      #hook { position: absolute; inset: 0; z-index: 10; }
+      #hookimg { position: absolute; left: 0; top: 110px; width: 1080px; height: 1180px;
+        object-fit: cover;
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 220px, #000 560px, transparent 1000px);
+                mask-image: linear-gradient(to bottom, transparent 0, #000 220px, #000 560px, transparent 1000px); }
+      #hooktitle { position: absolute; left: 0; top: 1060px; width: 100%; text-align: center;
+        font-family: var(--font-display); font-weight: 700; font-size: 150px; line-height: 1;
+        color: var(--ink); text-shadow: 0 0 55px rgba(255,194,74,.3); }
+      #hooktitle span { display: inline-block; margin: 0 14px; }
+      #hooktitle .op { color: var(--lantern); }
+
+      /* ── หัวคลิป ───────────────────────────────────────── */
+      #header { position: absolute; inset: 0; z-index: 50; }
+      /* ฉากบังหลังหัวคลิป — ช่วงฮุกมีภาพครูสว่างอยู่ข้างหลัง ตัวหนังสือจะจม */
+      #headscrim { position: absolute; left: 0; top: 240px; width: 100%; height: 220px;
+        background: linear-gradient(180deg, rgba(10,19,38,.92) 0%, rgba(10,19,38,.72) 55%, rgba(10,19,38,0) 100%); }
+      #badge { position: absolute; left: 58px; top: 294px; width: 92px; height: 92px; border-radius: 50%;
+        overflow: hidden; border: 3px solid var(--blue); box-shadow: 0 0 24px rgba(82,168,255,.55); }
+      #badge img { width: 100%; height: 100%; object-fit: cover; }
+      #tname { position: absolute; left: 170px; top: 296px; font-family: var(--font-display);
+        font-weight: 600; font-size: 40px; color: var(--ink); }
+      #tsub { position: absolute; left: 170px; top: 346px; font-weight: 500; font-size: 30px; color: #a8bbdc; }
+      #dots { position: absolute; right: 52px; top: 332px; display: flex; gap: 18px; align-items: center; }
+      .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ink3); opacity: .28; }
+
+      /* ── การ์ดบน (โจทย์ / กฎ) ──────────────────────────── */
+      .card { position: absolute; left: 60px; top: 430px; width: 960px; height: 176px; border-radius: 22px;
+        background: rgba(20,34,68,.72); border: 2px solid rgba(82,168,255,.30); }
+      #prob { z-index: 20; }
+      .problabel { position: absolute; left: 34px; top: 24px; font-weight: 600; font-size: 28px; color: var(--blue); }
+      .qwrap { position: absolute; left: 35px; top: 62px; width: 890px; text-align: center; }
+      .q1 { font-weight: 600; font-size: 42px; line-height: 1.25; color: var(--ink); }
+      .q2 { font-weight: 600; font-size: 40px; line-height: 1.25; color: var(--lantern); margin-top: 6px; }
+      /* หน้ากล่องปกติต้องไม่โดน clip-path ของรอยฉีก ไม่งั้นข้อความขาดครึ่ง
+         สองซีกที่ถูก clip ใช้เฉพาะตอนฉีกเท่านั้น */
+      #cardFace, #tearL, #tearR { position: absolute; left: 0; top: 0; width: 960px; height: 176px; }
+      #tearL { clip-path: polygon(0% 0%,50.80% 0.0%,52.26% 9.1%,53.20% 18.2%,54.06% 27.3%,51.89% 36.4%,49.95% 45.5%,50.68% 54.5%,53.99% 63.6%,50.42% 72.7%,52.38% 81.8%,51.79% 90.9%,53.74% 100.0%,0% 100%); }
+      #tearR { clip-path: polygon(100% 0%,50.80% 0.0%,52.26% 9.1%,53.20% 18.2%,54.06% 27.3%,51.89% 36.4%,49.95% 45.5%,50.68% 54.5%,53.99% 63.6%,50.42% 72.7%,52.38% 81.8%,51.79% 90.9%,53.74% 100.0%,100% 100%); }
+      #blow { position: absolute; left: 60px; top: 430px; width: 960px; height: 176px; z-index: 21; }
+      .sh { position: absolute; border-radius: 2px; }
+
+      #rule { z-index: 22; border-color: rgba(255,194,74,.32); background: rgba(20,34,68,.78); }
+      .rrow { position: absolute; left: 0; width: 100%; text-align: center;
+        font-family: var(--font-display); font-weight: 600; font-size: 48px; color: var(--ink2); }
+      .rrow b { color: var(--lantern); font-weight: 600; text-shadow: 0 0 24px rgba(255,194,74,.7); }
+      #rrow1 { top: 36px; }
+      #rrow2 { top: 104px; }
+
+      /* ── กล่องส่วนย่อย–ทั้งหมด ─────────────────────────── */
+      #board { position: absolute; inset: 0; z-index: 15; }
+      .box { position: absolute; border-radius: 20px; border: 2px solid var(--rackline);
+        background: linear-gradient(180deg, var(--rack), #101c3a); }
+      #whole { left: 160px; top: 680px; width: 760px; height: 150px; }
+      #partA { left: 160px; top: 680px; width: 380px; height: 150px; }
+      #partB { left: 540px; top: 680px; width: 380px; height: 150px; }
+      .blabel { position: absolute; left: 22px; top: 12px; font-weight: 500; font-size: 28px; color: #93a7cb; }
+      .bval { position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        font-family: var(--font-display); font-weight: 700; font-size: 82px; color: var(--ink); }
+      .bq { position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        font-family: var(--font-display); font-weight: 700; font-size: 86px; color: var(--bad);
+        text-shadow: 0 0 20px rgba(255,128,113,.6); }
+      .unknown { border: 4px dashed var(--bad) !important; box-shadow: 0 0 22px rgba(255,128,113,.45); }
+      .hot { border: 4px solid var(--lantern) !important; box-shadow: 0 0 26px rgba(255,194,74,.55); }
+      .hot .bval { color: var(--lantern); text-shadow: 0 0 30px rgba(255,194,74,.8); }
+      #links { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+      #links i { position: absolute; background: var(--rackline); }
+
+      /* ใบมีดผ่ากล่อง */
+      #blade { position: absolute; left: 538px; top: 600px; width: 6px; height: 320px; border-radius: 3px;
+        background: linear-gradient(180deg, transparent, var(--hot), transparent);
+        box-shadow: 0 0 34px var(--lantern); transform: rotate(16deg); transform-origin: 50% 50%; }
+
+      /* วงโคจรรอบช่องที่ว่าง */
+      .orbit { position: absolute; border: 3px solid rgba(255,194,74,.6); border-radius: 50%;
+        box-shadow: 0 0 18px rgba(255,194,74,.45); }
+      #orbW { left: 160px; top: 672px; width: 760px; height: 166px; }
+      #orbB { left: 586px; top: 894px; width: 328px; height: 162px; }
+      .spin { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+      .spin i { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+        background: var(--hot); box-shadow: 0 0 26px var(--lantern); }
+
+      /* แสงกระแทก */
+      #burst { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; z-index: 40;
+        mix-blend-mode: screen; pointer-events: none; opacity: 0; }
+      #ring { position: absolute; border: 8px solid var(--lantern); border-radius: 50%;
+        box-shadow: 0 0 30px var(--lantern); opacity: 0; z-index: 41; }
+
+      /* ── สมการใต้กล่อง ─────────────────────────────────── */
+      .eq { position: absolute; left: 0; top: 1130px; width: 100%; text-align: center;
+        font-family: var(--font-display); font-weight: 700; font-size: 80px; color: var(--ink);
+        text-shadow: 0 0 44px rgba(255,194,74,.26); z-index: 18; }
+      .eq b { color: var(--lantern); font-weight: 700; }
+      .pill { position: absolute; top: 1146px; height: 86px; border-radius: 20px;
+        background: rgba(20,34,68,.80); border: 2px solid rgba(255,194,74,.34);
+        display: flex; align-items: center; justify-content: center;
+        font-family: var(--font-display); font-weight: 600; font-size: 46px; color: var(--lantern);
+        text-shadow: 0 0 22px rgba(255,194,74,.5); z-index: 18; }
+      #pill1 { left: 128px; width: 320px; }
+      #pill2 { left: 632px; width: 320px; }
+
+      /* ── องก์ 3 · ปิดท้าย ──────────────────────────────── */
+      #cta { position: absolute; inset: 0; z-index: 25; }
+      #ctaimg { position: absolute; left: 565px; top: 600px; width: 560px; height: 820px; object-fit: cover;
+        -webkit-mask-image:
+          linear-gradient(to right, transparent 0, #000 62%),
+          linear-gradient(to bottom, transparent 0, #000 21%, #000 70%, transparent 100%);
+        -webkit-mask-composite: source-in;
+        mask-image:
+          linear-gradient(to right, transparent 0, #000 62%),
+          linear-gradient(to bottom, transparent 0, #000 21%, #000 70%, transparent 100%);
+        mask-composite: intersect; }
+
+      /* ── ซับไทเทิล + ท้ายคลิป ──────────────────────────── */
+      .cap { position: absolute; inset: 0; z-index: 55; }
+      .capbox { position: absolute; left: 40px; top: 1296px; width: 1000px; height: 240px; border-radius: 24px;
+        background: rgba(6,12,26,.9); border: 2px solid rgba(255,194,74,.18);
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+      .capline { font-family: var(--font-display); font-weight: 600; font-size: 60px; line-height: 1.1;
+        text-align: center; white-space: nowrap; }
+      #footer { position: absolute; inset: 0; z-index: 58; }
+      #track { position: absolute; left: 40px; top: 1572px; width: 1000px; height: 7px; border-radius: 4px;
+        background: rgba(255,255,255,.09); }
+      #fill { position: absolute; left: 0; top: 0; height: 100%; width: 100%; border-radius: 4px;
+        background: var(--lantern); box-shadow: 0 0 16px var(--lantern); transform-origin: 0 50%; }
+      #addr { position: absolute; left: 0; top: 1690px; width: 100%; text-align: center;
+        font-weight: 500; font-size: 32px; color: rgba(174,191,221,.72); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="32"
+         data-width="1080" data-height="1920">
+
+      <div id="bg">
+        <div id="bgtop" data-layout-allow-overflow></div>
+        <div id="bokeh">
+        <i class="bk" style="left:724px;top:1223px;width:84px;height:38px"></i>
+        <i class="bk" style="left:833px;top:1290px;width:51px;height:93px"></i>
+        <i class="bk" style="left:514px;top:947px;width:42px;height:90px"></i>
+        <i class="bk" style="left:736px;top:1289px;width:59px;height:37px"></i>
+        <i class="bk" style="left:79px;top:1174px;width:98px;height:96px"></i>
+        <i class="bk" style="left:436px;top:725px;width:73px;height:52px"></i>
+        <i class="bk" style="left:122px;top:1159px;width:90px;height:88px"></i>
+        <i class="bk" style="left:371px;top:412px;width:97px;height:71px"></i>
+        <i class="bk" style="left:433px;top:1447px;width:39px;height:86px"></i>
+        <i class="bk" style="left:855px;top:932px;width:99px;height:50px"></i>
+        </div>
+      </div>
+
+      <!-- องก์ 1 · ฮุก -->
+      <div class="clip" id="hook" data-start="0" data-duration="3.2" data-track-index="0" data-track-kind="graphics">
+        <img id="hookimg" src="assets/img/kao-hero.png" alt="" />
+        <div id="hooktitle">
+          <span class="op" id="w0">+</span><span id="w1">หรือ</span><span class="op" id="w2">−</span><span id="w3">?</span>
+        </div>
+      </div>
+
+      <!-- องก์ 2 · กระดาน -->
+      <div class="clip" id="board" data-start="2.9" data-duration="25.40" data-track-index="0" data-track-kind="graphics">
+        <div id="links">
+          <i style="left:538px;top:830px;width:3px;height:34px"></i>
+          <i style="left:330px;top:864px;width:420px;height:3px"></i>
+          <i style="left:330px;top:864px;width:3px;height:36px"></i>
+          <i style="left:748px;top:864px;width:3px;height:36px"></i>
+        </div>
+        <div class="orbit" id="orbW"></div>
+        <div class="orbit" id="orbB"></div>
+
+        <div class="box" id="whole"><span class="blabel">ทั้งหมด</span><span class="bq" id="wholeQ">?</span><span class="bval" id="wholeV">23</span></div>
+        <div class="box" id="partA"><span class="blabel">ส่วนย่อย</span><span class="bval" id="partAV">15</span></div>
+        <div class="box" id="partB"><span class="blabel">ส่วนย่อย</span><span class="bq" id="partBQ">?</span><span class="bval" id="partBV">8</span></div>
+
+        <div class="spin" id="spinW"><i></i></div>
+        <div class="spin" id="spinB"><i></i></div>
+        <div id="blade"></div>
+
+        <div class="eq" id="eq1">15 <b>+</b> 8 &nbsp;=&nbsp; <b>23</b></div>
+        <div class="eq" id="eq2">23 <b>−</b> 15 &nbsp;=&nbsp; <b>8</b></div>
+        <div class="pill" id="pill1">15 + 8 = 23</div>
+        <div class="pill" id="pill2">23 − 15 = 8</div>
+
+        <div id="ring"></div>
+        <div id="burst"></div>
+      </div>
+
+      <!-- การ์ดโจทย์ -->
+      <div class="clip card" id="prob" data-start="2.9" data-duration="21.70" data-track-index="1" data-track-kind="graphics">
+        <div id="cardFace">
+          <span class="problabel">โจทย์</span>
+          <div class="qwrap" id="qA"><p class="q1">พี่มีโคม 15 ดวง&nbsp; น้องมีโคม 8 ดวง</p><p class="q2">สองคนรวมกันได้กี่ดวง ?</p></div>
+          <div class="qwrap" id="qB"><p class="q1">มีโคมทั้งหมด 23 ดวง&nbsp; สีฟ้า 15 ดวง</p><p class="q2">ที่เหลือเป็นสีเขียวกี่ดวง ?</p></div>
+        </div>
+        <div id="tearL">
+          <span class="problabel">โจทย์</span>
+          <div class="qwrap"><p class="q1">พี่มีโคม 15 ดวง&nbsp; น้องมีโคม 8 ดวง</p><p class="q2">สองคนรวมกันได้กี่ดวง ?</p></div>
+        </div>
+        <div id="tearR">
+          <span class="problabel">โจทย์</span>
+          <div class="qwrap"><p class="q1">พี่มีโคม 15 ดวง&nbsp; น้องมีโคม 8 ดวง</p><p class="q2">สองคนรวมกันได้กี่ดวง ?</p></div>
+        </div>
+      </div>
+      <div class="clip" id="blow" data-start="14.40" data-duration="1.1" data-track-index="1" data-track-kind="graphics">
+            <i class="sh" style="left:311px;top:146px;width:12px;height:9px;background:#cfe0fb"></i>
+            <i class="sh" style="left:891px;top:45px;width:17px;height:12px;background:var(--lantern)"></i>
+            <i class="sh" style="left:24px;top:45px;width:14px;height:10px;background:var(--lantern)"></i>
+            <i class="sh" style="left:108px;top:130px;width:9px;height:6px;background:var(--lantern)"></i>
+            <i class="sh" style="left:734px;top:167px;width:14px;height:10px;background:#cfe0fb"></i>
+            <i class="sh" style="left:94px;top:26px;width:6px;height:5px;background:#cfe0fb"></i>
+            <i class="sh" style="left:344px;top:156px;width:14px;height:10px;background:#cfe0fb"></i>
+            <i class="sh" style="left:595px;top:45px;width:10px;height:7px;background:#cfe0fb"></i>
+            <i class="sh" style="left:73px;top:91px;width:14px;height:10px;background:#cfe0fb"></i>
+            <i class="sh" style="left:886px;top:100px;width:7px;height:5px;background:var(--lantern)"></i>
+            <i class="sh" style="left:653px;top:11px;width:10px;height:7px;background:#cfe0fb"></i>
+            <i class="sh" style="left:330px;top:146px;width:16px;height:11px;background:var(--lantern)"></i>
+            <i class="sh" style="left:181px;top:58px;width:15px;height:10px;background:#cfe0fb"></i>
+            <i class="sh" style="left:339px;top:126px;width:6px;height:4px;background:#cfe0fb"></i>
+            <i class="sh" style="left:349px;top:169px;width:12px;height:8px;background:#cfe0fb"></i>
+            <i class="sh" style="left:116px;top:18px;width:12px;height:8px;background:#cfe0fb"></i>
+            <i class="sh" style="left:686px;top:150px;width:17px;height:12px;background:var(--lantern)"></i>
+            <i class="sh" style="left:474px;top:35px;width:14px;height:10px;background:#cfe0fb"></i>
+            <i class="sh" style="left:218px;top:76px;width:12px;height:9px;background:#cfe0fb"></i>
+            <i class="sh" style="left:943px;top:122px;width:11px;height:7px;background:#cfe0fb"></i>
+            <i class="sh" style="left:412px;top:66px;width:14px;height:10px;background:#cfe0fb"></i>
+            <i class="sh" style="left:768px;top:7px;width:7px;height:5px;background:#cfe0fb"></i>
+            <i class="sh" style="left:359px;top:133px;width:9px;height:6px;background:#cfe0fb"></i>
+            <i class="sh" style="left:654px;top:32px;width:11px;height:8px;background:var(--lantern)"></i>
+            <i class="sh" style="left:602px;top:141px;width:7px;height:5px;background:#cfe0fb"></i>
+            <i class="sh" style="left:650px;top:117px;width:16px;height:11px;background:#cfe0fb"></i>
+      </div>
+
+      <!-- การ์ดกฎ -->
+      <div class="clip card" id="rule" data-start="24.1" data-duration="7.90" data-track-index="1" data-track-kind="graphics">
+        <p class="rrow" id="rrow1">ช่องใหญ่ว่าง &nbsp;=&nbsp; <b>บวก</b></p>
+        <p class="rrow" id="rrow2">ช่องเล็กว่าง &nbsp;=&nbsp; <b>ลบ</b></p>
+      </div>
+
+      <!-- องก์ 3 · ปิดท้าย -->
+      <div class="clip" id="cta" data-start="27.7" data-duration="4.30" data-track-index="0" data-track-kind="graphics">
+        <img id="ctaimg" src="assets/img/kao-arms.png" alt="" />
+      </div>
+
+      <!-- หัวคลิป -->
+      <div class="clip" id="header" data-start="0" data-duration="32" data-track-index="3" data-track-kind="graphics">
+        <div id="headscrim"></div>
+        <div id="badge"><img src="assets/img/kao-face.png" alt="" /></div>
+        <div id="tname">ครูเก้า</div>
+        <div id="tsub">คณิต ป.2–3</div>
+        <div id="dots">
+          <i class="dot" id="dot0"></i>
+          <i class="dot" id="dot1"></i>
+          <i class="dot" id="dot2"></i>
+          <i class="dot" id="dot3"></i>
+          <i class="dot" id="dot4"></i>
+          <i class="dot" id="dot5"></i>
+          <i class="dot" id="dot6"></i>
+          <i class="dot" id="dot7"></i>
+        </div>
+      </div>
+
+      <!-- ซับไทเทิล -->
+      <div class="clip cap" id="cap0" data-start="0" data-duration="2.9" data-track-index="2">
+        <div class="capbox">
+          <p class="capline l0" style="color:var(--ink)">ลูกบวกลบเลขคล่อง</p>
+          <p class="capline l1" style="color:var(--lantern)">แต่โจทย์ปัญหา อ่านแล้วนิ่ง</p>
+        </div>
+      </div>
+      <div class="clip cap" id="cap1" data-start="2.9" data-duration="3.8" data-track-index="2">
+        <div class="capbox">
+          <p class="capline l0" style="color:var(--ink)">อย่าเดาจากคำว่า รวม หรือ เหลือ</p>
+          <p class="capline l1" style="color:var(--lantern)">ให้วาดกล่องนี้ก่อน</p>
+        </div>
+      </div>
+      <div class="clip cap" id="cap2" data-start="6.7" data-duration="4.6" data-track-index="2">
+        <div class="capbox">
+          <p class="capline l0" style="color:var(--ink)">เลขที่โจทย์บอก ใส่ช่องเล็ก</p>
+          <p class="capline l1" style="color:var(--bad)">ช่องใหญ่ยังว่างอยู่</p>
+        </div>
+      </div>
+      <div class="clip cap" id="cap3" data-start="11.3" data-duration="4" data-track-index="2">
+        <div class="capbox">
+          <p class="capline l0" style="color:var(--ink)">ช่องใหญ่ว่าง = หาทั้งหมด</p>
+          <p class="capline l1" style="color:var(--lantern)">หาทั้งหมด ต้องบวก</p>
+        </div>
+      </div>
+      <div class="clip cap" id="cap4" data-start="15.3" data-duration="4.6" data-track-index="2">
+        <div class="capbox">
+          <p class="capline l0" style="color:var(--ink)">โจทย์ใหม่ บอกทั้งหมดมาแล้ว</p>
+          <p class="capline l1" style="color:var(--bad)">คราวนี้ช่องเล็กว่าง</p>
+        </div>
+      </div>
+      <div class="clip cap" id="cap5" data-start="19.9" data-duration="4.2" data-track-index="2">
+        <div class="capbox">
+          <p class="capline l0" style="color:var(--ink)">ช่องเล็กว่าง = หาส่วนย่อย</p>
+          <p class="capline l1" style="color:var(--lantern)">หาส่วนย่อย ต้องลบ</p>
+        </div>
+      </div>
+      <div class="clip cap" id="cap6" data-start="24.1" data-duration="3.6" data-track-index="2">
+        <div class="capbox">
+          <p class="capline l0" style="color:var(--ink)">กล่องเดียว ใช้ได้ทุกโจทย์</p>
+          <p class="capline l1" style="color:var(--lantern)">ไม่ต้องเดาคำในโจทย์อีก</p>
+        </div>
+      </div>
+      <div class="clip cap" id="cap7" data-start="27.7" data-duration="4.3" data-track-index="2">
+        <div class="capbox">
+          <p class="capline l0" style="color:var(--ink)">ลูกติดตรงไหน ครูรู้ตรงนั้น</p>
+          <p class="capline l1" style="color:var(--lantern)">ทดลองเรียนฟรี · 065 447 4691</p>
+        </div>
+      </div>
+
+      <!-- ท้ายคลิป -->
+      <div class="clip" id="footer" data-start="0" data-duration="32" data-track-index="4" data-track-kind="graphics">
+        <div id="track"><div id="fill"></div></div>
+        <div id="addr">ซอยวัดหลวงพ่อโต บางพลี</div>
+      </div>
+
+      <div id="vignette"></div>
+    </div>
+
+    <script>
+      const T = [0,2.9,6.7,11.3,15.3,19.9,24.1,27.7];
+      const DUR = 32;
+      const tl = gsap.timeline({ paused: true });
+      const set = (t, el, v) => tl.set(el, v, t);
+
+      /* ── ฉากหลัง: โบเก้ลอย + dolly zoom ตอนปิดท้าย ──────── */
+      gsap.utils.toArray("#bokeh .bk").forEach((el, i) => {
+        tl.to(el, { y: 26, duration: 2.2 + (i % 5) * .4, yoyo: true, repeat: 14, ease: "sine.inOut" }, 0);
+      });
+      tl.fromTo("#bokeh", { scale: 1 }, { scale: 1.26, duration: 1.5, ease: "power2.out" }, T[7] - 0.2);
+
+      /* ── แถบเวลา ────────────────────────────────────────── */
+      tl.fromTo("#fill", { scaleX: 0 }, { scaleX: 1, duration: DUR, ease: "none" }, 0);
+
+      /* ── จุดบอกขั้น ─────────────────────────────────────── */
+      T.forEach((t, i) => {
+        tl.to("#dot" + i, { opacity: 1, backgroundColor: "#ffc24a", scale: 1.35,
+          boxShadow: "0 0 14px #ffc24a", duration: .25, ease: "power2.out" }, t);
+        if (i > 0) tl.to("#dot" + (i - 1), { scale: 1, boxShadow: "0 0 0 #ffc24a", duration: .25 }, t);
+      });
+
+      /* ── องก์ 1 · letter dive ───────────────────────────── */
+      ["#w0", "#w1", "#w2", "#w3"].forEach((w, i) => {
+        tl.fromTo(w, { y: -240, opacity: 0, scale: 1.35 },
+          { y: 0, opacity: 1, scale: 1, duration: .64, ease: "back.out(1.6)" }, .26 + i * .13);
+      });
+      tl.to("#hook", { opacity: 0, duration: .42, ease: "power2.inOut" }, T[1] - .22);
+
+      /* ── การ์ดโจทย์ ─────────────────────────────────────── */
+      set(0, "#qA", { opacity: 0 }); set(0, "#qB", { opacity: 0 });
+      set(0, ["#tearL", "#tearR"], { opacity: 0 });
+      tl.fromTo("#prob", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: .45, ease: "power3.out" }, T[1]);
+      tl.to("#qA", { opacity: 1, duration: .42, ease: "power2.out" }, T[2]);
+
+      /* paper tear + blow away — ฉีกข้อเก่าก่อนข้อใหม่ขึ้น
+         สลับจากหน้ากล่องปกติไปเป็นสองซีกที่ถูก clip ตรงจังหวะที่เริ่มฉีก */
+      const TEAR = T[4] - .9;
+      set(TEAR, "#cardFace", { opacity: 0 });
+      set(TEAR, ["#tearL", "#tearR"], { opacity: 1 });
+      tl.to("#tearL", { x: -165, y: 50, rotation: -9, opacity: 0, duration: .9, ease: "power2.in" }, TEAR);
+      tl.to("#tearR", { x: 225, y: 34, rotation: 8, opacity: 0, duration: .9, ease: "power2.in" }, TEAR);
+      gsap.utils.toArray("#blow .sh").forEach((el, i) => {
+        tl.fromTo(el, { x: 0, y: 0, opacity: .9, rotation: 0 },
+          { x: 180 + (i % 7) * 95, y: -90 + (i % 5) * 40 + 300, rotation: 180 + i * 23,
+            opacity: 0, duration: .85, ease: "power2.in" }, TEAR + .04 + (i % 9) * .03);
+      });
+      /* ข้อใหม่โผล่บนการ์ดใบเดิมที่รีเซ็ตกลับมา */
+      set(T[4], ["#tearL", "#tearR"], { opacity: 0, x: 0, y: 0, rotation: 0 });
+      set(T[4], "#cardFace", { opacity: 1 });
+      set(T[4], "#qA", { opacity: 0 });
+      tl.fromTo("#qB", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .5, ease: "power2.out" }, T[4] + .12);
+      tl.to("#prob", { opacity: 0, duration: .45, ease: "power2.in" }, T[6]);
+
+      /* ── การ์ดกฎ ────────────────────────────────────────── */
+      tl.fromTo("#rule", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: .5, ease: "power3.out" }, T[6]);
+      tl.fromTo(["#rrow1", "#rrow2"], { opacity: 0, x: -24 },
+        { opacity: 1, x: 0, duration: .45, stagger: .14, ease: "power2.out" }, T[6] + .15);
+
+      /* ── กล่อง: blade slice แล้วหล่นเป็นสองส่วนย่อย ─────── */
+      set(0, "#board", { opacity: 0 });
+      set(0, ["#wholeV", "#partAV", "#partBV", "#wholeQ", "#partBQ"], { opacity: 0 });
+      set(0, ["#eq1", "#eq2", "#pill1", "#pill2"], { opacity: 0 });
+      set(0, ["#orbW", "#orbB", "#spinW", "#spinB"], { opacity: 0 });
+      set(0, "#blade", { opacity: 0, scaleY: 0 });
+      set(0, "#links", { opacity: 0 });
+      set(0, ".blabel", { opacity: 0 });
+
+      tl.to("#board", { opacity: 1, duration: .5, ease: "power2.out" }, T[1] + .1);
+      tl.fromTo("#whole", { scale: .9, opacity: 0 }, { scale: 1, opacity: 1, duration: .55, ease: "back.out(1.4)" }, T[1] + .1);
+      set(T[1] + .1, "#partA", { opacity: 1 }); set(T[1] + .1, "#partB", { opacity: 1 });
+
+      /* ใบมีด */
+      tl.fromTo("#blade", { opacity: 1, scaleY: 0, y: -180 },
+        { scaleY: 1, y: 0, duration: .16, ease: "power4.in" }, T[1] + .9);
+      tl.to("#blade", { opacity: 0, y: 190, duration: .22, ease: "power2.out" }, T[1] + 1.06);
+
+      /* สองซีกหล่นลงไปเป็นช่องส่วนย่อย */
+      tl.to("#partA", { x: 0, y: 220, width: 340, duration: .75, ease: "power3.inOut" }, T[1] + 1.05);
+      tl.to("#partB", { x: 40, y: 220, width: 340, duration: .75, ease: "power3.inOut" }, T[1] + 1.05);
+      tl.to(".blabel", { opacity: 1, duration: .35 }, T[1] + 1.5);
+      tl.to("#links", { opacity: 1, duration: .45 }, T[1] + 1.6);
+
+      /* ── โจทย์ A: รู้สองส่วนย่อย ช่องใหญ่ว่าง ───────────── */
+      set(T[2], "#whole", { className: "box unknown" });
+      tl.to("#wholeQ", { opacity: 1, duration: .35 }, T[2] + .1);
+      tl.fromTo("#partAV", { opacity: 0, scale: .7 }, { opacity: 1, scale: 1, duration: .55, ease: "back.out(2)" }, T[2] + .15);
+      tl.fromTo("#partBV", { opacity: 0, scale: .7 }, { opacity: 1, scale: 1, duration: .55, ease: "back.out(2)" }, T[2] + .42);
+      tl.to(["#orbW", "#spinW"], { opacity: 1, duration: .3 }, T[2] + .2);
+      tl.to("#spinW", { rotation: 360 * 6, duration: 4.3, ease: "none" }, T[2] + .2);
+      set(0, "#spinW i", { x: 380 });
+      set(0, "#spinB i", { x: 164 });
+      set(0, "#spinW", { scaleY: .22 });
+      set(0, "#spinB", { scaleY: .5 });
+
+      /* ── เฉลย A: บวก ────────────────────────────────────── */
+      tl.to(["#orbW", "#spinW"], { opacity: 0, duration: .25 }, T[3] + .3);
+      set(T[3] + .45, "#whole", { className: "box hot" });
+      set(T[3] + .45, "#wholeQ", { opacity: 0 });
+      tl.fromTo("#wholeV", { opacity: 0, scale: .6 }, { opacity: 1, scale: 1, duration: .6, ease: "back.out(2.2)" }, T[3] + .45);
+      tl.fromTo("#eq1", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: .55, ease: "power3.out" }, T[3] + .45);
+      tl.to("#eq1", { opacity: 0, duration: .35 }, T[4] - .35);
+
+      /* ── โจทย์ B: รู้ทั้งหมด ช่องเล็กว่าง ───────────────── */
+      set(T[4], "#whole", { className: "box" });
+      set(T[4], "#partBV", { opacity: 0 });
+      set(T[4], "#partB", { className: "box unknown" });
+      tl.to("#partBQ", { opacity: 1, duration: .35 }, T[4] + .15);
+      tl.to(["#orbB", "#spinB"], { opacity: 1, duration: .3 }, T[4] + .25);
+      tl.to("#spinB", { rotation: 360 * 6, duration: 4.3, ease: "none" }, T[4] + .25);
+
+      /* ── เฉลย B: ลบ ─────────────────────────────────────── */
+      tl.to(["#orbB", "#spinB"], { opacity: 0, duration: .25 }, T[5] + .3);
+      set(T[5] + .45, "#partB", { className: "box hot" });
+      set(T[5] + .45, "#partBQ", { opacity: 0 });
+      tl.fromTo("#partBV", { opacity: 0, scale: .6 }, { opacity: 1, scale: 1, duration: .6, ease: "back.out(2.2)" }, T[5] + .45);
+      tl.fromTo("#eq2", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: .55, ease: "power3.out" }, T[5] + .45);
+
+      /* ── impact frame · 2 ครั้ง ห่างกัน 11 วินาที ───────── */
+      [[T[3] + .45, 540, 755], [T[5] + .45, 750, 975]].forEach(([t, cx, cy]) => {
+        set(t, "#burst", { background:
+          "radial-gradient(circle 920px at " + cx + "px " + cy + "px, rgba(255,240,201,.95) 0%, rgba(255,194,74,.38) 30%, rgba(255,194,74,0) 100%)" });
+        tl.fromTo("#burst", { opacity: .9 }, { opacity: 0, duration: .22, ease: "power2.in" }, t);
+        set(t, "#ring", { left: cx - 120, top: cy - 70, width: 240, height: 140, borderWidth: 8 });
+        tl.fromTo("#ring", { opacity: .7, scale: 1 },
+          { opacity: 0, scale: 4.6, borderWidth: 2, duration: .56, ease: "power2.out" }, t);
+      });
+
+      /* ── ปิดท้าย: rack focus + เม็ดยาสองเม็ด ───────────── */
+      tl.to(["#eq2"], { opacity: 0, duration: .35 }, T[6]);
+      tl.fromTo(["#pill1", "#pill2"], { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: .5, stagger: .12, ease: "power3.out" }, T[6] + .12);
+      tl.to("#board", { filter: "blur(5px)", duration: .6, ease: "power2.out" }, T[6]);
+      tl.to("#board", { opacity: 0, duration: .45, ease: "power2.inOut" }, T[7] - .22);
+
+      tl.fromTo("#cta", { opacity: 0 }, { opacity: 1, duration: .45, ease: "power2.inOut" }, T[7] - .22);
+      tl.fromTo("#ctaimg", { x: 70 }, { x: 0, duration: .7, ease: "power3.out" }, T[7]);
+
+      /* ── ซับไทเทิล ──────────────────────────────────────── */
+      T.forEach((t, i) => {
+        tl.fromTo("#cap" + i + " .capbox", { opacity: 0, y: 16 },
+          { opacity: 1, y: 0, duration: .3, ease: "power2.out" }, t);
+        tl.fromTo("#cap" + i + " .l0", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .4, ease: "power2.out" }, t);
+        tl.fromTo("#cap" + i + " .l1", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .4, ease: "power2.out" }, t + .1);
+      });
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
