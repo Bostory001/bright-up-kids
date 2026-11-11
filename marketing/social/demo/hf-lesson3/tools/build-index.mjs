@@ -27,7 +27,7 @@ const BEATS = [
    (ค่า d ใน BEATS ใช้เฉพาะตอนยังไม่มีเสียง)
    รอบแรกที่เดาเอง เสียงยาวกว่าภาพ 13 วินาที ซับเลยวิ่งหนีเสียง */
 const VO_LEAD = 0.2;   // ภาพขึ้นก่อนเสียงนิดหนึ่ง
-const VO_PAD = 0.5;    // เผื่อหายใจท้ายประโยค
+const VO_PAD = 0.35;   // เผื่อหายใจท้ายประโยค
 let VO = null;
 try {
   VO = JSON.parse(await readFile("assets/vo/timing.json", "utf8"));

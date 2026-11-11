@@ -12,13 +12,16 @@
 import json
 import os
 import pathlib
+import subprocess
 import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
 
 HERE = pathlib.Path(__file__).resolve().parent
 OUT = HERE.parent / "assets" / "vo"
+RAW = OUT / "_raw"          # เสียงก่อนเร่งจังหวะ เก็บไว้เผื่ออยากเปลี่ยน TEMPO
 OUT.mkdir(parents=True, exist_ok=True)
+RAW.mkdir(parents=True, exist_ok=True)
 
 MODEL = os.environ.get("VOXCPM_MODEL", "openbmb/VoxCPM2")
 SEED = int(os.environ.get("VOXCPM_SEED", "42"))
@@ -30,17 +33,22 @@ VOICE_WAV = os.environ.get("BU_VOICE_WAV", str(VOICE_DIR / "ref.wav"))
 PROMPT_TEXT = (VOICE_DIR / "ref.txt").read_text(encoding="utf-8").strip()
 
 # บทพากย์ — เขียนตัวเลขเป็นคำอ่านทั้งหมด ไม่ปล่อยเลขอารบิกให้โมเดลเดาเอง
+# เสียงต้นแบบเป็นผู้หญิง คำลงท้ายจึงเป็น คะ/ค่ะ ไม่ใช่ ครับ
 LINES = [
-    "ครึ่งหนึ่ง กับ หนึ่งในสาม อันไหนมากกว่ากันครับ",
+    "ครึ่งหนึ่ง กับ หนึ่งในสาม อันไหนมากกว่ากันคะ",
     "เด็กส่วนใหญ่ตอบว่าหนึ่งในสาม เพราะสามมากกว่าสอง",
     "แต่เลขข้างล่างไม่ใช่จำนวนของ มันคือจำนวนคนที่มาแบ่ง",
     "เค้กก้อนเท่ากัน ก้อนซ้ายแบ่งสองคน ก้อนขวาแบ่งสามคน",
     "ยิ่งแบ่งหลายคน ชิ้นก็ยิ่งเล็กลง",
     "ชิ้นของสองคนใหญ่กว่า ครึ่งหนึ่งจึงมากกว่าหนึ่งในสาม",
-    "ลองเองนะครับ หนึ่งในสี่ กับ หนึ่งในหก แบ่งหกคนย่อมได้ชิ้นเล็กกว่า",
+    "ลองเองนะคะ หนึ่งในสี่ กับ หนึ่งในหก แบ่งหกคนย่อมได้ชิ้นเล็กกว่า",
     # ไม่อ่านเบอร์ทีละตัวแล้ว ของเดิมกินไป 9.76 วินาที ให้เบอร์อยู่บนจอแทน
-    "ลูกติดตรงไหน ครูรู้ตรงนั้น ทดลองประเมินพื้นฐานฟรี โทรหาเราได้เลยครับ",
+    "ลูกติดตรงไหน ครูรู้ตรงนั้น ทดลองประเมินพื้นฐานฟรี โทรหาเราได้เลยค่ะ",
 ]
+
+# โมเดลลอกจังหวะพูดจากไฟล์ต้นแบบด้วย ต้นแบบอ่านช้า เสียงที่ได้เลยช้าตาม
+# เร่งทีหลังด้วย atempo ซึ่งไม่เปลี่ยนระดับเสียง
+TEMPO = float(os.environ.get("VO_TEMPO", "1.2"))
 
 only = {int(a) for a in sys.argv[1:]} if len(sys.argv) > 1 else None
 
@@ -66,8 +74,13 @@ for i, text in enumerate(LINES):
         reference_wav_path=VOICE_WAV, cfg_value=2.0, inference_timesteps=10,
         normalize=False, denoise=False, retry_badcase=True, max_len=4096,
     )
-    sf.write(out, audio, sr, subtype="PCM_16")
-    print(f"b{i}  {len(audio) / sr:.2f} วิ  {text[:38]}", flush=True)
+    tmp = RAW / f"b{i}.wav"
+    sf.write(tmp, audio, sr, subtype="PCM_16")
+    subprocess.run([
+        "ffmpeg", "-v", "error", "-y", "-i", str(tmp),
+        "-af", f"atempo={TEMPO}", "-ar", str(sr), "-ac", "1", "-c:a", "pcm_s16le", str(out),
+    ], check=True)
+    print(f"b{i}  {len(audio) / sr:.2f} -> {sf.info(str(out)).frames / sr:.2f} วิ  {text[:34]}", flush=True)
 
 timing = {}
 for i in range(len(LINES)):
