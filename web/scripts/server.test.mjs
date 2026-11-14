@@ -77,8 +77,8 @@ test("password parser preserves exact text", () => {
   assert.equal(verifySecret(passwordInput(password), hash), true);
   assert.equal(verifySecret(password.trim(), hash), false);
 });
-test("Vercel refuses file fallback; isolated storage writes only to its directory", async () => {
-  const previous = { VERCEL: process.env.VERCEL, FIREBASE_SERVICE_ACCOUNT: process.env.FIREBASE_SERVICE_ACCOUNT, BUK_DATA_DIR: process.env.BUK_DATA_DIR };
+test("Vercel and App Hosting refuse file fallback; isolated storage writes only to its directory", async () => {
+  const previous = { VERCEL: process.env.VERCEL, K_SERVICE: process.env.K_SERVICE, FIREBASE_SERVICE_ACCOUNT: process.env.FIREBASE_SERVICE_ACCOUNT, BUK_DATA_DIR: process.env.BUK_DATA_DIR };
   const dataDir = mkdtempSync(path.join(tmpdir(), "buk-unit-"));
   try {
     delete globalThis.__bukStore;
@@ -88,6 +88,17 @@ test("Vercel refuses file fallback; isolated storage writes only to its director
     assert.throws(() => getStore(), /FIREBASE_SERVICE_ACCOUNT is required/);
     assert.equal(existsSync(path.join(dataDir, "db.json")), false);
     process.env.VERCEL = "";
+    // Firebase App Hosting (Cloud Run): ไม่มีคีย์ก็ต้องไป Firestore ด้วย ADC ห้ามตกมาเขียนไฟล์
+    process.env.K_SERVICE = "web";
+    delete globalThis.__bukStore;
+    try {
+      await getStore();
+    } catch {
+      // เครื่องนี้ไม่มี ADC จึงต่อไม่ได้ — ถือว่าถูกต้อง ขอแค่ไม่ตกไปใช้ไฟล์
+    }
+    assert.equal(existsSync(path.join(dataDir, "db.json")), false, "บน App Hosting ต้องไม่เขียนฐานข้อมูลไฟล์");
+    process.env.K_SERVICE = "";
+    delete globalThis.__bukStore;
     const store = await getStore();
     await store.set("sample", { id: "one", value: 42 });
     assert.equal(JSON.parse(readFileSync(path.join(dataDir, "db.json"), "utf8")).sample.one.value, 42);

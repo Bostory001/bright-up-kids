@@ -26,7 +26,7 @@ function loadEnvLocal() {
     const key = trimmed.slice(0, eq).trim();
     let value = trimmed.slice(eq + 1).trim();
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1);
-    if (value && !process.env[key]) process.env[key] = value;
+    if (value && process.env[key] === undefined) process.env[key] = value; // ตั้งค่าว่างมาจาก env ถือว่าตั้งใจปิด
   }
 }
 

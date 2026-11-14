@@ -75,10 +75,13 @@ function createFileStore(): Store {
 
 // ---------- firestore ----------
 
-async function createFirestoreStore(serviceAccountJson: string): Promise<Store> {
-  const { cert, getApps, initializeApp } = await import("firebase-admin/app");
+// serviceAccountJson = null → ใช้สิทธิ์ของ service account ที่ container รันอยู่ (ADC)
+// กรณีนี้คือ Firebase App Hosting / Cloud Run ซึ่งเข้า Firestore ของ project เดียวกันได้เลย ไม่ต้องวางคีย์ไว้ที่ไหน
+async function createFirestoreStore(serviceAccountJson: string | null): Promise<Store> {
+  const { applicationDefault, cert, getApps, initializeApp } = await import("firebase-admin/app");
   const { getFirestore } = await import("firebase-admin/firestore");
-  const app = getApps()[0] ?? initializeApp({ credential: cert(JSON.parse(serviceAccountJson)) });
+  const credential = serviceAccountJson ? cert(JSON.parse(serviceAccountJson)) : applicationDefault();
+  const app = getApps()[0] ?? initializeApp({ credential });
   const fs = getFirestore(app);
   try {
     fs.settings({ ignoreUndefinedProperties: true });
@@ -122,10 +125,14 @@ const g = globalThis as unknown as { __bukStore?: Promise<Store> };
 export function getStore(): Promise<Store> {
   if (!g.__bukStore) {
     const sa = process.env.FIREBASE_SERVICE_ACCOUNT;
-    if (process.env.VERCEL && !sa) {
+    // K_SERVICE มีเฉพาะตอนรันบน Cloud Run ซึ่งคือที่ที่ Firebase App Hosting รันแอปนี้
+    const onCloudRun = Boolean(process.env.K_SERVICE);
+    if (sa) g.__bukStore = createFirestoreStore(sa);
+    else if (onCloudRun) g.__bukStore = createFirestoreStore(null);
+    else if (process.env.VERCEL) {
+      // ที่เก็บแบบไฟล์หายทุกครั้งที่ instance ถูกรีไซเคิล — ห้ามใช้บนของจริงเด็ดขาด
       throw new Error("FIREBASE_SERVICE_ACCOUNT is required on Vercel; local file storage is unavailable.");
-    }
-    g.__bukStore = sa ? createFirestoreStore(sa) : Promise.resolve(createFileStore());
+    } else g.__bukStore = Promise.resolve(createFileStore());
   }
   return g.__bukStore;
 }

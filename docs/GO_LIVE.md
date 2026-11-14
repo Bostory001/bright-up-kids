@@ -24,16 +24,26 @@
 
 หมายเหตุ: บัญชี Firebase อยู่แผน Blaze อยู่แล้ว แต่ project ใหม่เริ่มที่ Spark · ระบบนี้ใช้แค่ Firestore ผ่าน Admin SDK ซึ่งใช้บน Spark ได้ ปริมาณระดับสาขาเดียวอยู่ในโควตาฟรี
 
-## S2 นำขึ้น Vercel
+## S2 นำขึ้นออนไลน์ — Firebase App Hosting (ทางที่เลือก)
 
-- [ ] สร้าง repo บน GitHub (private) แล้ว push โฟลเดอร์ `BrightUpKids`
-- [ ] https://vercel.com > Add New Project > เลือก repo → **Root Directory = `web`**
-- [ ] ใส่ Environment Variables ครบตาม `.env.local.example` (อย่างน้อย `FIREBASE_SERVICE_ACCOUNT`) → Deploy
-- [ ] ตั้ง `CRON_SECRET` เป็นข้อความสุ่มยาว ๆ (สรุปรายสัปดาห์จะส่งทุกวันอาทิตย์ 18:00 น. เวลาไทย ตาม `web/vercel.json`)
-- [ ] ตรวจ: เปิดโดเมนที่ได้ → `/setup` สร้างบัญชีเจ้าของ → ตั้ง 2FA
-- [ ] ตรวจ PWA: iPad เปิดด้วย Safari > แชร์ > เพิ่มไปยังหน้าจอโฮม · Android เปิดด้วย Chrome > เมนู > ติดตั้งแอป
+อยู่ Console เดียวกับ Firestore · region `asia-southeast1` เท่ากับฐานข้อมูล · ไม่ต้องวาง service account key เพราะ container มีสิทธิ์ของ project อยู่แล้ว (ADC)
 
-ถ้าไม่ตั้ง `FIREBASE_SERVICE_ACCOUNT` บน Vercel ระบบจะปฏิเสธการเริ่มฐานข้อมูลโดยไม่เขียนไฟล์ — ต้องตั้งก่อน deploy
+- [ ] push โค้ดขึ้น GitHub ให้เป็นปัจจุบัน (repo: `Bostory001/bright-up-kids`, branch `main`)
+- [ ] เปิด **Blaze** ที่ project นี้ (App Hosting บังคับ) — Firebase Console > ⚙️ > Usage and billing > Details & settings > Modify plan → ผูกบัญชีบิลที่มีอยู่
+- [ ] Build > **App Hosting** > Get started → Connect GitHub (อนุญาตให้ Firebase เข้าถึง repo นี้)
+- [ ] ตั้งค่า backend: **Root directory = `web`** · **Live branch = `main`** · **Region = `asia-southeast1`** · เปิด auto-rollout
+- [ ] รอ build รอบแรก (~5-10 นาที) → ได้โดเมน `<backend>--<project>.<region>.hosted.app`
+- [ ] ตรวจ: เปิดโดเมน → `/setup` (ถ้ายังไม่มีบัญชีเจ้าของ) หรือ `/login` → เข้าได้ แล้วลองเช็กชื่อ 1 คาบ ต้องเห็นข้อมูลเดียวกับที่รันในเครื่อง
+- [ ] ตรวจ PWA: iPad Safari > แชร์ > เพิ่มไปยังหน้าจอโฮม · Android Chrome > เมนู > ติดตั้งแอป
+- [ ] ค่าลับที่ต้องใช้ทีหลัง (LINE/AI/CRON) ใส่ผ่าน `firebase apphosting:secrets:set <ชื่อ>` แล้วประกาศใน `web/apphosting.yaml`
+
+**สรุปรายสัปดาห์ (cron)**: App Hosting ไม่มี cron ในตัวเหมือน Vercel → ใช้ **Cloud Scheduler** ยิง `GET https://<โดเมน>/api/cron/weekly`
+พร้อม header `Authorization: Bearer <CRON_SECRET>` ทุกวันอาทิตย์ 18:00 (ตั้ง timezone `Asia/Bangkok`) · ยังไม่ทำก็ไม่กระทบระบบส่วนอื่น
+
+### ทางเลือก: Vercel (ถ้าอยากกลับไปใช้)
+
+ต้องตั้ง `FIREBASE_SERVICE_ACCOUNT` ใน Environment Variables (บน Vercel ระบบจะปฏิเสธการเริ่มฐานข้อมูลถ้าไม่ตั้ง)
+Root Directory = `web` · เลือก Function Region = **Singapore (sin1)** ให้ติดกับ Firestore · cron ใช้ `web/vercel.json` ที่มีอยู่แล้ว
 
 ## S3 LINE OA
 

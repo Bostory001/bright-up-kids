@@ -83,6 +83,7 @@ npm run smoke:isolated # หลัง build: เปิด server + ฐานข�
 npm run smoke          # ใช้เฉพาะ server ทดสอบที่มีฐานข้อมูลว่างอยู่แล้ว
 npm run firebase:key -- "<ไฟล์ service account.json>"  # ใส่คีย์ Firebase ลง .env.local ให้ถูกรูปแบบ
 npm run check:firestore # ตรวจว่าเชื่อม Firestore ได้จริง (เขียน-อ่าน-ลบเอกสารทดสอบ 1 ใบ)
+npm run seed:demo      # ใส่ข้อมูลตัวอย่าง (id ขึ้นต้น demo-) · ล้างด้วย npm run seed:demo -- --reset
 ```
 
 ตั้งค่าบริการภายนอก: คัดลอก `web/.env.local.example` เป็น `web/.env.local`

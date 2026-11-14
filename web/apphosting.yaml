@@ -1,0 +1,26 @@
+# Firebase App Hosting — รันแอปนี้บน Cloud Run (region asia-southeast1 สิงคโปร์ ตั้งตอนสร้าง backend)
+# สร้าง backend: Firebase Console > Build > App Hosting > Get started → เลือก repo bright-up-kids
+#   · Root directory = web   · Live branch = main   · Region = asia-southeast1
+#
+# ฐานข้อมูล: ไม่ต้องตั้ง FIREBASE_SERVICE_ACCOUNT ที่นี่
+#   container มีสิทธิ์ของ project อยู่แล้ว (ADC) → src/lib/server/store.ts เห็น K_SERVICE แล้วต่อ Firestore เอง
+#
+# ค่าลับอื่น (CRON_SECRET, LINE, ANTHROPIC) ใส่ผ่าน Secret Manager ไม่ใช่ไฟล์นี้:
+#   firebase apphosting:secrets:set CRON_SECRET
+# แล้วเพิ่มใต้ env: เป็น  - variable: CRON_SECRET
+#                          secret: CRON_SECRET
+#                          availability: [RUNTIME]
+
+runConfig:
+  # สาขาเดียว คนใช้ไม่เกินหลักสิบพร้อมกัน — เริ่มเล็กไว้ก่อน ค่อยขยายเมื่อมีคนจริง
+  minInstances: 0
+  maxInstances: 2
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  - variable: NEXT_TELEMETRY_DISABLED
+    value: "1"
+    availability:
+      - BUILD
