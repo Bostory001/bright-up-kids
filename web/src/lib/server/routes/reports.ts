@@ -1,6 +1,7 @@
 import "server-only";
+import { EXPENSE_CATEGORIES, EXPENSE_KINDS, summarizeRange } from "../../finance";
 import { getSettings } from "../settings";
-import type { AppUser, Attempt, Attendance, Course, Enrollment, Exercise, Invoice, Redemption, Student } from "../../types";
+import type { AppUser, Attempt, Attendance, Course, Enrollment, Exercise, Expense, Invoice, Redemption, Student } from "../../types";
 import { route, STAFF } from "../router";
 import type { Store } from "../store";
 import { bkkDate, dateStr, HttpError } from "../util";
@@ -160,6 +161,82 @@ export const DATASETS: Record<string, Dataset> = {
             const royalty = Math.round(m.amount * royaltyPercent) / 100;
             return { month, count: m.count, amount: m.amount, royalty, net: m.amount - royalty };
           }),
+      };
+    },
+  },
+  expenses: {
+    label: "รายจ่ายของสถาบัน",
+    ownerOnly: true,
+    usesDates: true,
+    async build(store, from, to) {
+      const expenses = (await store.list<Expense>("expenses")).filter((e) => e.date >= from && e.date <= to);
+      const users = await store.list<AppUser>("users");
+      return {
+        columns: [
+          col("date", "วันที่"),
+          col("kind", "กลุ่ม"),
+          col("category", "หมวด"),
+          col("detail", "รายละเอียด"),
+          col("qty", "จำนวน"),
+          col("unitPrice", "ราคา/หน่วย"),
+          col("amount", "ยอดจ่าย"),
+          col("method", "ช่องทาง"),
+          col("vendor", "ร้านค้า"),
+          col("recurring", "ประจำ"),
+          col("receipt", "ใบเสร็จ"),
+          col("by", "ผู้บันทึก"),
+        ],
+        rows: expenses
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .map((e) => ({
+            date: e.date,
+            kind: EXPENSE_KINDS[e.kind],
+            category: EXPENSE_CATEGORIES[e.category].label,
+            detail: e.detail,
+            qty: e.qty ?? "",
+            unitPrice: e.unitPrice ?? "",
+            amount: e.amount,
+            method: e.method === "cash" ? "เงินสด" : "โอนเงิน",
+            vendor: e.vendor ?? "",
+            recurring: e.recurring ? "ประจำ" : "ครั้งเดียว",
+            receipt: e.hasReceipt ? "มี" : "",
+            by: users.find((u) => u.id === e.createdBy)?.displayName ?? "",
+          })),
+      };
+    },
+  },
+  pl: {
+    label: "กำไร–ขาดทุนรายเดือน",
+    ownerOnly: true,
+    usesDates: true,
+    async build(store, from, to) {
+      const [invoices, expenses, settings] = await Promise.all([
+        store.list<Invoice>("invoices"),
+        store.list<Expense>("expenses"),
+        getSettings(store),
+      ]);
+      const months = summarizeRange(from, to, invoices, expenses, settings.royaltyPercent);
+      return {
+        columns: [
+          col("month", "เดือน"),
+          col("revenue", "รายรับค่าเรียน"),
+          col("operating", "ค่าใช้จ่ายดำเนินงาน"),
+          col("supply", "ของใช้เบ็ดเตล็ด"),
+          col("royaltyDue", `royalty ${settings.royaltyPercent}%`),
+          col("royaltyPaid", "royalty ที่จ่ายแล้ว"),
+          col("profit", "กำไรประมาณการ"),
+          col("margin", "% กำไร"),
+        ],
+        rows: months.map((m) => ({
+          month: m.month,
+          revenue: m.revenue,
+          operating: m.operating,
+          supply: m.supply,
+          royaltyDue: m.royaltyDue,
+          royaltyPaid: m.royaltyPaid,
+          profit: m.profit,
+          margin: m.revenue ? `${Math.round((m.profit / m.revenue) * 100)}%` : "",
+        })),
       };
     },
   },

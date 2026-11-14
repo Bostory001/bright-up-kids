@@ -1127,5 +1127,133 @@
         "description": ""
       }
     ]
+  },
+  {
+    "collection": "expenses",
+    "name": "Expense",
+    "description": "รายจ่ายของสถาบัน — ทั้งค่าใช้จ่ายดำเนินงานและของใช้เบ็ดเตล็ด\nkind แยกสองกลุ่มไม่ให้นับซ้ำกันในรายงาน",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "required": true,
+        "description": "วันที่จ่ายเงินจริง (เวลาไทย) — ใช้จัดกลุ่มรายเดือน"
+      },
+      {
+        "name": "kind",
+        "type": "ExpenseKind",
+        "required": true,
+        "description": "operating = ค่าใช้จ่ายดำเนินงาน · supply = ของใช้เบ็ดเตล็ด/วัสดุสิ้นเปลือง"
+      },
+      {
+        "name": "category",
+        "type": "ExpenseCategory",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "detail",
+        "type": "string",
+        "required": true,
+        "description": "ชื่อรายการ เช่น \"ค่าสอนอังกฤษ 6 ชม.\" หรือ \"กระดาษ A4\""
+      },
+      {
+        "name": "qty",
+        "type": "number",
+        "required": false,
+        "description": "จำนวนที่ซื้อ (ของใช้เบ็ดเตล็ด)"
+      },
+      {
+        "name": "unitPrice",
+        "type": "number",
+        "required": false,
+        "description": "ราคาต่อหน่วย (บาท)"
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "required": true,
+        "description": "ยอดรวมที่จ่ายจริง (บาท) — ของใช้เบ็ดเตล็ดคิดจาก qty × unitPrice"
+      },
+      {
+        "name": "method",
+        "type": "\"cash\" | \"transfer\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "vendor",
+        "type": "string",
+        "required": false,
+        "description": "ร้านค้า/ผู้รับเงิน"
+      },
+      {
+        "name": "recurring",
+        "type": "boolean",
+        "required": false,
+        "description": "รายจ่ายประจำทุกเดือน (ค่าเช่า เงินเดือน) — ใช้แยกจากรายจ่ายครั้งเดียว"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "hasReceipt",
+        "type": "boolean",
+        "required": false,
+        "description": "มีรูปใบเสร็จแนบอยู่ใน collection receipts"
+      },
+      {
+        "name": "createdBy",
+        "type": "string",
+        "required": true,
+        "description": "id ผู้ใช้ที่บันทึก"
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "receipts",
+    "name": "Receipt",
+    "description": "รูปใบเสร็จของรายจ่าย (id = expenseId) เก็บเป็น data URL ที่ย่อแล้ว\nแยก collection เพื่อให้รายการรายจ่ายโหลดเร็ว ไม่ลากรูปมาด้วย",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "dataUrl",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "uploadedBy",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "uploadedAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
   }
 ]

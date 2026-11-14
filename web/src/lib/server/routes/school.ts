@@ -1,6 +1,7 @@
 import "server-only";
+import { summarizeMonth } from "../../finance";
 import { getSettings } from "../settings";
-import type { AppUser, AuthSession, Application, Attendance, Course, Enrollment, Grade, Invoice, Redemption, Slip, Student } from "../../types";
+import type { AppUser, AuthSession, Application, Attendance, Course, Enrollment, Expense, Grade, Invoice, Redemption, Slip, Student } from "../../types";
 import { hashSecret, publicStudent } from "../auth";
 import { notifyParent } from "../notify";
 import { type Ctx, OWNER, route, STAFF, staffUser } from "../router";
@@ -399,11 +400,13 @@ route("GET", "slips/:invoiceId", ["owner", "teacher", "parent"], async ({ store,
 
 route("GET", "admin/dashboard", STAFF, async ({ store }) => {
   const month = bkkDate().slice(0, 7);
-  const [students, applications, invoices, redemptions] = await Promise.all([
+  const [students, applications, invoices, redemptions, expenses, settings] = await Promise.all([
     store.list<Student>("students", { active: true }),
     store.list<Application>("applications", { status: "pending" }),
     store.list<Invoice>("invoices"),
     store.list<Redemption>("redemptions"),
+    store.list<Expense>("expenses"),
+    getSettings(store),
   ]);
   const open = invoices.filter((i) => i.status === "unpaid" || i.status === "slip_uploaded");
   return {
@@ -414,6 +417,8 @@ route("GET", "admin/dashboard", STAFF, async ({ store }) => {
     slipsToCheck: invoices.filter((i) => i.status === "slip_uploaded").length,
     pendingRedemptions: redemptions.filter((r) => r.status === "requested").length,
     rewardSpent: redemptions.filter((r) => r.status === "handed_over" && r.handledDate?.startsWith(month)).reduce((s, r) => s + r.costBaht, 0),
-    rewardBudget: (await getSettings(store)).rewardBudgetBaht,
+    rewardBudget: settings.rewardBudgetBaht,
+    // การเงินเดือนนี้ — เจ้าของเปิดหน้าเดียวเห็นกำไร
+    finance: summarizeMonth(month, invoices, expenses, settings.royaltyPercent),
   };
 });

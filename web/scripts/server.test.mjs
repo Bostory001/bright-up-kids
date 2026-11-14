@@ -29,6 +29,7 @@ const { dateStr, num } = await import("../src/lib/server/util.ts");
 const { passwordInput, hashSecret, verifySecret } = await import("../src/lib/server/auth.ts");
 const { getStore } = await import("../src/lib/server/store.ts");
 const { starterExercises } = await import("../src/lib/server/seed-exercises.ts");
+const { summarizeMonth, summarizeRange, EXPENSE_CATEGORIES } = await import("../src/lib/finance.ts");
 
 // กฎที่ผิดแล้วชุดโจทย์ใช้ไม่ได้เลย — ดู .claude/skills/exercise-authoring ข้อ 4 และ 8
 // ข้อที่ "ควรปรับ" (ขนาดชุด ตำแหน่งคำตอบกระจุก) อยู่ใน npm run audit:exercises
@@ -119,4 +120,57 @@ test("exercise filters combine subject, status and search without mutating sourc
 test("homework order puts earliest deadlines before ordinary exercises", () => {
   assert.deepEqual(visibleExercises(cards, "all", "all", "").slice(0, 2).map((card) => card.id), ["first", "later"]);
   assert.match(thaiDate("2026-10-09"), /2569/);
+});
+
+// กำไรที่คิดผิดทำให้เจ้าของตัดสินใจผิดทั้งเดือน — ของใช้เบ็ดเตล็ดต้องไม่ถูกนับซ้ำ
+// และ royalty ที่บันทึกจ่ายแล้วต้องไม่ถูกหักสองรอบ
+test("monthly profit counts supplies once and royalty only once", () => {
+  const invoices = [
+    { id: "a", status: "paid", paidDate: "2026-11-05", amount: 60000 },
+    { id: "b", status: "paid", paidDate: "2026-11-20", amount: 40000 },
+    { id: "c", status: "paid", paidDate: "2026-10-20", amount: 99999 }, // เดือนอื่น ต้องไม่นับ
+    { id: "d", status: "unpaid", amount: 5000 }, // ยังไม่จ่าย ต้องไม่นับ
+  ];
+  const expenses = [
+    { id: "1", date: "2026-11-01", kind: "operating", category: "rent", amount: 12000 },
+    { id: "2", date: "2026-11-10", kind: "operating", category: "teacher", amount: 25000 },
+    { id: "3", date: "2026-11-12", kind: "supply", category: "office", amount: 600 },
+    { id: "4", date: "2026-11-13", kind: "supply", category: "cleaning", amount: 400 },
+    { id: "5", date: "2026-10-02", kind: "operating", category: "rent", amount: 12000 }, // เดือนอื่น
+  ];
+  const m = summarizeMonth("2026-11", invoices, expenses, 23);
+  assert.equal(m.revenue, 100000);
+  assert.equal(m.operating, 37000);
+  assert.equal(m.supply, 1000);
+  assert.equal(m.expense, 38000, "รายจ่ายรวมต้องเป็น operating + supply ครั้งเดียว");
+  assert.equal(m.royaltyDue, 23000);
+  assert.equal(m.royaltyPaid, 0);
+  assert.equal(m.profit, 100000 - 38000 - 23000);
+  assert.equal(m.byCategory[0].category, "teacher", "หมวดที่จ่ายมากสุดต้องอยู่บนสุด");
+  assert.ok(!m.byCategory.some((c) => c.amount === 0), "หมวดที่ไม่มีรายการต้องไม่ขึ้น");
+
+  // บันทึกจ่าย royalty แล้ว: อยู่ในรายจ่ายดำเนินงานแล้ว ห้ามหักซ้ำอีกรอบ
+  const withRf = summarizeMonth("2026-11", invoices, [...expenses, { id: "6", date: "2026-11-28", kind: "operating", category: "royalty", amount: 23000 }], 23);
+  assert.equal(withRf.royaltyPaid, 23000);
+  assert.equal(withRf.expense, 61000);
+  assert.equal(withRf.profit, m.profit, "กำไรต้องเท่ากันกับก่อนบันทึกจ่าย royalty");
+
+  // จ่าย royalty เหลื่อมเดือน (จ่ายเกินของเดือนนั้น) ต้องไม่ทำให้กำไรบวมขึ้น
+  const over = summarizeMonth("2026-11", invoices, [{ id: "7", date: "2026-11-03", kind: "operating", category: "royalty", amount: 30000 }], 23);
+  assert.equal(over.profit, 100000 - 30000);
+
+  const months = summarizeRange("2026-10-01", "2026-11-30", invoices, expenses, 23);
+  assert.deepEqual(months.map((x) => x.month), ["2026-11", "2026-10"], "เดือนใหม่ต้องอยู่บนสุด");
+  assert.equal(months[1].revenue, 99999);
+});
+
+test("every expense category has a label, a kind and an example", () => {
+  const labels = new Set();
+  for (const [key, c] of Object.entries(EXPENSE_CATEGORIES)) {
+    assert.ok(c.label.trim(), `${key}: ไม่มีชื่อหมวด`);
+    assert.ok(["operating", "supply"].includes(c.kind), `${key}: kind เพี้ยน`);
+    assert.ok(c.example.trim(), `${key}: ไม่มีตัวอย่างรายการ`);
+    assert.ok(!labels.has(c.label), `${key}: ชื่อหมวดซ้ำกับหมวดอื่น`);
+    labels.add(c.label);
+  }
 });

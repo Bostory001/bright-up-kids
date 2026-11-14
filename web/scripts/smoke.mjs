@@ -231,6 +231,36 @@ check("งบใหม่ 5,000 มีผลกับหน้าของรา
 r = await owner.call("admin/reports", { dataset: "royalty", from: `${today.slice(0, 8)}01`, to: today });
 check("royalty ใช้อัตราใหม่ 20% → 700", r.data.rows?.[0]?.royalty === 700, JSON.stringify(r.data.rows));
 
+// ---------- R46: รายจ่าย + กำไรขาดทุน (royaltyPercent = 20 จากขั้นก่อน, รายรับเดือนนี้ 3,500) ----------
+r = await teacher.call("admin/expenses", { date: today, category: "rent", detail: "ค่าเช่าเดือนนี้", amount: 12000, method: "transfer", recurring: true });
+check("บันทึกค่าเช่า 12,000 เป็นรายจ่ายดำเนินงาน", r.data.expense?.amount === 12000 && r.data.expense?.kind === "operating", JSON.stringify(r.data));
+const rentId = r.data.expense?.id;
+r = await teacher.call("admin/expenses", { date: today, category: "office", detail: "กระดาษ A4", qty: 5, unitPrice: 120, method: "cash" });
+check("ของใช้เบ็ดเตล็ด 5 × 120 → 600", r.data.expense?.amount === 600 && r.data.expense?.kind === "supply", JSON.stringify(r.data));
+const paperId = r.data.expense?.id;
+check("ไม่ใส่จำนวนเงิน → 400", (await teacher.call("admin/expenses", { date: today, category: "rent", detail: "ลืมใส่เงิน", method: "cash" })).status === 400);
+check("หมวดที่ไม่มีจริง → 400", (await teacher.call("admin/expenses", { date: today, category: "ไม่มีหมวดนี้", detail: "x", amount: 10, method: "cash" })).status === 400);
+check("เดือนผิดรูปแบบ → 400", (await teacher.call("admin/expenses?month=2026-13")).status === 400);
+r = await teacher.call("admin/expenses");
+check("สรุปเดือนนี้: รับ 3,500 − จ่าย 12,600 − royalty 700 = ขาดทุน 9,800", r.data.summary?.revenue === 3500 && r.data.summary?.expense === 12600 && r.data.summary?.royaltyDue === 700 && r.data.summary?.profit === -9800, JSON.stringify(r.data.summary));
+await teacher.call("admin/expenses", { date: today, category: "royalty", detail: "RF เดือนนี้", amount: 700, method: "transfer" });
+r = await teacher.call("admin/expenses");
+check("บันทึกจ่าย royalty แล้วไม่หักซ้ำ (ขาดทุนเท่าเดิม)", r.data.summary?.royaltyPaid === 700 && r.data.summary?.profit === -9800, JSON.stringify(r.data.summary));
+const png = "data:image/png;base64,iVBORw0KGgo=";
+check("แนบรูปใบเสร็จ", (await teacher.call(`admin/expenses/${paperId}/receipt`, { dataUrl: png })).status === 200);
+check("ไฟล์ที่ไม่ใช่รูป → 400", (await teacher.call(`admin/expenses/${paperId}/receipt`, { dataUrl: "data:text/html;base64,PGI+eDwvYj4=" })).status === 400);
+check("อ่านรูปใบเสร็จได้ และรายการขึ้นว่ามีใบเสร็จ", (await teacher.call(`admin/expenses/${paperId}/receipt`)).data.dataUrl === png && (await teacher.call("admin/expenses")).data.expenses.find((e) => e.id === paperId)?.hasReceipt === true);
+check("ครูลบรายจ่ายไม่ได้ → 403", (await teacher.call(`admin/expenses/${rentId}`, {}, "DELETE")).status === 403);
+check("เจ้าของลบรายจ่ายได้", (await owner.call(`admin/expenses/${rentId}`, {}, "DELETE")).status === 200);
+r = await owner.call("admin/expenses");
+check("ลบค่าเช่าแล้ว: จ่าย 1,300 กำไร 2,200", r.data.summary?.expense === 1300 && r.data.summary?.profit === 2200, JSON.stringify(r.data.summary));
+check("แดชบอร์ดแสดงกำไรเดือนนี้", (await owner.call("admin/dashboard")).data.finance?.profit === 2200);
+r = await owner.call("admin/reports", { dataset: "pl", from: `${today.slice(0, 8)}01`, to: today });
+check("รายงานกำไร–ขาดทุนรายเดือน", r.data.rows?.[0]?.revenue === 3500 && r.data.rows?.[0]?.profit === 2200 && r.data.rows?.[0]?.supply === 600, JSON.stringify(r.data.rows));
+check("ครูดูรายงานกำไรไม่ได้ → 403", (await teacher.call("admin/reports", { dataset: "pl", from: today, to: today })).status === 403);
+r = await owner.call("admin/reports", { dataset: "expenses", from: `${today.slice(0, 8)}01`, to: today });
+check("รายงานรายจ่าย 2 แถว พร้อมคอลัมน์ใบเสร็จ", r.data.rows?.length === 2 && r.data.rows.some((x) => x.receipt === "มี"), JSON.stringify(r.data.rows));
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});

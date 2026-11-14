@@ -1,0 +1,96 @@
+import "server-only";
+import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_KEYS, summarizeMonth } from "../../finance";
+import type { Expense, Invoice, Receipt } from "../../types";
+import { OWNER, route, STAFF } from "../router";
+import { getSettings } from "../settings";
+import { bkkDate, dateStr, HttpError, newId, nowIso, num, oneOf, optStr, str } from "../util";
+
+// ---------- รายจ่ายของสถาบัน + กำไรขาดทุน ----------
+// ค่าใช้จ่ายดำเนินงาน (ค่าเช่า ค่าจ้างครู RF) และของใช้เบ็ดเตล็ด (กระดาษ ทิชชู น้ำดื่ม) อยู่ collection เดียว
+// แยกด้วย kind เพื่อไม่ให้รายงานนับซ้ำ · รูปใบเสร็จแยกไว้ที่ collection receipts
+
+function monthParam(v: string | null): string {
+  if (!v) return bkkDate().slice(0, 7);
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(v)) throw new HttpError(400, "เดือนไม่ถูกต้อง");
+  return v;
+}
+
+// รับค่าจากฟอร์ม → Expense ที่ตรวจแล้ว · ของใช้เบ็ดเตล็ดคิดยอดจาก จำนวน × ราคาต่อหน่วย
+function readExpense(body: Record<string, unknown>): Omit<Expense, "id" | "createdBy" | "createdAt" | "hasReceipt"> {
+  const category = oneOf(body.category, EXPENSE_CATEGORY_KEYS, "หมวดค่าใช้จ่าย");
+  const kind = EXPENSE_CATEGORIES[category].kind;
+  const qty = kind === "supply" ? num(body.qty, "จำนวน", 0.01, 100_000) : undefined;
+  const unitPrice = kind === "supply" ? num(body.unitPrice, "ราคาต่อหน่วย", 0, 1_000_000) : undefined;
+  const amount = kind === "supply" ? Math.round(qty! * unitPrice! * 100) / 100 : num(body.amount, "จำนวนเงิน", 0, 10_000_000);
+  if (amount <= 0) throw new HttpError(400, "จำนวนเงินต้องมากกว่า 0");
+  return {
+    date: dateStr(body.date, "วันที่จ่าย"),
+    kind,
+    category,
+    detail: str(body.detail, "รายละเอียด", 120),
+    qty,
+    unitPrice,
+    amount,
+    method: oneOf(body.method, ["cash", "transfer"] as const, "ช่องทางชำระเงิน"),
+    vendor: optStr(body.vendor, 80),
+    recurring: body.recurring === true,
+    note: optStr(body.note, 300),
+  };
+}
+
+route("GET", "admin/expenses", STAFF, async ({ store, query }) => {
+  const month = monthParam(query.get("month"));
+  const [expenses, invoices, settings] = await Promise.all([
+    store.list<Expense>("expenses"),
+    store.list<Invoice>("invoices"),
+    getSettings(store),
+  ]);
+  return {
+    month,
+    royaltyPercent: settings.royaltyPercent,
+    summary: summarizeMonth(month, invoices, expenses, settings.royaltyPercent),
+    // เดือนที่มีรายการ ให้หน้าจอทำตัวเลือกย้อนหลังได้
+    months: [...new Set([month, ...expenses.map((e) => e.date.slice(0, 7))])].sort((a, b) => b.localeCompare(a)),
+    expenses: expenses
+      .filter((e) => e.date.slice(0, 7) === month)
+      .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)),
+  };
+});
+
+route("POST", "admin/expenses", STAFF, async ({ store, body, me }) => {
+  const expense: Expense = { ...readExpense(body), id: newId(), createdBy: me!.id, createdAt: nowIso() };
+  await store.set("expenses", expense);
+  return { expense };
+});
+
+route("PATCH", "admin/expenses/:id", STAFF, async ({ store, body, params }) => {
+  const cur = await store.get<Expense>("expenses", params.id);
+  if (!cur) throw new HttpError(404, "ไม่พบรายการ");
+  const next: Expense = { ...cur, ...readExpense(body) };
+  await store.set("expenses", next);
+  return { expense: next };
+});
+
+// ลบได้เฉพาะเจ้าของ — ตัวเลขกำไรของเดือนที่ปิดไปแล้วจะเปลี่ยนตาม
+route("DELETE", "admin/expenses/:id", OWNER, async ({ store, params }) => {
+  await store.remove("expenses", params.id);
+  await store.remove("receipts", params.id);
+  return { ok: true };
+});
+
+// รูปใบเสร็จ — เครื่องที่ถ่ายย่อรูปก่อนส่ง (shrinkImage ในหน้า /admin/expenses)
+route("POST", "admin/expenses/:id/receipt", STAFF, async ({ store, body, params, me }) => {
+  const expense = await store.get<Expense>("expenses", params.id);
+  if (!expense) throw new HttpError(404, "ไม่พบรายการ");
+  const dataUrl = str(body.dataUrl, "รูปใบเสร็จ", 700_000);
+  if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(dataUrl)) throw new HttpError(400, "ไฟล์ต้องเป็นรูปภาพ");
+  await store.set("receipts", { id: expense.id, dataUrl, uploadedBy: me!.id, uploadedAt: nowIso() } satisfies Receipt);
+  await store.set("expenses", { ...expense, hasReceipt: true });
+  return { ok: true };
+});
+
+route("GET", "admin/expenses/:id/receipt", STAFF, async ({ store, params }) => {
+  const receipt = await store.get<Receipt>("receipts", params.id);
+  if (!receipt) throw new HttpError(404, "ไม่พบรูปใบเสร็จ");
+  return { dataUrl: receipt.dataUrl, uploadedAt: receipt.uploadedAt };
+});

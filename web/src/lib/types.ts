@@ -5,6 +5,21 @@
 export type Grade = 1 | 2 | 3 | 4 | 5 | 6;
 export type Subject = "math" | "thai" | "english" | "science";
 export type Role = "owner" | "teacher" | "parent" | "student";
+export type ExpenseKind = "operating" | "supply";
+export type ExpenseCategory =
+  | "teacher"      // ค่าจ้างครู
+  | "staff"        // เงินเดือน/ค่าจ้างพนักงาน
+  | "rent"         // ค่าเช่าสถานที่
+  | "utilities"    // ค่าน้ำ ค่าไฟ อินเทอร์เน็ต
+  | "royalty"      // ค่า royalty/RF ส่ง HQ
+  | "marketing"    // ค่าโฆษณา ใบปลิว ของแจก
+  | "stationery"   // เครื่องเขียน
+  | "office"       // กระดาษ หมึกพิมพ์ แฟ้ม
+  | "cleaning"     // ของใช้ทำความสะอาด ห้องน้ำ
+  | "hospitality"  // น้ำดื่ม แก้ว ขนมรับรอง
+  | "teaching"     // อุปกรณ์การสอน ปากกาไวท์บอร์ด
+  | "repair"       // ซ่อมแซมเล็กน้อย หลอดไฟ ถ่าน
+  | "other";       // อื่น ๆ
 export type AvatarSlot = "background" | "outfit" | "hat" | "pet";
 
 /**
@@ -350,6 +365,51 @@ export interface Assignment {
   exerciseId: string;
   dueDate: string;
   createdAt: string;
+}
+
+/**
+ * รายจ่ายของสถาบัน — ทั้งค่าใช้จ่ายดำเนินงานและของใช้เบ็ดเตล็ด
+ * kind แยกสองกลุ่มไม่ให้นับซ้ำกันในรายงาน
+ * @collection expenses
+ */
+export interface Expense {
+  id: string;
+  /** วันที่จ่ายเงินจริง (เวลาไทย) — ใช้จัดกลุ่มรายเดือน */
+  date: string;
+  /** operating = ค่าใช้จ่ายดำเนินงาน · supply = ของใช้เบ็ดเตล็ด/วัสดุสิ้นเปลือง */
+  kind: ExpenseKind;
+  category: ExpenseCategory;
+  /** ชื่อรายการ เช่น "ค่าสอนอังกฤษ 6 ชม." หรือ "กระดาษ A4" */
+  detail: string;
+  /** จำนวนที่ซื้อ (ของใช้เบ็ดเตล็ด) */
+  qty?: number;
+  /** ราคาต่อหน่วย (บาท) */
+  unitPrice?: number;
+  /** ยอดรวมที่จ่ายจริง (บาท) — ของใช้เบ็ดเตล็ดคิดจาก qty × unitPrice */
+  amount: number;
+  method: "cash" | "transfer";
+  /** ร้านค้า/ผู้รับเงิน */
+  vendor?: string;
+  /** รายจ่ายประจำทุกเดือน (ค่าเช่า เงินเดือน) — ใช้แยกจากรายจ่ายครั้งเดียว */
+  recurring?: boolean;
+  note?: string;
+  /** มีรูปใบเสร็จแนบอยู่ใน collection receipts */
+  hasReceipt?: boolean;
+  /** id ผู้ใช้ที่บันทึก */
+  createdBy: string;
+  createdAt: string;
+}
+
+/**
+ * รูปใบเสร็จของรายจ่าย (id = expenseId) เก็บเป็น data URL ที่ย่อแล้ว
+ * แยก collection เพื่อให้รายการรายจ่ายโหลดเร็ว ไม่ลากรูปมาด้วย
+ * @collection receipts
+ */
+export interface Receipt {
+  id: string;
+  dataUrl: string;
+  uploadedBy: string;
+  uploadedAt: string;
 }
 
 // ---------- ใช้ในโค้ดเท่านั้น ไม่ใช่ collection ----------
