@@ -12,7 +12,9 @@
         "smoke": "node scripts/smoke.mjs",
         "smoke:isolated": "node scripts/smoke-isolated.mjs",
         "test:server": "node --test scripts/server.test.mjs",
-        "audit:exercises": "node scripts/audit-exercises.mjs"
+        "audit:exercises": "node scripts/audit-exercises.mjs",
+        "check:firestore": "node scripts/check-firestore.mjs",
+        "firebase:key": "node scripts/use-service-account.mjs"
     },
     "dependencies": {
         "@anthropic-ai/sdk": "^0.132.1",

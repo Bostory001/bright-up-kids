@@ -15,7 +15,10 @@
 - [ ] Build > Firestore Database > Create database → โหมด **Production** → ตำแหน่ง `asia-southeast1 (Singapore)`
 - [ ] แท็บ Rules: วางเนื้อหาจาก `web/firestore.rules` (ปิดทั้งหมด) แล้ว Publish
 - [ ] Project settings > Service accounts > **Generate new private key** → ได้ไฟล์ JSON
-- [ ] เปิดไฟล์ JSON คัดลอกทั้งหมดเป็น**บรรทัดเดียว** ใส่ใน `FIREBASE_SERVICE_ACCOUNT=` แล้วลบไฟล์ JSON ทิ้ง
+- [ ] ใส่คีย์ลง `.env.local` ด้วยคำสั่ง (ไม่ต้องคัดลอก/วางเอง — บรรทัดใหม่ในคีย์คือสาเหตุที่พังบ่อยที่สุด):
+      `cd web && npm run firebase:key -- "C:\Users\User\Downloads\<ไฟล์ที่โหลดมา>.json"`
+      แล้ว**ลบไฟล์ JSON ที่โหลดมาทิ้ง** (คีย์นี้เท่ากับรหัสผ่านของฐานข้อมูล ห้าม commit ห้ามส่งในแชต)
+- [ ] ตรวจการเชื่อมต่อ: `npm run check:firestore` → ต้องขึ้น ✓ เขียน อ่าน และลบเอกสารทดสอบสำเร็จ (เขียน 1 ใบใน `_healthcheck` แล้วลบทิ้ง ไม่แตะข้อมูลอื่น) · ถ้าไม่ผ่าน ข้อความจะบอกว่าให้แก้ตรงไหน
 - [ ] ตรวจ: `npm run dev` → เปิดหน้าแรก → สร้างบัญชีเจ้าของ → ใน Firebase Console ต้องเห็น collection `users`
 - [ ] (แนะนำ) ทดสอบทั้งระบบกับ project ทดลองอีกตัว: ตั้ง env ชี้ไป project ทดลองที่ว่าง แล้วรัน `npm run smoke` ต้องผ่านทุกข้อ — **อย่ารันกับ project จริง** เพราะจะสร้างข้อมูลทดสอบ
 
