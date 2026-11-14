@@ -22,6 +22,8 @@ const EMPTY: Omit<Course, "id"> = {
 };
 
 export default function CoursesPage() {
+  // รายชื่อครู — ใช้ผูกคอร์สกับครู เพื่อให้หน้า "ค่าจ้างครู" รวมชั่วโมงได้ถูกคน
+  const teachers = useLoad<{ teachers: { id: string; displayName: string }[] }>("admin/teachers");
   const { me } = useMe();
   const { data, error, reload } = useLoad<{ courses: Course[] }>("admin/courses");
   const [editing, setEditing] = useState<(Omit<Course, "id"> & { id?: string }) | null>(null);
@@ -97,7 +99,20 @@ export default function CoursesPage() {
             </Field>
           </div>
           <Field label="ครูผู้สอน">
-            <Input value={editing.teacherName ?? ""} onChange={(e) => setEditing({ ...editing, teacherName: e.target.value })} />
+            <Select
+              value={editing.teacherId ?? ""}
+              onChange={(e) => {
+                const teacherId = e.target.value;
+                setEditing({ ...editing, teacherId, teacherName: teachers.data?.teachers.find((t) => t.id === teacherId)?.displayName ?? "" });
+              }}
+            >
+              <option value="">— ยังไม่ระบุ —</option>
+              {(teachers.data?.teachers ?? []).map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.displayName}
+                </option>
+              ))}
+            </Select>
           </Field>
           <Field label="จำนวนที่รับ">
             <Input type="number" value={editing.capacity} onChange={(e) => setEditing({ ...editing, capacity: Number(e.target.value) })} />

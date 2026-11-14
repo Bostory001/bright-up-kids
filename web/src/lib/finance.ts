@@ -101,3 +101,94 @@ export function summarizeRange(from: string, to: string, invoices: Invoice[], ex
       return summarizeMonth(m, inv, exp, royaltyPercent);
     });
 }
+
+// ---------- ค่าจ้างครูรายเดือน ----------
+// 1 คาบ = คอร์สหนึ่งที่มีการเช็กชื่อในวันนั้น · ชั่วโมงคิดจากเวลาเริ่ม-เลิกของคอร์ส
+// ครูเจ้าของคาบ: course.teacherId ถ้าตั้งไว้ ไม่งั้นใช้คนที่เช็กชื่อคาบนั้น
+
+export interface TeachingSession {
+  courseId: string;
+  courseName: string;
+  date: string;
+  hours: number;
+  teacherId: string;
+}
+
+export interface TeacherPay {
+  teacherId: string;
+  name: string;
+  hourlyRate: number;
+  sessions: number;
+  hours: number;
+  /** ชั่วโมง × อัตรา (ปัดทศนิยม 2 ตำแหน่ง) */
+  amount: number;
+  /** บันทึกเป็นรายจ่ายของเดือนนี้แล้ว */
+  paid: boolean;
+  paidAmount?: number;
+  detail: TeachingSession[];
+}
+
+/** ชั่วโมงของคอร์ส จากเวลาเริ่ม-เลิก เช่น 10:00-11:30 = 1.5 */
+export function courseHours(startTime: string, endTime: string): number {
+  const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  return Math.round(((mins(endTime) - mins(startTime)) / 60) * 100) / 100;
+}
+
+export function teachingSessions(
+  month: string,
+  attendance: { courseId: string; date: string; checkedBy: string }[],
+  courses: { id: string; name: string; startTime: string; endTime: string; teacherId?: string }[],
+): TeachingSession[] {
+  const bySession = new Map<string, { courseId: string; date: string; checkedBy: string }>();
+  for (const a of attendance) {
+    if (monthOf(a.date) !== month) continue;
+    const key = `${a.courseId}|${a.date}`;
+    if (!bySession.has(key)) bySession.set(key, a);
+  }
+  const sessions: TeachingSession[] = [];
+  for (const a of bySession.values()) {
+    const course = courses.find((c) => c.id === a.courseId);
+    if (!course) continue;
+    sessions.push({
+      courseId: course.id,
+      courseName: course.name,
+      date: a.date,
+      hours: courseHours(course.startTime, course.endTime),
+      teacherId: course.teacherId || a.checkedBy,
+    });
+  }
+  return sessions.sort((x, y) => x.date.localeCompare(y.date) || x.courseName.localeCompare(y.courseName));
+}
+
+/** ค่าจ้างของครูทุกคนที่มีคาบสอนในเดือนนั้น · ครูที่ยังไม่ตั้งอัตรา จะได้ amount 0 และต้องตั้งก่อน */
+export function payrollForMonth(
+  month: string,
+  attendance: { courseId: string; date: string; checkedBy: string }[],
+  courses: { id: string; name: string; startTime: string; endTime: string; teacherId?: string }[],
+  staff: { id: string; displayName: string; hourlyRate?: number }[],
+  expenses: Expense[],
+): TeacherPay[] {
+  const sessions = teachingSessions(month, attendance, courses);
+  const byTeacher = new Map<string, TeachingSession[]>();
+  for (const s of sessions) byTeacher.set(s.teacherId, [...(byTeacher.get(s.teacherId) ?? []), s]);
+
+  return [...byTeacher.entries()]
+    .map(([teacherId, detail]) => {
+      const user = staff.find((u) => u.id === teacherId);
+      const hourlyRate = user?.hourlyRate ?? 0;
+      const hours = Math.round(detail.reduce((sum, s) => sum + s.hours, 0) * 100) / 100;
+      const paidExpense = expenses.find((e) => e.payrollRef === `${teacherId}:${month}`);
+      return {
+        teacherId,
+        name: user?.displayName ?? "(ผู้ใช้ที่ถูกลบ)",
+        hourlyRate,
+        sessions: detail.length,
+        hours,
+        amount: Math.round(hours * hourlyRate * 100) / 100,
+        paid: Boolean(paidExpense),
+        paidAmount: paidExpense?.amount,
+        detail,
+      };
+    })
+    .sort((a, b) => b.amount - a.amount || a.name.localeCompare(b.name));
+}

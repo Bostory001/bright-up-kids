@@ -1,6 +1,6 @@
 import "server-only";
-import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_KEYS, summarizeMonth } from "../../finance";
-import type { Expense, Invoice, Receipt } from "../../types";
+import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_KEYS, payrollForMonth, summarizeMonth } from "../../finance";
+import type { AppUser, Attendance, Course, Expense, Invoice, Receipt } from "../../types";
 import { OWNER, route, STAFF } from "../router";
 import { getSettings } from "../settings";
 import { bkkDate, dateStr, HttpError, newId, nowIso, num, oneOf, optStr, str } from "../util";
@@ -93,4 +93,72 @@ route("GET", "admin/expenses/:id/receipt", STAFF, async ({ store, params }) => {
   const receipt = await store.get<Receipt>("receipts", params.id);
   if (!receipt) throw new HttpError(404, "ไม่พบรูปใบเสร็จ");
   return { dataUrl: receipt.dataUrl, uploadedAt: receipt.uploadedAt };
+});
+
+// ---------- ค่าจ้างครูรายเดือน ----------
+// ข้อมูลค่าจ้างเป็นเรื่องส่วนตัวของแต่ละคน → เจ้าของเท่านั้น (ครูเห็นของคนอื่นไม่ได้)
+
+// รายชื่อครูสำหรับช่องเลือกครูประจำคอร์ส — ส่งแค่ชื่อกับอัตรา ไม่มีข้อมูลบัญชี
+route("GET", "admin/teachers", STAFF, async ({ store, me }) => {
+  const users = await store.list<AppUser>("users");
+  return {
+    teachers: users
+      .filter((u) => (u.role === "teacher" || u.role === "owner") && u.active)
+      .map((u) => ({ id: u.id, displayName: u.displayName, hourlyRate: me?.role === "owner" ? u.hourlyRate : undefined }))
+      .sort((a, b) => a.displayName.localeCompare(b.displayName)),
+  };
+});
+
+route("GET", "admin/payroll", OWNER, async ({ store, query }) => {
+  const month = monthParam(query.get("month"));
+  const [attendance, courses, users, expenses] = await Promise.all([
+    store.list<Attendance>("attendance"),
+    store.list<Course>("courses"),
+    store.list<AppUser>("users"),
+    store.list<Expense>("expenses"),
+  ]);
+  const teachers = payrollForMonth(month, attendance, courses, users, expenses);
+  return {
+    month,
+    teachers,
+    totalHours: Math.round(teachers.reduce((s, t) => s + t.hours, 0) * 100) / 100,
+    totalAmount: teachers.reduce((s, t) => s + (t.paid ? (t.paidAmount ?? 0) : t.amount), 0),
+    months: [...new Set([month, ...attendance.map((a) => a.date.slice(0, 7))])].sort((a, b) => b.localeCompare(a)),
+  };
+});
+
+// บันทึกค่าจ้างของครู 1 คนเป็นรายจ่ายหมวด "ค่าจ้างครู" — กดซ้ำไม่เกิดรายการซ้ำ
+route("POST", "admin/payroll", OWNER, async ({ store, body, me }) => {
+  const month = monthParam(str(body.month, "เดือน", 7));
+  const teacherId = str(body.teacherId, "ครู", 40);
+  const payrollRef = `${teacherId}:${month}`;
+  const expenses = await store.list<Expense>("expenses");
+  if (expenses.some((e) => e.payrollRef === payrollRef)) throw new HttpError(400, "บันทึกค่าจ้างของครูคนนี้ในเดือนนี้ไปแล้ว");
+
+  const [attendance, courses, users] = await Promise.all([
+    store.list<Attendance>("attendance"),
+    store.list<Course>("courses"),
+    store.list<AppUser>("users"),
+  ]);
+  const pay = payrollForMonth(month, attendance, courses, users, expenses).find((t) => t.teacherId === teacherId);
+  if (!pay) throw new HttpError(404, "เดือนนี้ครูคนนี้ไม่มีคาบสอน");
+  if (!pay.hourlyRate) throw new HttpError(400, "ยังไม่ได้ตั้งอัตราค่าสอนต่อชั่วโมงของครูคนนี้ (ตั้งที่หน้า “ผู้ใช้”)");
+  // แก้ยอดได้ เช่น หักลา/เพิ่มโบนัส แต่ต้องไม่เกิน 2 เท่าของที่คำนวณได้ กันพิมพ์ผิด
+  const amount = body.amount === undefined || body.amount === "" ? pay.amount : num(body.amount, "จำนวนเงิน", 1, Math.max(pay.amount * 2, 1000));
+
+  const expense: Expense = {
+    id: newId(),
+    date: body.date ? dateStr(body.date, "วันที่จ่าย") : bkkDate(),
+    kind: "operating",
+    category: "teacher",
+    detail: `ค่าสอน ${pay.name} เดือน ${month} · ${pay.sessions} คาบ ${pay.hours} ชม. × ฿${pay.hourlyRate}`,
+    amount,
+    method: body.method === "cash" ? "cash" : "transfer",
+    vendor: pay.name,
+    payrollRef,
+    createdBy: me!.id,
+    createdAt: nowIso(),
+  };
+  await store.set("expenses", expense);
+  return { expense };
 });

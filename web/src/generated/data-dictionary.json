@@ -71,6 +71,12 @@
         "description": "ล็อกบัญชีถึงเวลานี้"
       },
       {
+        "name": "hourlyRate",
+        "type": "number",
+        "required": false,
+        "description": "อัตราค่าสอนต่อชั่วโมง (บาท) — ใช้คิดค่าจ้างครูรายเดือน เฉพาะ role teacher"
+      },
+      {
         "name": "lineUserId",
         "type": "string",
         "required": false,
@@ -343,6 +349,12 @@
         "type": "string",
         "required": true,
         "description": ""
+      },
+      {
+        "name": "teacherId",
+        "type": "string",
+        "required": false,
+        "description": "ครูที่รับผิดชอบคอร์ส (id ใน users) — ใช้คิดชั่วโมงสอน ถ้าไม่ตั้งจะนับจากคนที่เช็กชื่อ"
       },
       {
         "name": "teacherName",
@@ -1204,6 +1216,12 @@
         "type": "string",
         "required": false,
         "description": ""
+      },
+      {
+        "name": "payrollRef",
+        "type": "string",
+        "required": false,
+        "description": "ค่าจ้างครูที่ระบบสร้างให้: \"<teacherId>:<YYYY-MM>\" — กันสร้างซ้ำเดือนเดียวกัน"
       },
       {
         "name": "hasReceipt",

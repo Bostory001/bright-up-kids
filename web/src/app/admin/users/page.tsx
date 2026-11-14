@@ -10,6 +10,7 @@ interface UserRow {
   username: string;
   displayName: string;
   totpEnabled: boolean;
+  hourlyRate?: number;
   lineLinked: boolean;
   active: boolean;
 }
@@ -74,12 +75,27 @@ export default function UsersPage() {
           </div>
         </Card>
       )}
-      <Table head={["ชื่อ", "ชื่อเข้าระบบ", "บทบาท", "2FA", "LINE", "สถานะ", ""]}>
+      <Table head={["ชื่อ", "ชื่อเข้าระบบ", "บทบาท", "ค่าสอน/ชม.", "2FA", "LINE", "สถานะ", ""]}>
         {data?.users.map((u) => (
           <tr key={u.id}>
             <td className="font-medium">{u.displayName}</td>
             <td className="font-mono">{u.username}</td>
             <td>{ROLE[u.role]}</td>
+            <td>
+              {u.role === "parent" ? (
+                "-"
+              ) : (
+                <Input
+                  key={u.hourlyRate}
+                  type="number"
+                  defaultValue={u.hourlyRate ?? ""}
+                  placeholder="บาท"
+                  className="w-24 text-sm"
+                  title="อัตราค่าสอนต่อชั่วโมง ใช้คิดค่าจ้างรายเดือน (กดนอกช่องเพื่อบันทึก)"
+                  onBlur={(e) => Number(e.target.value || 0) !== (u.hourlyRate ?? 0) && run(() => api(`admin/users/${u.id}/rate`, { hourlyRate: e.target.value }, "PATCH"))}
+                />
+              )}
+            </td>
             <td>{u.role === "parent" ? "-" : u.totpEnabled ? <Badge color="green">เปิด</Badge> : <Badge color="red">ยังไม่ตั้ง</Badge>}</td>
             <td>{u.role !== "parent" ? "-" : u.lineLinked ? <Badge color="green">ผูกแล้ว</Badge> : <Badge>ยังไม่ผูก</Badge>}</td>
             <td>{u.active ? <Badge color="green">ใช้งาน</Badge> : <Badge>ปิด</Badge>}</td>

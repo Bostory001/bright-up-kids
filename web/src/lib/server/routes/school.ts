@@ -67,6 +67,7 @@ function courseFrom(body: Ctx["body"], id: string): Course {
     weekday,
     startTime,
     endTime,
+    teacherId: optStr(body.teacherId, 40),
     teacherName: optStr(body.teacherName, 80),
     capacity,
     active: body.active !== false,

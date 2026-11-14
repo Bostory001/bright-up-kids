@@ -29,7 +29,7 @@ const { dateStr, num } = await import("../src/lib/server/util.ts");
 const { passwordInput, hashSecret, verifySecret } = await import("../src/lib/server/auth.ts");
 const { getStore } = await import("../src/lib/server/store.ts");
 const { starterExercises } = await import("../src/lib/server/seed-exercises.ts");
-const { summarizeMonth, summarizeRange, EXPENSE_CATEGORIES } = await import("../src/lib/finance.ts");
+const { summarizeMonth, summarizeRange, EXPENSE_CATEGORIES, payrollForMonth, courseHours } = await import("../src/lib/finance.ts");
 
 // กฎที่ผิดแล้วชุดโจทย์ใช้ไม่ได้เลย — ดู .claude/skills/exercise-authoring ข้อ 4 และ 8
 // ข้อที่ "ควรปรับ" (ขนาดชุด ตำแหน่งคำตอบกระจุก) อยู่ใน npm run audit:exercises
@@ -173,4 +173,47 @@ test("every expense category has a label, a kind and an example", () => {
     assert.ok(!labels.has(c.label), `${key}: ชื่อหมวดซ้ำกับหมวดอื่น`);
     labels.add(c.label);
   }
+});
+
+// ค่าจ้างครูคิดจากคาบที่เช็กชื่อ — นับซ้ำ 1 คาบต่อคอร์สต่อวัน ไม่ใช่ต่อนักเรียน
+test("teacher pay counts one session per course per day", () => {
+  assert.equal(courseHours("09:00", "10:30"), 1.5);
+  assert.equal(courseHours("10:00", "11:00"), 1);
+
+  const courses = [
+    { id: "cA", name: "คณิต ป.2", startTime: "09:00", endTime: "10:30", teacherId: "t1" },
+    { id: "cB", name: "อังกฤษ ป.1", startTime: "10:00", endTime: "11:00" }, // ไม่ผูกครู → ใช้คนเช็กชื่อ
+  ];
+  const attendance = [
+    { courseId: "cA", date: "2026-11-07", checkedBy: "t2" }, // ผูกครูไว้แล้ว ต้องเป็นของ t1 ไม่ใช่คนเช็ก
+    { courseId: "cA", date: "2026-11-07", checkedBy: "t2" }, // นักเรียนคนที่ 2 ในคาบเดียวกัน ต้องไม่นับเพิ่ม
+    { courseId: "cA", date: "2026-11-07", checkedBy: "t2" },
+    { courseId: "cA", date: "2026-11-14", checkedBy: "t1" },
+    { courseId: "cB", date: "2026-11-08", checkedBy: "t2" },
+    { courseId: "cA", date: "2026-10-31", checkedBy: "t1" }, // เดือนอื่น ต้องไม่นับ
+    { courseId: "ลบไปแล้ว", date: "2026-11-09", checkedBy: "t1" }, // คอร์สถูกลบ ต้องข้าม ไม่พัง
+  ];
+  const staff = [
+    { id: "t1", displayName: "ครูเอ", hourlyRate: 400 },
+    { id: "t2", displayName: "ครูบี" }, // ยังไม่ตั้งอัตรา
+  ];
+
+  const pay = payrollForMonth("2026-11", attendance, courses, staff, []);
+  const a = pay.find((p) => p.teacherId === "t1");
+  const b = pay.find((p) => p.teacherId === "t2");
+  assert.equal(a.sessions, 2, "3 นักเรียนในคาบเดียวต้องนับเป็น 1 คาบ");
+  assert.equal(a.hours, 3);
+  assert.equal(a.amount, 1200);
+  assert.equal(a.paid, false);
+  assert.equal(b.sessions, 1, "คอร์สที่ไม่ผูกครู ต้องเป็นของคนที่เช็กชื่อ");
+  assert.equal(b.hours, 1);
+  assert.equal(b.amount, 0, "ยังไม่ตั้งอัตรา ต้องได้ 0 ไม่ใช่ NaN");
+
+  // บันทึกจ่ายแล้วต้องขึ้นสถานะ paid พร้อมยอดที่จ่ายจริง (อาจต่างจากที่คำนวณ เช่นหักลา)
+  const paid = payrollForMonth("2026-11", attendance, courses, staff, [
+    { id: "e1", date: "2026-11-30", kind: "operating", category: "teacher", amount: 1100, payrollRef: "t1:2026-11" },
+  ]);
+  const a2 = paid.find((p) => p.teacherId === "t1");
+  assert.equal(a2.paid, true);
+  assert.equal(a2.paidAmount, 1100);
 });

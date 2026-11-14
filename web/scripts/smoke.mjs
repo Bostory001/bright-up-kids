@@ -261,6 +261,29 @@ check("ครูดูรายงานกำไรไม่ได้ → 403",
 r = await owner.call("admin/reports", { dataset: "expenses", from: `${today.slice(0, 8)}01`, to: today });
 check("รายงานรายจ่าย 2 แถว พร้อมคอลัมน์ใบเสร็จ", r.data.rows?.length === 2 && r.data.rows.some((x) => x.receipt === "มี"), JSON.stringify(r.data.rows));
 
+// ---------- I1: ชั่วโมงสอน + ค่าจ้างครู (คอร์ส 09:00-10:30 = 1.5 ชม. เช็กชื่อแล้ว 1 คาบ) ----------
+const kruId = (await owner.call("admin/users")).data.users.find((u) => u.username === "kru-a").id;
+check("ครูตั้งอัตราค่าสอนเองไม่ได้ → 403", (await teacher.call(`admin/users/${kruId}/rate`, { hourlyRate: 999 }, "PATCH")).status === 403);
+check("ครูดูค่าจ้างไม่ได้ → 403", (await teacher.call("admin/payroll")).status === 403);
+r = await owner.call("admin/payroll");
+check("ยังไม่ตั้งอัตรา: นับชั่วโมงได้แต่ค่าจ้าง 0", r.data.teachers?.[0]?.hours === 1.5 && r.data.teachers?.[0]?.sessions === 1 && r.data.teachers?.[0]?.amount === 0, JSON.stringify(r.data.teachers));
+check("ยังไม่ตั้งอัตรา กดบันทึกจ่ายไม่ได้ → 400", (await owner.call("admin/payroll", { teacherId: kruId, month: today.slice(0, 7) })).status === 400);
+check("ตั้งอัตรา 400 บาท/ชม.", (await owner.call(`admin/users/${kruId}/rate`, { hourlyRate: 400 }, "PATCH")).data.user?.hourlyRate === 400);
+check("อัตราติดลบ → 400", (await owner.call(`admin/users/${kruId}/rate`, { hourlyRate: -5 }, "PATCH")).status === 400);
+r = await owner.call("admin/payroll");
+const kruPay = r.data.teachers?.find((t) => t.teacherId === kruId);
+check("ค่าจ้าง 1.5 ชม. × 400 = 600", kruPay?.amount === 600 && kruPay?.paid === false && kruPay?.detail?.length === 1, JSON.stringify(kruPay));
+check("เดือนที่ไม่มีคาบสอน → ไม่มีรายชื่อ", (await owner.call("admin/payroll?month=2020-01")).data.teachers?.length === 0);
+check("เดือนผิดรูปแบบ → 400", (await owner.call("admin/payroll?month=ไม่ใช่เดือน")).status === 400);
+r = await owner.call("admin/payroll", { teacherId: kruId, month: today.slice(0, 7) });
+check("บันทึกจ่ายเป็นรายจ่ายหมวดค่าจ้างครู", r.data.expense?.category === "teacher" && r.data.expense?.amount === 600 && r.data.expense?.kind === "operating", JSON.stringify(r.data.expense));
+check("กดบันทึกจ่ายซ้ำ → 400 (ไม่เกิดรายการซ้ำ)", (await owner.call("admin/payroll", { teacherId: kruId, month: today.slice(0, 7) })).status === 400);
+r = await owner.call("admin/payroll");
+check("สถานะเปลี่ยนเป็นจ่ายแล้ว", r.data.teachers?.find((t) => t.teacherId === kruId)?.paid === true && r.data.totalAmount === 600);
+r = await owner.call("admin/expenses");
+check("ค่าจ้างไปรวมในรายจ่าย: 1,300 + 600 = 1,900 กำไรเหลือ 1,600", r.data.summary?.expense === 1900 && r.data.summary?.profit === 1600, JSON.stringify(r.data.summary));
+check("ครูเห็นรายชื่อครูได้ (ไว้ผูกคอร์ส) แต่ไม่เห็นอัตรา", (await teacher.call("admin/teachers")).data.teachers?.every((t) => t.hourlyRate === undefined) === true);
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});

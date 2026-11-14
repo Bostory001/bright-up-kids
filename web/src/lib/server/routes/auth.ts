@@ -17,7 +17,7 @@ import {
   verifyTotp,
 } from "../auth";
 import { OWNER, route, STAFF, staffUser } from "../router";
-import { HttpError, newId, nowIso, oneOf, optStr, randomDigits, rateLimit, str } from "../util";
+import { HttpError, newId, nowIso, num, oneOf, optStr, randomDigits, rateLimit, str } from "../util";
 
 const ANY_USER = ["owner", "teacher", "parent"] as const;
 const normalize = (username: string) => username.trim().toLowerCase();
@@ -177,6 +177,16 @@ route("POST", "admin/users", OWNER, async ({ store, body }) => {
   };
   await store.set("users", user);
   return { user: publicUser(user), tempPassword };
+});
+
+// อัตราค่าสอนต่อชั่วโมง — ใช้คิดค่าจ้างรายเดือนที่หน้า "ค่าจ้างครู"
+route("PATCH", "admin/users/:id/rate", OWNER, async ({ store, body, params }) => {
+  const user = await store.get<AppUser>("users", params.id);
+  if (!user) throw new HttpError(404, "ไม่พบผู้ใช้");
+  if (user.role === "parent") throw new HttpError(400, "ตั้งอัตราค่าสอนได้เฉพาะครู");
+  const hourlyRate = body.hourlyRate === "" || body.hourlyRate === null ? undefined : num(body.hourlyRate, "อัตราค่าสอนต่อชั่วโมง", 0, 100_000);
+  await store.set("users", { ...user, hourlyRate });
+  return { user: publicUser({ ...user, hourlyRate }) };
 });
 
 // รีเซ็ตรหัสผ่าน + ล้าง 2FA (กรณีทำมือถือหาย) / เปิด-ปิดบัญชี

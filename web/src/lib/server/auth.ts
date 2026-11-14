@@ -159,6 +159,7 @@ export function publicUser(u: AppUser) {
     phone: u.phone,
     totpEnabled: Boolean(u.totpEnabled),
     mustChangePassword: Boolean(u.mustChangePassword),
+    hourlyRate: u.hourlyRate,
     lineLinked: Boolean(u.lineUserId),
     active: u.active,
     createdAt: u.createdAt,

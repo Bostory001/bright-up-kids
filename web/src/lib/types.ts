@@ -45,6 +45,8 @@ export interface AppUser {
   failedLogins?: number;
   /** ล็อกบัญชีถึงเวลานี้ */
   lockedUntil?: string;
+  /** อัตราค่าสอนต่อชั่วโมง (บาท) — ใช้คิดค่าจ้างครูรายเดือน เฉพาะ role teacher */
+  hourlyRate?: number;
   /** LINE userId ที่ผูกไว้สำหรับรับแจ้งเตือน */
   lineUserId?: string;
   /** รหัส 6 หลักสำหรับผูก LINE (หมดอายุตาม lineLinkExpires) */
@@ -125,6 +127,8 @@ export interface Course {
   weekday: number;
   startTime: string;
   endTime: string;
+  /** ครูที่รับผิดชอบคอร์ส (id ใน users) — ใช้คิดชั่วโมงสอน ถ้าไม่ตั้งจะนับจากคนที่เช็กชื่อ */
+  teacherId?: string;
   teacherName?: string;
   capacity: number;
   active: boolean;
@@ -393,6 +397,8 @@ export interface Expense {
   /** รายจ่ายประจำทุกเดือน (ค่าเช่า เงินเดือน) — ใช้แยกจากรายจ่ายครั้งเดียว */
   recurring?: boolean;
   note?: string;
+  /** ค่าจ้างครูที่ระบบสร้างให้: "<teacherId>:<YYYY-MM>" — กันสร้างซ้ำเดือนเดียวกัน */
+  payrollRef?: string;
   /** มีรูปใบเสร็จแนบอยู่ใน collection receipts */
   hasReceipt?: boolean;
   /** id ผู้ใช้ที่บันทึก */
