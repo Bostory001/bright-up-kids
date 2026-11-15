@@ -297,6 +297,24 @@ await owner.call("admin/courses", { name: "ไทย ป.2 เสาร์ (ต�
 r = await teacher.call("admin/timetable");
 check("คาบต่อกันพอดี ไม่นับว่าชน (ยังเท่าเดิม 2 จุด)", r.data.conflicts?.length === 2, JSON.stringify(r.data.conflicts?.map((c) => c.detail)));
 
+// ---------- I3: คะแนนก่อน-หลังเรียน ----------
+check("คะแนนเกินคะแนนเต็ม → 400", (await teacher.call("admin/assessments", { studentId: student.id, courseId, subject: "math", kind: "pre", date: today, score: 30, maxScore: 20 })).status === 400);
+check("นักเรียนไม่มีจริง → 404", (await teacher.call("admin/assessments", { studentId: "ไม่มีคนนี้", courseId, subject: "math", kind: "pre", date: today, score: 5, maxScore: 20 })).status === 404);
+r = await teacher.call("admin/assessments", { studentId: student.id, courseId, subject: "math", kind: "pre", date: today, score: 9, maxScore: 20, note: "ยังไม่คล่องการคูณ" });
+const preId = r.data.assessment?.id;
+check("ครูบันทึกคะแนนก่อนเรียนได้", r.status === 200 && r.data.assessment?.kind === "pre");
+await teacher.call("admin/assessments", { studentId: student.id, courseId, subject: "math", kind: "post", date: today, score: 40, maxScore: 50 });
+r = await teacher.call(`admin/assessments?courseId=${courseId}`);
+const row = r.data.rows?.find((x) => x.studentId === student.id);
+check("9/20 → 40/50 = 45% → 80% (+35 จุด)", row?.prePercent === 45 && row?.postPercent === 80 && row?.gain === 35, JSON.stringify(row && { pre: row.prePercent, post: row.postPercent, gain: row.gain }));
+check("สรุปทั้งคอร์ส: วัดครบ 1 คน ดีขึ้น 1 คน", r.data.summary?.counted === 1 && r.data.summary?.improved === 1 && r.data.summary?.average === 35);
+check("ผู้ปกครองเห็นพัฒนาการของลูก", (await parent.call("parent/overview")).data.children?.[0]?.progress?.some((p) => p.gain === 35) === true);
+check("ครูลบคะแนนไม่ได้ → 403", (await teacher.call(`admin/assessments/${preId}`, {}, "DELETE")).status === 403);
+r = await teacher.call(`admin/assessments/${preId}`, { score: 11, maxScore: 20, subject: "math", kind: "pre", date: today }, "PATCH");
+check("แก้คะแนนแล้วพัฒนาการคิดใหม่", r.data.assessment?.score === 11 && (await teacher.call(`admin/assessments?courseId=${courseId}`)).data.rows.find((x) => x.studentId === student.id)?.gain === 25);
+check("เจ้าของลบคะแนนได้", (await owner.call(`admin/assessments/${preId}`, {}, "DELETE")).status === 200);
+check("ลบใบก่อนเรียนแล้ว สรุปพัฒนาการไม่ได้", (await owner.call(`admin/assessments?courseId=${courseId}`)).data.rows.find((x) => x.studentId === student.id)?.gain === null);
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});

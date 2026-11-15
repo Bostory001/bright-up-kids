@@ -1279,5 +1279,78 @@
         "description": ""
       }
     ]
+  },
+  {
+    "collection": "assessments",
+    "name": "Assessment",
+    "description": "คะแนนวัดระดับของนักเรียน — ก่อนเรียน / ระหว่างเรียน / หลังจบคอร์ส\nใช้ดูพัฒนาการจริงเทียบจุดเริ่มต้น และให้ผู้ปกครองเห็นว่าจ่ายค่าเรียนแล้วได้อะไร",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "studentId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "courseId",
+        "type": "string",
+        "required": false,
+        "description": "คอร์สที่วัด (ไม่บังคับ เช่น สอบวัดระดับตอนสมัครยังไม่ลงคอร์ส)"
+      },
+      {
+        "name": "subject",
+        "type": "Subject",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "kind",
+        "type": "AssessmentKind",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "required": true,
+        "description": "วันที่สอบ (เวลาไทย)"
+      },
+      {
+        "name": "score",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "maxScore",
+        "type": "number",
+        "required": true,
+        "description": "คะแนนเต็ม — เก็บไว้เพราะข้อสอบแต่ละชุดเต็มไม่เท่ากัน"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "required": false,
+        "description": "ข้อสังเกตของครู เช่น \"อ่านโจทย์ไม่ทัน\""
+      },
+      {
+        "name": "recordedBy",
+        "type": "string",
+        "required": true,
+        "description": "id ผู้ใช้ที่บันทึก"
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
   }
 ]

@@ -5,6 +5,7 @@
 export type Grade = 1 | 2 | 3 | 4 | 5 | 6;
 export type Subject = "math" | "thai" | "english" | "science";
 export type Role = "owner" | "teacher" | "parent" | "student";
+export type AssessmentKind = "pre" | "progress" | "post";
 export type ExpenseKind = "operating" | "supply";
 export type ExpenseCategory =
   | "teacher"      // ค่าจ้างครู
@@ -418,6 +419,30 @@ export interface Receipt {
   dataUrl: string;
   uploadedBy: string;
   uploadedAt: string;
+}
+
+/**
+ * คะแนนวัดระดับของนักเรียน — ก่อนเรียน / ระหว่างเรียน / หลังจบคอร์ส
+ * ใช้ดูพัฒนาการจริงเทียบจุดเริ่มต้น และให้ผู้ปกครองเห็นว่าจ่ายค่าเรียนแล้วได้อะไร
+ * @collection assessments
+ */
+export interface Assessment {
+  id: string;
+  studentId: string;
+  /** คอร์สที่วัด (ไม่บังคับ เช่น สอบวัดระดับตอนสมัครยังไม่ลงคอร์ส) */
+  courseId?: string;
+  subject: Subject;
+  kind: AssessmentKind;
+  /** วันที่สอบ (เวลาไทย) */
+  date: string;
+  score: number;
+  /** คะแนนเต็ม — เก็บไว้เพราะข้อสอบแต่ละชุดเต็มไม่เท่ากัน */
+  maxScore: number;
+  /** ข้อสังเกตของครู เช่น "อ่านโจทย์ไม่ทัน" */
+  note?: string;
+  /** id ผู้ใช้ที่บันทึก */
+  recordedBy: string;
+  createdAt: string;
 }
 
 // ---------- ใช้ในโค้ดเท่านั้น ไม่ใช่ collection ----------

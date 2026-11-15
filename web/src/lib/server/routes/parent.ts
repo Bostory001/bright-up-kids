@@ -1,7 +1,8 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { AppUser, Attendance, Course, Invoice, Notification, Slip, Student } from "../../types";
+import type { AppUser, Assessment, Attendance, Course, Invoice, Notification, Slip, Student } from "../../types";
 import { publicStudent } from "../auth";
+import { progressOf } from "../../assessment";
 import { notifyParent } from "../notify";
 import { route, STAFF } from "../router";
 import type { Store } from "../store";
@@ -12,11 +13,12 @@ const PARENT = ["parent"] as const;
 
 route("GET", "parent/overview", PARENT, async ({ store, me }) => {
   const children = (await store.list<Student>("students", { parentId: me!.id })).filter((s) => s.active);
-  const [summaries, invoices, attendance, courses] = await Promise.all([
+  const [summaries, invoices, attendance, courses, assessments] = await Promise.all([
     summarizeStudents(store, children, 7),
     store.list<Invoice>("invoices"),
     store.list<Attendance>("attendance"),
     store.list<Course>("courses"),
+    store.list<Assessment>("assessments"),
   ]);
   const today = bkkDate();
   return {
@@ -24,6 +26,14 @@ route("GET", "parent/overview", PARENT, async ({ store, me }) => {
     children: children.map((s) => ({
       ...publicStudent(s),
       summary: summaries.find((x) => x.studentId === s.id),
+      // พัฒนาการจากคะแนนวัดระดับ แยกตามคอร์ส — ผู้ปกครองเห็นว่าจ่ายค่าเรียนแล้วลูกดีขึ้นแค่ไหน
+      progress: [...new Set(assessments.filter((a) => a.studentId === s.id).map((a) => a.courseId ?? ""))].map((courseId) => ({
+        course: courses.find((c) => c.id === courseId)?.name ?? "วัดระดับทั่วไป",
+        ...progressOf(
+          s.id,
+          assessments.filter((a) => a.studentId === s.id && (a.courseId ?? "") === courseId),
+        ),
+      })),
       today: attendance
         .filter((a) => a.studentId === s.id && a.date === today)
         .map((a) => ({ course: courses.find((c) => c.id === a.courseId)?.name ?? "", status: a.status })),

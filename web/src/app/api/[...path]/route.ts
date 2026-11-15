@@ -7,6 +7,7 @@ import "@/lib/server/routes/reports";
 import "@/lib/server/routes/ai";
 import "@/lib/server/routes/extras";
 import "@/lib/server/routes/finance";
+import "@/lib/server/routes/assessments";
 
 // API ทั้งหมดอยู่ใน lib/server/routes/* — ไฟล์นี้แค่ส่งต่อ
 async function handle(req: Request, ctx: RouteContext<"/api/[...path]">) {

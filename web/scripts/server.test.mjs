@@ -31,6 +31,7 @@ const { getStore } = await import("../src/lib/server/store.ts");
 const { starterExercises } = await import("../src/lib/server/seed-exercises.ts");
 const { summarizeMonth, summarizeRange, EXPENSE_CATEGORIES, payrollForMonth, courseHours } = await import("../src/lib/finance.ts");
 const { overlaps, findConflicts, weeklyGrid } = await import("../src/lib/timetable.ts");
+const { percent, progressOf, averageGain } = await import("../src/lib/assessment.ts");
 
 // กฎที่ผิดแล้วชุดโจทย์ใช้ไม่ได้เลย — ดู .claude/skills/exercise-authoring ข้อ 4 และ 8
 // ข้อที่ "ควรปรับ" (ขนาดชุด ตำแหน่งคำตอบกระจุก) อยู่ใน npm run audit:exercises
@@ -267,4 +268,41 @@ test("timetable flags teacher and room clashes but not back-to-back classes", ()
   assert.equal(grid[0].length, 1, "อาทิตย์มี 1 คาบ");
   assert.equal(grid[6].length, 3, "เสาร์มี 3 คาบ");
   assert.deepEqual(grid[6].map((c) => c.startTime), ["09:00", "10:00", "10:30"], "ต้องเรียงตามเวลาเริ่ม");
+});
+
+// พัฒนาการต้องเทียบเป็นเปอร์เซ็นต์ เพราะข้อสอบก่อน-หลังคะแนนเต็มไม่เท่ากัน
+test("progress compares pre and post as percentages, not raw scores", () => {
+  assert.equal(percent(15, 20), 75);
+  assert.equal(percent(30, 50), 60);
+  assert.equal(percent(1, 3), 33.3);
+  assert.equal(percent(5, 0), null, "คะแนนเต็ม 0 ต้องไม่หารศูนย์");
+
+  const a = [
+    { id: "1", studentId: "s1", kind: "pre", date: "2026-08-01", score: 9, maxScore: 20 }, // 45%
+    { id: "2", studentId: "s1", kind: "progress", date: "2026-09-15", score: 13, maxScore: 20 },
+    { id: "3", studentId: "s1", kind: "post", date: "2026-10-30", score: 40, maxScore: 50 }, // 80% คนละคะแนนเต็ม
+    { id: "4", studentId: "s2", kind: "pre", date: "2026-08-01", score: 18, maxScore: 20 },
+    { id: "5", studentId: "s3", kind: "pre", date: "2026-08-02", score: 10, maxScore: 20 },
+    { id: "6", studentId: "s3", kind: "post", date: "2026-10-30", score: 8, maxScore: 20 }, // แย่ลง
+  ];
+
+  const p1 = progressOf("s1", a);
+  assert.equal(p1.prePercent, 45);
+  assert.equal(p1.postPercent, 80);
+  assert.equal(p1.gain, 35, "9/20 → 40/50 คือ +35 จุด ไม่ใช่ +31 คะแนน");
+  assert.equal(p1.count, 3);
+  assert.equal(p1.latest.id, "3", "ล่าสุดต้องดูจากวันที่ ไม่ใช่ลำดับในอาร์เรย์");
+
+  const p2 = progressOf("s2", a);
+  assert.equal(p2.gain, null, "มีแต่ก่อนเรียน ยังสรุปพัฒนาการไม่ได้");
+  assert.equal(progressOf("ไม่มีคนนี้", a).count, 0);
+
+  // ใบ pre หลายครั้ง ต้องยึดใบแรกสุดเป็นจุดเริ่มต้น
+  const twoPre = progressOf("s1", [...a, { id: "7", studentId: "s1", kind: "pre", date: "2026-09-01", score: 12, maxScore: 20 }]);
+  assert.equal(twoPre.prePercent, 45);
+
+  const avg = averageGain([p1, p2, progressOf("s3", a)]);
+  assert.equal(avg.counted, 2, "คนที่มีแต่ก่อนเรียนต้องไม่ถูกนับในค่าเฉลี่ย");
+  assert.equal(avg.improved, 1);
+  assert.equal(avg.average, 12.5, "(+35 และ -10) / 2");
 });

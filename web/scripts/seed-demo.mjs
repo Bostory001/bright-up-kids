@@ -214,6 +214,42 @@ const expenses = [
   { id: "demo-expense-pen", date: `${month}-08`, kind: "supply", category: "teaching", detail: "ปากกาไวท์บอร์ด", qty: 6, unitPrice: 35, amount: 210, method: "cash" },
 ].map((e) => ({ ...e, createdBy: teacher.id, createdAt: now }));
 
+// ---------- คะแนนก่อน-หลังเรียน ----------
+// ครึ่งหนึ่งวัดครบก่อน-หลัง (ดีขึ้นต่างกันไป) ที่เหลือมีแต่ก่อนเรียน เหมือนของจริงที่ยังเรียนไม่จบคอร์ส
+const assessments = [];
+enrollments.forEach((e, i) => {
+  const course = courses.find((c) => c.id === e.courseId);
+  const n = String(i + 1).padStart(2, "0");
+  const pre = 8 + (i % 5); // 8-12 จาก 20 = 40-60%
+  assessments.push({
+    id: `demo-assess-${n}-pre`,
+    studentId: e.studentId,
+    courseId: e.courseId,
+    subject: course.subject,
+    kind: "pre",
+    date: shift(-60),
+    score: pre,
+    maxScore: 20,
+    note: i % 3 === 0 ? "อ่านโจทย์ไม่ทัน" : undefined,
+    recordedBy: teacher.id,
+    createdAt: now,
+  });
+  if (i % 2 === 0) {
+    assessments.push({
+      id: `demo-assess-${n}-post`,
+      studentId: e.studentId,
+      courseId: e.courseId,
+      subject: course.subject,
+      kind: "post",
+      date: shift(-3),
+      score: 30 + ((i * 3) % 16), // 30-45 จาก 50 = 60-90%
+      maxScore: 50,
+      recordedBy: teacher.id,
+      createdAt: now,
+    });
+  }
+});
+
 // ---------- ผู้สนใจ (ยังไม่สมัคร) ----------
 const leads = [
   { id: "demo-lead-01", parentName: "คุณแม่น้องข้าวปั้น (ตัวอย่าง)", phone: "0899990001", childNickname: "ข้าวปั้น", grade: 1, source: "Facebook", status: "new" },
@@ -225,6 +261,7 @@ const leads = [
 const groups = [
   ["users", users], ["courses", courses], ["students", students], ["enrollments", enrollments],
   ["attendance", attendance], ["invoices", invoices], ["expenses", expenses], ["leads", leads],
+  ["assessments", assessments],
 ];
 for (const [col, docs] of groups) {
   for (const doc of docs) await store.set(col, doc);

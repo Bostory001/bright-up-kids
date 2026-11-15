@@ -18,6 +18,7 @@ interface Child {
   today: { course: string; status: AttStatus }[];
   recentAttendance: { date: string; course: string; status: AttStatus }[];
   invoices: Invoice[];
+  progress: { course: string; prePercent: number | null; postPercent: number | null; gain: number | null }[];
 }
 
 // ย่อรูปสลิปในเครื่องก่อนส่ง (ด้านยาว ≤ 1000px, JPEG) ให้เล็กพอเก็บในฐานข้อมูล
@@ -171,6 +172,22 @@ export default function ParentPage() {
               </div>
             ))}
           </div>
+
+          {c.progress.some((p) => p.prePercent !== null || p.postPercent !== null) && (
+            <div className="rounded-xl bg-amber-50 p-3">
+              <b className="text-sm">พัฒนาการจากการวัดผล</b>
+              {c.progress
+                .filter((p) => p.prePercent !== null || p.postPercent !== null)
+                .map((p) => (
+                  <div key={p.course} className="mt-1 text-sm">
+                    <span className="text-gray-700">{p.course}: </span>
+                    <span>ก่อนเรียน {p.prePercent === null ? "—" : `${p.prePercent}%`}</span>
+                    <span> → หลังเรียน {p.postPercent === null ? "ยังไม่ได้วัด" : `${p.postPercent}%`}</span>
+                    {p.gain !== null && <b className={p.gain > 0 ? " text-green-700" : " text-red-600"}> ({p.gain > 0 ? "+" : ""}{p.gain} จุด)</b>}
+                  </div>
+                ))}
+            </div>
+          )}
 
           <details>
             <summary className="cursor-pointer text-sm font-medium text-gray-600">ประวัติการเข้าเรียนล่าสุด</summary>
