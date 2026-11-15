@@ -100,8 +100,12 @@ export async function dispatch(req: Request, path: string[]): Promise<Response> 
       let sameOrigin = false;
       try {
         const source = new URL(origin);
-        // Next.js may use its internal listening address in req.url.
-        sameOrigin = source.host === req.headers.get("host") && source.protocol === new URL(req.url).protocol;
+        // หลัง reverse proxy (Cloud Run / Vercel) TLS ถูกตัดที่ edge: เบราว์เซอร์เห็น https แต่ req.url ข้างในเป็น http
+        // จึงต้องเทียบกับ x-forwarded-proto ไม่งั้นคำขอของผู้ใช้จริงจะถูกปฏิเสธว่า "มาจากโดเมนอื่น"
+        const forwarded = req.headers.get("x-forwarded-proto")?.split(",")[0].trim();
+        const expectedProtocol = forwarded ? `${forwarded}:` : new URL(req.url).protocol;
+        // host ยังเทียบตรง ๆ กับ header host ซึ่งเป็นโดเมนจริงที่ผู้ใช้เปิด — ด่านกันข้ามโดเมนจึงยังอยู่ครบ
+        sameOrigin = source.host === req.headers.get("host") && source.protocol === expectedProtocol;
       } catch { /* Invalid origin. */ }
       if (!sameOrigin) throw new HttpError(403, "คำขอมาจากโดเมนอื่น");
     }

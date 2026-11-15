@@ -501,6 +501,16 @@ check("Malformed cookie is ignored", (await anon.call("me", undefined, "GET", { 
 for (const origin of ["null", "not-a-url", BASE.replace(/^http:/, "https:")]) {
   check("Reject invalid or cross-scheme origin: " + origin, (await anon.call("auth/logout", {}, "POST", { origin })).status === 403);
 }
+// บน Cloud Run เบราว์เซอร์ส่ง Origin https แต่ server ข้างในเป็น http — ต้องยอมรับผ่าน x-forwarded-proto
+// (เคยทำให้ล็อกอินบนเว็บจริงขึ้น "คำขอมาจากโดเมนอื่น" ทั้งที่รหัสถูก)
+check(
+  "Accept https origin behind TLS-terminating proxy",
+  (await anon.call("auth/login", { username: "ไม่มีคนนี้", password: "x" }, "POST", { origin: `https://${new URL(BASE).host}`, "x-forwarded-proto": "https" })).status === 401,
+);
+check(
+  "Still reject https origin from another host behind proxy",
+  (await anon.call("auth/login", { username: "x", password: "x" }, "POST", { origin: "https://evil.example", "x-forwarded-proto": "https" })).status === 403,
+);
 check("Accept same-origin request", (await anon.call("auth/logout", {}, "POST", { origin: new URL(BASE).origin })).status === 200);
 for (const date of ["2026-02-29", "2026-04-31", "2026-13-01", "2026-00-10"]) {
   check("Reject invalid calendar date: " + date, (await teacher.call("admin/attendance?courseId=" + courseId + "&date=" + date)).status === 400);
