@@ -315,6 +315,28 @@ check("แก้คะแนนแล้วพัฒนาการคิดใ�
 check("เจ้าของลบคะแนนได้", (await owner.call(`admin/assessments/${preId}`, {}, "DELETE")).status === 200);
 check("ลบใบก่อนเรียนแล้ว สรุปพัฒนาการไม่ได้", (await owner.call(`admin/assessments?courseId=${courseId}`)).data.rows.find((x) => x.studentId === student.id)?.gain === null);
 
+// ---------- I6: ปฏิทินการเรียน + เหลือกี่สัปดาห์ ----------
+// คอร์สหลักสร้างไว้วันเสาร์ 09:00-10:30 — หาวันเสาร์ล่าสุดเพื่อใช้เป็นวันเริ่มคอร์ส
+const sat = (() => { const d = new Date(`${today}T00:00:00.000Z`); while (d.getUTCDay() !== 6) d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); })();
+const courseBody = { name: "คณิต ป.2 เสาร์", subject: "math", grades: [2], pricePerTerm: 3500, weekday: 6, startTime: "09:00", endTime: "10:30", capacity: 10, room: "ห้อง 1", teacherId: kruId, active: true };
+check("วันเริ่มคอร์สไม่ตรงวันเรียน → 400", (await owner.call(`admin/courses/${courseId}`, { ...courseBody, startDate: `${sat.slice(0, 8)}${String(Number(sat.slice(8)) + 1).padStart(2, "0")}`, weeks: 12 }, "PATCH")).status === 400);
+check("จำนวนสัปดาห์เกิน 52 → 400", (await owner.call(`admin/courses/${courseId}`, { ...courseBody, startDate: sat, weeks: 60 }, "PATCH")).status === 400);
+r = await owner.call(`admin/courses/${courseId}`, { ...courseBody, startDate: sat, weeks: 12 }, "PATCH");
+check("ตั้งวันเริ่มคอร์ส + 12 สัปดาห์", r.data.course?.startDate === sat && r.data.course?.weeks === 12);
+r = await teacher.call("admin/calendar");
+const planned = r.data.courses?.find((c) => c.id === courseId);
+check("ปฏิทิน: เรียนไปแล้ว 1 คาบ เหลือ 11 สัปดาห์", planned?.done === 1 && planned?.left === 11 && planned?.total === 12, JSON.stringify(planned && { done: planned.done, left: planned.left, end: planned.endDate }));
+check("ช่องปฏิทินเดือนนี้หารด้วย 7 ลงตัว และมีคาบเรียนอย่างน้อย 1 วัน", r.data.cells?.length % 7 === 0 && r.data.cells.some((c) => c.sessions.length > 0));
+check("คอร์สที่ยังไม่ตั้งวันเริ่ม ขึ้นเตือน", Array.isArray(r.data.unplanned) && r.data.unplanned.length >= 1);
+check("เดือนผิดรูปแบบ → 400", (await teacher.call("admin/calendar?month=2026-13")).status === 400);
+r = await parent.call("parent/overview");
+const sched = r.data.children?.[0]?.schedule?.[0];
+check("ผู้ปกครองเห็นตารางเรียนของลูก: วันเสาร์ 09:00-10:30 เหลือ 11 สัปดาห์", sched?.weekdayName === "เสาร์" && sched?.startTime === "09:00" && sched?.left === 11 && sched?.upcoming?.length > 0, JSON.stringify(sched && { day: sched.weekdayName, left: sched.left }));
+r = await teacher.call("admin/reports", { dataset: "schedule" });
+check("รายงานตารางเรียนรายคน (ไว้ export Excel)", r.data.rows?.some((x) => x.course === "คณิต ป.2 เสาร์" && x.left === 11 && x.day === "เสาร์"), JSON.stringify(r.data.rows?.[0]));
+r = await teacher.call("admin/reports", { dataset: "sessions", from: sat, to: `${sat.slice(0, 8)}28` });
+check("รายงานปฏิทินคาบเรียนตามช่วงวันที่", r.data.rows?.length >= 1 && r.data.rows[0].time === "09:00-10:30");
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});

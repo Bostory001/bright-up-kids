@@ -1,8 +1,9 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { AppUser, Assessment, Attendance, Course, Invoice, Notification, Slip, Student } from "../../types";
+import type { AppUser, Assessment, Attendance, Course, Enrollment, Invoice, Notification, Slip, Student } from "../../types";
 import { publicStudent } from "../auth";
 import { progressOf } from "../../assessment";
+import { courseProgress, sessionDates, WEEKDAY_TH } from "../../schedule";
 import { notifyParent } from "../notify";
 import { route, STAFF } from "../router";
 import type { Store } from "../store";
@@ -13,12 +14,13 @@ const PARENT = ["parent"] as const;
 
 route("GET", "parent/overview", PARENT, async ({ store, me }) => {
   const children = (await store.list<Student>("students", { parentId: me!.id })).filter((s) => s.active);
-  const [summaries, invoices, attendance, courses, assessments] = await Promise.all([
+  const [summaries, invoices, attendance, courses, assessments, enrollments] = await Promise.all([
     summarizeStudents(store, children, 7),
     store.list<Invoice>("invoices"),
     store.list<Attendance>("attendance"),
     store.list<Course>("courses"),
     store.list<Assessment>("assessments"),
+    store.list<Enrollment>("enrollments", { status: "active" }),
   ]);
   const today = bkkDate();
   return {
@@ -26,6 +28,23 @@ route("GET", "parent/overview", PARENT, async ({ store, me }) => {
     children: children.map((s) => ({
       ...publicStudent(s),
       summary: summaries.find((x) => x.studentId === s.id),
+      // ตารางเรียน: คอร์สที่ลงไว้ เรียนวันไหน กี่โมง และอีกกี่สัปดาห์จบคอร์ส
+      schedule: enrollments
+        .filter((e) => e.studentId === s.id)
+        .map((e) => courses.find((c) => c.id === e.courseId))
+        .filter((c): c is Course => Boolean(c))
+        .map((c) => ({
+          course: c.name,
+          weekday: c.weekday,
+          weekdayName: WEEKDAY_TH[c.weekday],
+          startTime: c.startTime,
+          endTime: c.endTime,
+          room: c.room,
+          ...courseProgress(c, today),
+          // วันเรียนครั้งถัด ๆ ไป ไว้ให้ผู้ปกครองวางแผน
+          upcoming: sessionDates(c).filter((d) => d >= today).slice(0, 6),
+        }))
+        .sort((a, b) => a.weekday - b.weekday || a.startTime.localeCompare(b.startTime)),
       // พัฒนาการจากคะแนนวัดระดับ แยกตามคอร์ส — ผู้ปกครองเห็นว่าจ่ายค่าเรียนแล้วลูกดีขึ้นแค่ไหน
       progress: [...new Set(assessments.filter((a) => a.studentId === s.id).map((a) => a.courseId ?? ""))].map((courseId) => ({
         course: courses.find((c) => c.id === courseId)?.name ?? "วัดระดับทั่วไป",

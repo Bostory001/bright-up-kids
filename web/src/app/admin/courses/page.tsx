@@ -115,6 +115,12 @@ export default function CoursesPage() {
               ))}
             </Select>
           </Field>
+          <Field label="วันเริ่มคอร์ส">
+            <Input type="date" value={editing.startDate ?? ""} onChange={(e) => setEditing({ ...editing, startDate: e.target.value })} />
+          </Field>
+          <Field label="เรียนกี่สัปดาห์">
+            <Input type="number" value={editing.weeks ?? ""} onChange={(e) => setEditing({ ...editing, weeks: e.target.value === "" ? undefined : Number(e.target.value) })} placeholder="12" />
+          </Field>
           <Field label="ห้องเรียน">
             <Input value={editing.room ?? ""} onChange={(e) => setEditing({ ...editing, room: e.target.value })} placeholder="ห้อง 1" />
           </Field>

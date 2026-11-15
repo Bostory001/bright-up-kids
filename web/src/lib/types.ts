@@ -133,6 +133,10 @@ export interface Course {
   teacherName?: string;
   /** ห้องเรียน เช่น "ห้อง 1" — ใช้ตรวจว่าสองคอร์สจองห้องเดียวกันเวลาชนกันไหม */
   room?: string;
+  /** วันเริ่มคอร์ส (เวลาไทย) — ต้องตรงกับ weekday ที่ตั้งไว้ */
+  startDate?: string;
+  /** เรียนกี่สัปดาห์ถึงจบคอร์ส (1 สัปดาห์ = 1 คาบ) */
+  weeks?: number;
   capacity: number;
   active: boolean;
 }

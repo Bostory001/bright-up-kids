@@ -19,7 +19,25 @@ interface Child {
   recentAttendance: { date: string; course: string; status: AttStatus }[];
   invoices: Invoice[];
   progress: { course: string; prePercent: number | null; postPercent: number | null; gain: number | null }[];
+  schedule: {
+    course: string;
+    weekdayName: string;
+    startTime: string;
+    endTime: string;
+    room?: string;
+    planned: boolean;
+    total: number;
+    done: number;
+    left: number;
+    startDate?: string;
+    endDate?: string;
+    nextDate?: string;
+    finished: boolean;
+    upcoming: string[];
+  }[];
 }
+
+const thaiDay = (d?: string) => (d ? new Date(`${d}T00:00:00`).toLocaleDateString("th-TH", { weekday: "short", day: "numeric", month: "short" }) : "—");
 
 // ย่อรูปสลิปในเครื่องก่อนส่ง (ด้านยาว ≤ 1000px, JPEG) ให้เล็กพอเก็บในฐานข้อมูล
 async function shrinkImage(file: File): Promise<string> {
@@ -172,6 +190,35 @@ export default function ParentPage() {
               </div>
             ))}
           </div>
+
+          {c.schedule.length > 0 && (
+            <div className="rounded-xl bg-sky-50 p-3">
+              <b className="text-sm">ตารางเรียนของน้อง{c.nickname}</b>
+              {c.schedule.map((s) => (
+                <div key={s.course} className="mt-2 text-sm">
+                  <div className="font-medium">
+                    {s.course} · ทุกวัน{s.weekdayName} {s.startTime}–{s.endTime}
+                    {s.room ? ` · ${s.room}` : ""}
+                  </div>
+                  {s.planned ? (
+                    <>
+                      <div className="text-gray-700">
+                        {s.finished
+                          ? `เรียนครบ ${s.total} สัปดาห์แล้ว (จบ ${thaiDay(s.endDate)})`
+                          : `เรียนแล้ว ${s.done}/${s.total} สัปดาห์ · เหลืออีก ${s.left} สัปดาห์ · จบคอร์ส ${thaiDay(s.endDate)}`}
+                      </div>
+                      <div className="mt-1 h-2 rounded-full bg-white">
+                        <div className="h-2 rounded-full bg-sky-500" style={{ width: `${s.total ? Math.min(100, (s.done / s.total) * 100) : 0}%` }} />
+                      </div>
+                      {!s.finished && s.upcoming.length > 0 && <div className="mt-1 text-xs text-gray-600">วันเรียนถัดไป: {s.upcoming.map(thaiDay).join(" · ")}</div>}
+                    </>
+                  ) : (
+                    <div className="text-xs text-gray-500">ยังไม่ได้กำหนดวันเริ่มคอร์ส</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {c.progress.some((p) => p.prePercent !== null || p.postPercent !== null) && (
             <div className="rounded-xl bg-amber-50 p-3">

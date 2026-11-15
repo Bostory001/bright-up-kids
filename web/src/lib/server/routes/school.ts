@@ -1,5 +1,6 @@
 import "server-only";
 import { summarizeMonth } from "../../finance";
+import { WEEKDAY_TH, weekdayOf } from "../../schedule";
 import { getSettings } from "../settings";
 import type { AppUser, AuthSession, Application, Attendance, Course, Enrollment, Expense, Grade, Invoice, Redemption, Slip, Student } from "../../types";
 import { hashSecret, publicStudent } from "../auth";
@@ -58,9 +59,18 @@ function courseFrom(body: Ctx["body"], id: string): Course {
   const weekday = num(body.weekday, "วันเรียน", 0, 6);
   const capacity = num(body.capacity, "จำนวนที่รับ", 1, 500);
   if (!Number.isInteger(weekday) || !Number.isInteger(capacity)) throw new HttpError(400, "วันเรียนและจำนวนที่รับต้องเป็นจำนวนเต็ม");
+  // วันเริ่มคอร์สต้องตรงกับวันเรียนประจำสัปดาห์ ไม่งั้นปฏิทินจะเพี้ยนทั้งคอร์ส
+  const startDate = body.startDate ? dateStr(body.startDate, "วันเริ่มคอร์ส") : undefined;
+  if (startDate && weekdayOf(startDate) !== weekday) {
+    throw new HttpError(400, `วันเริ่มคอร์สต้องเป็นวัน${WEEKDAY_TH[weekday]} ให้ตรงกับวันเรียน`);
+  }
+  const weeks = body.weeks === undefined || body.weeks === "" ? undefined : num(body.weeks, "จำนวนสัปดาห์", 1, 52);
+  if (weeks !== undefined && !Number.isInteger(weeks)) throw new HttpError(400, "จำนวนสัปดาห์ต้องเป็นจำนวนเต็ม");
   return {
     id,
     name: str(body.name, "ชื่อคอร์ส", 100),
+    startDate,
+    weeks,
     subject: oneOf(body.subject, SUBJECTS, "วิชา"),
     grades,
     pricePerTerm: num(body.pricePerTerm, "ค่าเรียน", 0, 1_000_000),

@@ -369,6 +369,18 @@
         "description": "ห้องเรียน เช่น \"ห้อง 1\" — ใช้ตรวจว่าสองคอร์สจองห้องเดียวกันเวลาชนกันไหม"
       },
       {
+        "name": "startDate",
+        "type": "string",
+        "required": false,
+        "description": "วันเริ่มคอร์ส (เวลาไทย) — ต้องตรงกับ weekday ที่ตั้งไว้"
+      },
+      {
+        "name": "weeks",
+        "type": "number",
+        "required": false,
+        "description": "เรียนกี่สัปดาห์ถึงจบคอร์ส (1 สัปดาห์ = 1 คาบ)"
+      },
+      {
         "name": "capacity",
         "type": "number",
         "required": true,

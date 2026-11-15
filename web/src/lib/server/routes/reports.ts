@@ -1,5 +1,6 @@
 import "server-only";
 import { EXPENSE_CATEGORIES, EXPENSE_KINDS, summarizeRange } from "../../finance";
+import { courseProgress, sessionDates, WEEKDAY_TH } from "../../schedule";
 import { getSettings } from "../settings";
 import type { AppUser, Attempt, Attendance, Course, Enrollment, Exercise, Expense, Invoice, Redemption, Student } from "../../types";
 import { route, STAFF } from "../router";
@@ -161,6 +162,84 @@ export const DATASETS: Record<string, Dataset> = {
             const royalty = Math.round(m.amount * royaltyPercent) / 100;
             return { month, count: m.count, amount: m.amount, royalty, net: m.amount - royalty };
           }),
+      };
+    },
+  },
+  schedule: {
+    label: "ตารางเรียนรายคน (เหลือกี่สัปดาห์)",
+    usesDates: false,
+    async build(store) {
+      const today = bkkDate();
+      const [students, courses, enrollments] = await Promise.all([
+        store.list<Student>("students"),
+        store.list<Course>("courses"),
+        store.list<Enrollment>("enrollments", { status: "active" }),
+      ]);
+      return {
+        columns: [
+          col("code", "รหัสนักเรียน"),
+          col("nickname", "ชื่อเล่น"),
+          col("grade", "ชั้น"),
+          col("course", "คอร์ส"),
+          col("day", "วันเรียน"),
+          col("time", "เวลา"),
+          col("room", "ห้อง"),
+          col("start", "วันเริ่ม"),
+          col("end", "วันจบคอร์ส"),
+          col("done", "เรียนแล้ว (สัปดาห์)"),
+          col("total", "ทั้งหมด (สัปดาห์)"),
+          col("left", "เหลือ (สัปดาห์)"),
+        ],
+        rows: enrollments
+          .map((e) => ({ s: students.find((x) => x.id === e.studentId), c: courses.find((x) => x.id === e.courseId) }))
+          .filter((x) => x.s && x.c)
+          .map(({ s, c }) => {
+            const p = courseProgress(c!, today);
+            return {
+              code: s!.code,
+              nickname: s!.nickname,
+              grade: `ป.${s!.grade}`,
+              course: c!.name,
+              day: WEEKDAY_TH[c!.weekday],
+              time: `${c!.startTime}-${c!.endTime}`,
+              room: c!.room ?? "",
+              start: p.startDate ?? "ยังไม่กำหนด",
+              end: p.endDate ?? "ยังไม่กำหนด",
+              done: p.planned ? p.done : "",
+              total: p.planned ? p.total : "",
+              left: p.planned ? p.left : "",
+            };
+          })
+          .sort((a, b) => a.code.localeCompare(b.code) || a.course.localeCompare(b.course)),
+      };
+    },
+  },
+  sessions: {
+    label: "ปฏิทินคาบเรียน (ตามช่วงวันที่)",
+    usesDates: true,
+    async build(store, from, to) {
+      const [courses, enrollments, attendance] = await Promise.all([
+        store.list<Course>("courses"),
+        store.list<Enrollment>("enrollments", { status: "active" }),
+        store.list<Attendance>("attendance"),
+      ]);
+      const rows: Row[] = [];
+      for (const c of courses.filter((x) => x.active)) {
+        for (const date of sessionDates(c).filter((d) => d >= from && d <= to)) {
+          rows.push({
+            date,
+            day: WEEKDAY_TH[c.weekday],
+            course: c.name,
+            time: `${c.startTime}-${c.endTime}`,
+            room: c.room ?? "",
+            students: enrollments.filter((e) => e.courseId === c.id).length,
+            checked: attendance.filter((a) => a.courseId === c.id && a.date === date).length,
+          });
+        }
+      }
+      return {
+        columns: [col("date", "วันที่"), col("day", "วัน"), col("course", "คอร์ส"), col("time", "เวลา"), col("room", "ห้อง"), col("students", "นักเรียนที่ลงเรียน"), col("checked", "เช็กชื่อแล้ว")],
+        rows: rows.sort((a, b) => String(a.date).localeCompare(String(b.date)) || String(a.time).localeCompare(String(b.time))),
       };
     },
   },

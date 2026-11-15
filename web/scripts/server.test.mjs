@@ -32,6 +32,7 @@ const { starterExercises } = await import("../src/lib/server/seed-exercises.ts")
 const { summarizeMonth, summarizeRange, EXPENSE_CATEGORIES, payrollForMonth, courseHours } = await import("../src/lib/finance.ts");
 const { overlaps, findConflicts, weeklyGrid } = await import("../src/lib/timetable.ts");
 const { percent, progressOf, averageGain } = await import("../src/lib/assessment.ts");
+const { sessionDates, courseProgress, monthGrid, addDays } = await import("../src/lib/schedule.ts");
 
 // กฎที่ผิดแล้วชุดโจทย์ใช้ไม่ได้เลย — ดู .claude/skills/exercise-authoring ข้อ 4 และ 8
 // ข้อที่ "ควรปรับ" (ขนาดชุด ตำแหน่งคำตอบกระจุก) อยู่ใน npm run audit:exercises
@@ -305,4 +306,45 @@ test("progress compares pre and post as percentages, not raw scores", () => {
   assert.equal(avg.counted, 2, "คนที่มีแต่ก่อนเรียนต้องไม่ถูกนับในค่าเฉลี่ย");
   assert.equal(avg.improved, 1);
   assert.equal(avg.average, 12.5, "(+35 และ -10) / 2");
+});
+
+// ผู้ปกครองวางแผนจากตัวเลขนี้ — นับสัปดาห์ผิดคือบอกวันจบคอร์สผิด
+test("course runs weekly from its start date and counts weeks left", () => {
+  assert.equal(addDays("2026-11-28", 7), "2026-12-05", "ข้ามสิ้นเดือนต้องไม่เพี้ยน");
+  assert.equal(addDays("2026-12-28", 7), "2027-01-04", "ข้ามปีต้องไม่เพี้ยน");
+
+  const course = { startDate: "2026-10-03", weeks: 12 }; // เสาร์
+  const dates = sessionDates(course);
+  assert.equal(dates.length, 12);
+  assert.equal(dates[0], "2026-10-03");
+  assert.equal(dates[11], "2026-12-19");
+  assert.ok(dates.every((d) => new Date(`${d}T00:00:00.000Z`).getUTCDay() === 6), "ทุกคาบต้องเป็นวันเสาร์");
+
+  const mid = courseProgress(course, "2026-11-15");
+  assert.equal(mid.planned, true);
+  assert.equal(mid.done, 7, "ถึง 15 พ.ย. เรียนไปแล้ว 7 คาบ");
+  assert.equal(mid.left, 5);
+  assert.equal(mid.endDate, "2026-12-19");
+  assert.equal(mid.nextDate, "2026-11-21");
+  assert.equal(mid.finished, false);
+
+  const onSessionDay = courseProgress(course, "2026-10-03");
+  assert.equal(onSessionDay.done, 1, "วันเรียนวันแรกนับเป็นเรียนแล้ว");
+  assert.equal(onSessionDay.nextDate, "2026-10-03", "คาบถัดไปคือวันนี้");
+
+  const after = courseProgress(course, "2027-01-01");
+  assert.equal(after.finished, true);
+  assert.equal(after.left, 0);
+  assert.equal(after.nextDate, undefined);
+
+  assert.equal(courseProgress({}, "2026-11-15").planned, false, "ยังไม่ตั้งวันเริ่ม ต้องไม่เดา");
+  assert.equal(sessionDates({ startDate: "2026-10-03" }).length, 0);
+
+  // ปฏิทินเดือน: ช่องว่างหน้า-หลัง และจำนวนช่องต้องหารด้วย 7 ลงตัว
+  const grid = monthGrid("2026-11"); // 1 พ.ย. 2026 เป็นวันอาทิตย์
+  assert.equal(grid.length % 7, 0);
+  assert.equal(grid[0], "2026-11-01");
+  assert.equal(grid.filter(Boolean).length, 30);
+  const feb = monthGrid("2028-02"); // ปีอธิกสุรทิน
+  assert.equal(feb.filter(Boolean).length, 29);
 });
