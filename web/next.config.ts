@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // ตัวชี้ว่าอัปเกรดความปลอดภัยรอบนี้ทำโดยคำสั่ง next upgrade --agent=security แล้ว
+  experimental: { agentUpgrade: "security" },
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
