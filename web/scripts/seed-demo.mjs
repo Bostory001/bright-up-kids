@@ -64,7 +64,9 @@ if (RESET) {
   for (const col of COLLECTIONS) {
     const docs = await store.list(col);
     for (const d of docs) {
-      if (typeof d.id === "string" && d.id.startsWith("demo-")) {
+      // แจ้งเตือนที่ระบบสร้างให้ผู้ปกครองตัวอย่าง id ไม่ได้ขึ้นต้น demo- จึงต้องดูที่ปลายทางด้วย
+      const isDemo = (typeof d.id === "string" && d.id.startsWith("demo-")) || (typeof d.parentId === "string" && d.parentId.startsWith("demo-"));
+      if (isDemo) {
         await store.remove(col, d.id);
         removed++;
       }
