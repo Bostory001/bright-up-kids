@@ -511,6 +511,24 @@ check(
   "Still reject https origin from another host behind proxy",
   (await anon.call("auth/login", { username: "x", password: "x" }, "POST", { origin: "https://evil.example", "x-forwarded-proto": "https" })).status === 403,
 );
+// เคสจริงบน Cloud Run: header host = <service>.run.app ส่วนโดเมนที่ผู้ใช้เปิดอยู่ที่ x-forwarded-host
+// เคยทำให้ล็อกอินบนเว็บจริงไม่ได้เลยทั้งที่รหัสถูก
+check(
+  "Accept request whose real domain is in x-forwarded-host",
+  (await anon.call("auth/login", { username: "ไม่มีคนนี้", password: "x" }, "POST", {
+    origin: "https://bright-up-kids--example.asia-southeast1.hosted.app",
+    "x-forwarded-host": "bright-up-kids--example.asia-southeast1.hosted.app",
+    "x-forwarded-proto": "https",
+  })).status === 401,
+);
+check(
+  "Still reject when neither host nor x-forwarded-host matches",
+  (await anon.call("auth/login", { username: "x", password: "x" }, "POST", {
+    origin: "https://evil.example",
+    "x-forwarded-host": "bright-up-kids--example.asia-southeast1.hosted.app",
+    "x-forwarded-proto": "https",
+  })).status === 403,
+);
 check("Accept same-origin request", (await anon.call("auth/logout", {}, "POST", { origin: new URL(BASE).origin })).status === 200);
 for (const date of ["2026-02-29", "2026-04-31", "2026-13-01", "2026-00-10"]) {
   check("Reject invalid calendar date: " + date, (await teacher.call("admin/attendance?courseId=" + courseId + "&date=" + date)).status === 400);
