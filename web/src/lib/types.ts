@@ -6,6 +6,8 @@ export type Grade = 1 | 2 | 3 | 4 | 5 | 6;
 export type Subject = "math" | "thai" | "english" | "science";
 export type Role = "owner" | "teacher" | "parent" | "student";
 export type AssessmentKind = "pre" | "progress" | "post";
+/** หลักสูตรที่นักเรียนเรียนอยู่ที่โรงเรียน: สามัญ(ไทย) / English Program / Inter */
+export type SchoolProgram = "thai" | "ep" | "inter";
 export type ExpenseKind = "operating" | "supply";
 export type ExpenseCategory =
   | "teacher"      // ค่าจ้างครู
@@ -81,9 +83,33 @@ export interface Application {
   nickname: string;
   grade: Grade;
   school?: string;
+  /** ชื่อ-สกุลภาษาอังกฤษ (ไว้ออกใบรับรอง/สื่อสารกับโรงเรียนอินเตอร์) */
+  englishName?: string;
+  /** วันเกิด (YYYY-MM-DD) */
+  birthDate?: string;
+  email?: string;
+  lineId?: string;
+  facebook?: string;
+  /** หลักสูตรที่เรียนอยู่ที่โรงเรียน */
+  program?: SchoolProgram;
+  /** โรงเรียน/มหาวิทยาลัยที่ตั้งใจสอบเข้า */
+  targetSchool?: string;
+  /** ที่อยู่: บ้านเลขที่/หมู่/ซอย/ถนน รวมเป็นบรรทัดเดียว */
+  addressLine?: string;
+  subdistrict?: string;
+  district?: string;
+  province?: string;
+  postcode?: string;
+  /** เบอร์บ้าน หรือเบอร์สำรองของผู้ปกครองอีกคน */
+  altPhone?: string;
+  /** รู้จักสถาบันจากไหน */
+  source?: string;
+  note?: string;
   courseIds: string[];
   /** เวลาที่ผู้ปกครองกดยินยอม PDPA */
   pdpaConsentAt: string;
+  /** ยินยอมให้ใช้ภาพ/วิดีโอของนักเรียนในสื่อประชาสัมพันธ์ — แยกจากการยินยอมเก็บข้อมูล และไม่บังคับ */
+  photoConsentAt?: string;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
 }

@@ -187,6 +187,96 @@
         "description": ""
       },
       {
+        "name": "englishName",
+        "type": "string",
+        "required": false,
+        "description": "ชื่อ-สกุลภาษาอังกฤษ (ไว้ออกใบรับรอง/สื่อสารกับโรงเรียนอินเตอร์)"
+      },
+      {
+        "name": "birthDate",
+        "type": "string",
+        "required": false,
+        "description": "วันเกิด (YYYY-MM-DD)"
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "lineId",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "facebook",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "program",
+        "type": "SchoolProgram",
+        "required": false,
+        "description": "หลักสูตรที่เรียนอยู่ที่โรงเรียน"
+      },
+      {
+        "name": "targetSchool",
+        "type": "string",
+        "required": false,
+        "description": "โรงเรียน/มหาวิทยาลัยที่ตั้งใจสอบเข้า"
+      },
+      {
+        "name": "addressLine",
+        "type": "string",
+        "required": false,
+        "description": "ที่อยู่: บ้านเลขที่/หมู่/ซอย/ถนน รวมเป็นบรรทัดเดียว"
+      },
+      {
+        "name": "subdistrict",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "district",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "province",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "postcode",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "altPhone",
+        "type": "string",
+        "required": false,
+        "description": "เบอร์บ้าน หรือเบอร์สำรองของผู้ปกครองอีกคน"
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "required": false,
+        "description": "รู้จักสถาบันจากไหน"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
         "name": "courseIds",
         "type": "string[]",
         "required": true,
@@ -197,6 +287,12 @@
         "type": "string",
         "required": true,
         "description": "เวลาที่ผู้ปกครองกดยินยอม PDPA"
+      },
+      {
+        "name": "photoConsentAt",
+        "type": "string",
+        "required": false,
+        "description": "ยินยอมให้ใช้ภาพ/วิดีโอของนักเรียนในสื่อประชาสัมพันธ์ — แยกจากการยินยอมเก็บข้อมูล และไม่บังคับ"
       },
       {
         "name": "status",

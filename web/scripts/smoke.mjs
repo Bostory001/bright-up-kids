@@ -397,6 +397,30 @@ check("เจ้าของเลือกดูของครูคนอื�
 check("เจ้าของที่ไม่ได้สอนเอง เปิดมาเจอครูที่มีคอร์สเลย", (await owner.call("admin/teacher-sheet")).data.teacherId === kruId);
 check("ครูที่ไม่มีคอร์ส → รายการว่าง ไม่ error", (await owner.call("admin/teacher-sheet?teacherId=ไม่มีคนนี้")).data.courses?.length === 0);
 
+// ---------- I8: ใบสมัครออนไลน์แบบเต็ม (ตามใบสมัครกระดาษ) ----------
+const fullApp = {
+  parentName: "แม่กุ้ง", phone: "0899991234", altPhone: "021234567",
+  studentFullName: "ด.ช.ทดสอบ เต็มใบ", englishName: "Test Fullform", nickname: "เต็ม", grade: 3,
+  birthDate: "2018-05-10", school: "โรงเรียนทดสอบ", program: "ep", targetSchool: "สาธิตฯ",
+  email: "test@example.com", lineId: "line-test", facebook: "fb-test",
+  addressLine: "99/1 หมู่ 2", subdistrict: "บางพลีใหญ่", district: "บางพลี", province: "สมุทรปราการ", postcode: "10540",
+  source: "เพื่อนแนะนำ", note: "น้องแพ้นมวัว", courseIds: [courseId], pdpaConsent: true, photoConsent: true,
+};
+check("ส่งใบสมัครออนไลน์แบบกรอกครบ", (await anon.call("public/enroll", fullApp)).status === 200);
+r = await teacher.call("admin/applications");
+const saved = r.data.applications?.find((x) => x.nickname === "เต็ม");
+check("เก็บช่องจากใบสมัครกระดาษครบ", saved?.englishName === "Test Fullform" && saved?.program === "ep" && saved?.postcode === "10540" && saved?.lineId === "line-test" && saved?.note === "น้องแพ้นมวัว", JSON.stringify(saved && { en: saved.englishName, program: saved.program, post: saved.postcode }));
+check("ยินยอมใช้ภาพบันทึกแยกจากยินยอม PDPA", Boolean(saved?.photoConsentAt) && Boolean(saved?.pdpaConsentAt));
+// ฟอร์มสมัครจำกัด 5 ครั้ง/ชม./IP — เรียงให้เคสที่ต้องสำเร็จมาก่อนเคสที่ตั้งใจให้ผิด
+r = await anon.call("public/enroll", { parentName: "แม่น้อย", phone: "0899995678", studentFullName: "ด.ญ.ขั้นต่ำ ทดสอบ", nickname: "น้อย", grade: 2, courseIds: [courseId], pdpaConsent: true });
+check("กรอกเฉพาะช่องบังคับก็สมัครได้ (ช่องเพิ่มเติมไม่บังคับ)", r.status === 200, JSON.stringify(r.data));
+const minimal = (await teacher.call("admin/applications")).data.applications?.find((x) => x.nickname === "น้อย");
+check("ไม่ติ๊กยินยอมใช้ภาพ → ไม่บันทึกว่ายินยอม", minimal?.photoConsentAt === undefined && Boolean(minimal?.pdpaConsentAt));
+// เคสที่ตั้งใจให้ผิด ยิงจาก IP สมมติคนละตัว จะได้ไม่ไปกินโควตา 5 ครั้ง/ชม. ของผู้สมัครจริง
+check("หลักสูตรนอกรายการ → 400", (await anon.call("public/enroll", { ...fullApp, nickname: "ผิด", program: "ไม่มีหลักสูตรนี้" }, "POST", { "x-forwarded-for": "203.0.113.11" })).status === 400);
+check("วันเกิดไม่ใช่วันที่ → 400", (await anon.call("public/enroll", { ...fullApp, nickname: "ผิด2", birthDate: "31/12/2018" }, "POST", { "x-forwarded-for": "203.0.113.12" })).status === 400);
+check("ส่งใบสมัครรัว ๆ จาก IP เดียว → 429 (กัน spam)", (await (async () => { let last; for (let i = 0; i < 6; i++) last = await anon.call("public/enroll", { ...fullApp, nickname: `รัว${i}` }, "POST", { "x-forwarded-for": "203.0.113.20" }); return last; })()).status === 429);
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});

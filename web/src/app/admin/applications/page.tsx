@@ -6,6 +6,25 @@ import { api, useLoad } from "@/lib/client/api";
 import type { Application } from "@/lib/types";
 
 const STATUS = { pending: ["amber", "รออนุมัติ"], approved: ["green", "อนุมัติแล้ว"], rejected: ["gray", "ปฏิเสธ"] } as const;
+const PROGRAM = { thai: "ภาคสามัญ (ไทย)", ep: "English Program", inter: "Inter" };
+
+// ช่องที่ผู้ปกครองกรอกเพิ่มในใบสมัคร — แสดงเฉพาะช่องที่กรอกมาจริง
+function detailLines(a: Application): [string, string][] {
+  const address = [a.addressLine, a.subdistrict, a.district, a.province, a.postcode].filter(Boolean).join(" ");
+  return ([
+    ["ชื่ออังกฤษ", a.englishName],
+    ["วันเกิด", a.birthDate],
+    ["หลักสูตรที่โรงเรียน", a.program ? PROGRAM[a.program] : undefined],
+    ["ตั้งใจสอบเข้า", a.targetSchool],
+    ["ที่อยู่", address || undefined],
+    ["อีเมล", a.email],
+    ["Line ID", a.lineId],
+    ["Facebook", a.facebook],
+    ["เบอร์สำรอง", a.altPhone],
+    ["รู้จักจาก", a.source],
+    ["หมายเหตุจากผู้ปกครอง", a.note],
+  ] as [string, string | undefined][]).filter((x): x is [string, string] => Boolean(x[1]));
+}
 
 export default function ApplicationsPage() {
   const { data, error, reload } = useLoad<{ applications: Application[]; defaultTerm: string }>("admin/applications");
@@ -61,7 +80,21 @@ export default function ApplicationsPage() {
             คอร์ส: {a.courseIds.map(courseName).join(", ")}
             <br />
             สมัครเมื่อ {new Date(a.createdAt).toLocaleString("th-TH")} · ยินยอม PDPA แล้ว
+            {a.photoConsentAt ? " · ยินยอมให้ใช้ภาพในสื่อ" : " · ไม่ยินยอมให้ใช้ภาพในสื่อ"}
           </div>
+          {detailLines(a).length > 0 && (
+            <details className="text-sm">
+              <summary className="cursor-pointer font-medium text-gray-600">ข้อมูลเพิ่มเติมจากใบสมัคร</summary>
+              <dl className="mt-1 grid grid-cols-[9rem_1fr] gap-x-3 gap-y-0.5 text-gray-700">
+                {detailLines(a).map(([k, v]) => (
+                  <div key={k} className="contents">
+                    <dt className="text-gray-500">{k}</dt>
+                    <dd>{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </details>
+          )}
           {a.status === "pending" && (
             <div className="flex gap-2">
               <Button onClick={() => act(a.id, "approve")}>อนุมัติ</Button>

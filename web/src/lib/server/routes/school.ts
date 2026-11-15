@@ -10,6 +10,7 @@ import type { Store } from "../store";
 import { bkkDate, dateStr, HttpError, newId, nowIso, num, oneOf, optStr, randomDigits, str } from "../util";
 
 const GRADES = [1, 2, 3, 4, 5, 6] as const;
+const PROGRAMS = ["thai", "ep", "inter"] as const;
 const SUBJECTS = ["math", "thai", "english", "science"] as const;
 const WEEKDAYS = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 const STATUS_TH: Record<Attendance["status"], string> = { present: "มาเรียน", late: "มาสาย", absent: "ขาดเรียน", leave: "ลา" };
@@ -137,8 +138,25 @@ route("POST", "public/enroll", "public", async ({ store, body, req }) => {
     nickname: str(body.nickname, "ชื่อเล่น", 30),
     grade: oneOf(Number(body.grade), GRADES, "ชั้น") as Grade,
     school: optStr(body.school, 100),
+    englishName: optStr(body.englishName, 100),
+    birthDate: body.birthDate ? dateStr(body.birthDate, "วันเกิด") : undefined,
+    email: optStr(body.email, 120),
+    lineId: optStr(body.lineId, 60),
+    facebook: optStr(body.facebook, 120),
+    program: body.program ? oneOf(body.program, PROGRAMS, "หลักสูตรที่โรงเรียน") : undefined,
+    targetSchool: optStr(body.targetSchool, 150),
+    addressLine: optStr(body.addressLine, 200),
+    subdistrict: optStr(body.subdistrict, 80),
+    district: optStr(body.district, 80),
+    province: optStr(body.province, 80),
+    postcode: optStr(body.postcode, 10),
+    altPhone: optStr(body.altPhone, 20),
+    source: optStr(body.source, 80),
+    note: optStr(body.note, 500),
     courseIds,
     pdpaConsentAt: nowIso(),
+    // ยินยอมเรื่องภาพแยกต่างหาก ไม่ยินยอมก็สมัครได้ (PDPA: ห้ามมัดรวมกับการยินยอมหลัก)
+    photoConsentAt: body.photoConsent === true ? nowIso() : undefined,
     status: "pending",
     createdAt: nowIso(),
   };
