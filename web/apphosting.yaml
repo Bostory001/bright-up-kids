@@ -24,3 +24,8 @@ env:
     value: "1"
     availability:
       - BUILD
+  # กุญแจที่ Cloud Scheduler ต้องแนบมาตอนเรียก /api/cron/weekly (เก็บใน Secret Manager ไม่ได้อยู่ในโค้ด)
+  - variable: CRON_SECRET
+    secret: CRON_SECRET
+    availability:
+      - RUNTIME
