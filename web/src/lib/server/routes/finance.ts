@@ -1,6 +1,7 @@
 import "server-only";
 import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_KEYS, payrollForMonth, summarizeMonth } from "../../finance";
-import type { AppUser, Attendance, Course, Expense, Invoice, Receipt } from "../../types";
+import { findConflicts } from "../../timetable";
+import type { AppUser, Attendance, Course, Enrollment, Expense, Invoice, Receipt } from "../../types";
 import { OWNER, route, STAFF } from "../router";
 import { getSettings } from "../settings";
 import { bkkDate, dateStr, HttpError, newId, nowIso, num, oneOf, optStr, str } from "../util";
@@ -161,4 +162,38 @@ route("POST", "admin/payroll", OWNER, async ({ store, body, me }) => {
   };
   await store.set("expenses", expense);
   return { expense };
+});
+
+// ---------- ตารางสอนรายสัปดาห์ ----------
+// อยู่ไฟล์นี้เพราะใช้ข้อมูลครูชุดเดียวกับค่าจ้าง · ครูดูได้ (ไม่มีเรื่องเงิน)
+
+route("GET", "admin/timetable", STAFF, async ({ store }) => {
+  const [courses, enrollments, users] = await Promise.all([
+    store.list<Course>("courses"),
+    store.list<Enrollment>("enrollments", { status: "active" }),
+    store.list<AppUser>("users"),
+  ]);
+  const nameOf = (id?: string) => users.find((u) => u.id === id)?.displayName ?? "";
+  return {
+    courses: courses
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        weekday: c.weekday,
+        subject: c.subject,
+        grades: c.grades,
+        startTime: c.startTime,
+        endTime: c.endTime,
+        // ครูที่ผูกไว้มาก่อนชื่อที่พิมพ์มือ (ของเก่าก่อนมีการผูกบัญชี)
+        teacherName: nameOf(c.teacherId) || c.teacherName || "",
+        room: c.room,
+        enrolled: enrollments.filter((e) => e.courseId === c.id).length,
+        capacity: c.capacity,
+        active: c.active,
+      }))
+      .sort((a, b) => a.weekday - b.weekday || a.startTime.localeCompare(b.startTime)),
+    conflicts: findConflicts(courses, (id) => nameOf(id) || "ครูที่ยังไม่ระบุชื่อ"),
+    // คอร์สที่เปิดอยู่แต่ยังไม่ได้ผูกครู → ชั่วโมงสอนจะไปเข้าคนที่เช็กชื่อแทน
+    withoutTeacher: courses.filter((c) => c.active && !c.teacherId).map((c) => c.name),
+  };
 });

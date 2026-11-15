@@ -130,6 +130,8 @@ export interface Course {
   /** ครูที่รับผิดชอบคอร์ส (id ใน users) — ใช้คิดชั่วโมงสอน ถ้าไม่ตั้งจะนับจากคนที่เช็กชื่อ */
   teacherId?: string;
   teacherName?: string;
+  /** ห้องเรียน เช่น "ห้อง 1" — ใช้ตรวจว่าสองคอร์สจองห้องเดียวกันเวลาชนกันไหม */
+  room?: string;
   capacity: number;
   active: boolean;
 }

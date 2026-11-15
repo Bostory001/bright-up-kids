@@ -17,6 +17,7 @@ const EMPTY: Omit<Course, "id"> = {
   startTime: "09:00",
   endTime: "10:30",
   teacherName: "",
+  room: "",
   capacity: 10,
   active: true,
 };
@@ -113,6 +114,9 @@ export default function CoursesPage() {
                 </option>
               ))}
             </Select>
+          </Field>
+          <Field label="ห้องเรียน">
+            <Input value={editing.room ?? ""} onChange={(e) => setEditing({ ...editing, room: e.target.value })} placeholder="ห้อง 1" />
           </Field>
           <Field label="จำนวนที่รับ">
             <Input type="number" value={editing.capacity} onChange={(e) => setEditing({ ...editing, capacity: Number(e.target.value) })} />

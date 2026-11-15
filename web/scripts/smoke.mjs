@@ -284,6 +284,19 @@ r = await owner.call("admin/expenses");
 check("ค่าจ้างไปรวมในรายจ่าย: 1,300 + 600 = 1,900 กำไรเหลือ 1,600", r.data.summary?.expense === 1900 && r.data.summary?.profit === 1600, JSON.stringify(r.data.summary));
 check("ครูเห็นรายชื่อครูได้ (ไว้ผูกคอร์ส) แต่ไม่เห็นอัตรา", (await teacher.call("admin/teachers")).data.teachers?.every((t) => t.hourlyRate === undefined) === true);
 
+// ---------- I2: ตารางสอน ----------
+r = await teacher.call("admin/timetable");
+check("ตารางสอน: คอร์สเดียว เสาร์ 09:00-10:30 มีนักเรียน 1 คน", r.data.courses?.length === 1 && r.data.courses[0].weekday === 6 && r.data.courses[0].enrolled === 1 && r.data.conflicts?.length === 0, JSON.stringify(r.data.courses));
+check("คอร์สที่ยังไม่ผูกครู ขึ้นเตือน", r.data.withoutTeacher?.length === 1);
+await owner.call("admin/courses", { name: "อังกฤษ ป.2 เสาร์ (ชนเวลา)", subject: "english", grades: [2], pricePerTerm: 3000, weekday: 6, startTime: "10:00", endTime: "11:00", capacity: 10, room: "ห้อง 1", teacherId: kruId });
+await owner.call(`admin/courses/${courseId}`, { name: "คณิต ป.2 เสาร์", subject: "math", grades: [2], pricePerTerm: 3500, weekday: 6, startTime: "09:00", endTime: "10:30", capacity: 10, room: "ห้อง 1", teacherId: kruId, active: true }, "PATCH");
+r = await teacher.call("admin/timetable");
+check("จัดครูคนเดียวสอนสองคอร์สเวลาชน → เตือนทั้งครูและห้อง", r.data.conflicts?.length === 2 && r.data.conflicts.some((c) => c.kind === "teacher") && r.data.conflicts.some((c) => c.kind === "room"), JSON.stringify(r.data.conflicts));
+// คาบนี้เริ่ม 11:00 พอดีตอนคอร์สอังกฤษเลิก — ต่อกันสนิท ไม่ควรนับว่าชน
+await owner.call("admin/courses", { name: "ไทย ป.2 เสาร์ (ต่อคาบพอดี)", subject: "thai", grades: [2], pricePerTerm: 3000, weekday: 6, startTime: "11:00", endTime: "12:00", capacity: 10, room: "ห้อง 1", teacherId: kruId });
+r = await teacher.call("admin/timetable");
+check("คาบต่อกันพอดี ไม่นับว่าชน (ยังเท่าเดิม 2 จุด)", r.data.conflicts?.length === 2, JSON.stringify(r.data.conflicts?.map((c) => c.detail)));
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});

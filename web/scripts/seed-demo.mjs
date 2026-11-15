@@ -112,9 +112,9 @@ const teacher = {
 
 // ---------- คอร์ส ----------
 const courses = [
-  { id: "demo-course-math", name: "คณิต ป.1-3 (ตัวอย่าง)", subject: "math", grades: [1, 2, 3], pricePerTerm: 3500, weekday: 6, startTime: "09:00", endTime: "10:30", capacity: 10 },
-  { id: "demo-course-eng", name: "อังกฤษ ป.1-3 (ตัวอย่าง)", subject: "english", grades: [1, 2, 3], pricePerTerm: 3500, weekday: 6, startTime: "10:45", endTime: "12:15", capacity: 10 },
-  { id: "demo-course-thai", name: "ไทย ป.4-6 (ตัวอย่าง)", subject: "thai", grades: [4, 5, 6], pricePerTerm: 3200, weekday: 0, startTime: "10:00", endTime: "11:30", capacity: 8 },
+  { id: "demo-course-math", name: "คณิต ป.1-3 (ตัวอย่าง)", subject: "math", grades: [1, 2, 3], pricePerTerm: 3500, weekday: 6, startTime: "09:00", endTime: "10:30", room: "ห้อง 1", capacity: 10 },
+  { id: "demo-course-eng", name: "อังกฤษ ป.1-3 (ตัวอย่าง)", subject: "english", grades: [1, 2, 3], pricePerTerm: 3500, weekday: 6, startTime: "10:45", endTime: "12:15", room: "ห้อง 2", capacity: 10 },
+  { id: "demo-course-thai", name: "ไทย ป.4-6 (ตัวอย่าง)", subject: "thai", grades: [4, 5, 6], pricePerTerm: 3200, weekday: 0, startTime: "10:00", endTime: "11:30", room: "ห้อง 1", capacity: 8 },
 ].map((c) => ({ ...c, teacherId: teacher.id, teacherName: teacher.displayName, active: true }));
 
 // ---------- นักเรียน + ผู้ปกครอง ----------

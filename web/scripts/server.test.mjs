@@ -30,6 +30,7 @@ const { passwordInput, hashSecret, verifySecret } = await import("../src/lib/ser
 const { getStore } = await import("../src/lib/server/store.ts");
 const { starterExercises } = await import("../src/lib/server/seed-exercises.ts");
 const { summarizeMonth, summarizeRange, EXPENSE_CATEGORIES, payrollForMonth, courseHours } = await import("../src/lib/finance.ts");
+const { overlaps, findConflicts, weeklyGrid } = await import("../src/lib/timetable.ts");
 
 // กฎที่ผิดแล้วชุดโจทย์ใช้ไม่ได้เลย — ดู .claude/skills/exercise-authoring ข้อ 4 และ 8
 // ข้อที่ "ควรปรับ" (ขนาดชุด ตำแหน่งคำตอบกระจุก) อยู่ใน npm run audit:exercises
@@ -227,4 +228,43 @@ test("teacher pay counts one session per course per day", () => {
   const a2 = paid.find((p) => p.teacherId === "t1");
   assert.equal(a2.paid, true);
   assert.equal(a2.paidAmount, 1100);
+});
+
+// ตารางชนกันแล้วไม่เตือน = ครูไปโผล่สองห้องพร้อมกันในวันเปิดเรียน
+test("timetable flags teacher and room clashes but not back-to-back classes", () => {
+  assert.equal(overlaps({ startTime: "09:00", endTime: "10:30" }, { startTime: "10:00", endTime: "11:00" }), true);
+  assert.equal(overlaps({ startTime: "09:00", endTime: "10:30" }, { startTime: "10:30", endTime: "12:00" }), false, "คาบติดกันพอดีไม่ถือว่าชน");
+  assert.equal(overlaps({ startTime: "09:00", endTime: "10:00" }, { startTime: "08:00", endTime: "09:30" }), true);
+
+  const base = { subject: "math", grades: [1], pricePerTerm: 0, capacity: 10, active: true };
+  const courses = [
+    { ...base, id: "c1", name: "คณิต เสาร์เช้า", weekday: 6, startTime: "09:00", endTime: "10:30", teacherId: "t1", room: "ห้อง 1" },
+    { ...base, id: "c2", name: "อังกฤษ เสาร์เช้า", weekday: 6, startTime: "10:00", endTime: "11:00", teacherId: "t1", room: "ห้อง 2" },
+    { ...base, id: "c3", name: "ไทย เสาร์สาย", weekday: 6, startTime: "10:30", endTime: "12:00", teacherId: "t2", room: "ห้อง 1" },
+    { ...base, id: "c4", name: "วิทย์ อาทิตย์", weekday: 0, startTime: "09:00", endTime: "10:30", teacherId: "t1", room: "ห้อง 1" },
+    { ...base, id: "c5", name: "คอร์สปิดแล้ว", weekday: 6, startTime: "09:00", endTime: "10:30", teacherId: "t1", room: "ห้อง 1", active: false },
+  ];
+  const names = { t1: "ครูเอ", t2: "ครูบี" };
+  const conflicts = findConflicts(courses, (id) => names[id] ?? "");
+
+  assert.equal(conflicts.length, 1, JSON.stringify(conflicts));
+  assert.equal(conflicts[0].kind, "teacher");
+  assert.equal(conflicts[0].who, "ครูเอ");
+  assert.deepEqual(conflicts[0].courses, ["คณิต เสาร์เช้า", "อังกฤษ เสาร์เช้า"]);
+  assert.ok(!conflicts.some((c) => c.courses.includes("คอร์สปิดแล้ว")), "คอร์สที่ปิดรับแล้วต้องไม่ถูกนับว่าชน");
+  assert.ok(!conflicts.some((c) => c.courses.includes("วิทย์ อาทิตย์")), "คนละวันต้องไม่ชน");
+
+  // ห้องเดียวกันซ้อนเวลา ต้องเตือนแม้คนละครู
+  const roomClash = findConflicts(
+    [courses[0], { ...courses[2], startTime: "10:00" }],
+    (id) => names[id] ?? "",
+  );
+  assert.equal(roomClash.length, 1);
+  assert.equal(roomClash[0].kind, "room");
+  assert.equal(roomClash[0].who, "ห้อง 1");
+
+  const grid = weeklyGrid(courses.filter((c) => c.active).map((c) => ({ ...c, teacherName: names[c.teacherId], enrolled: 0 })));
+  assert.equal(grid[0].length, 1, "อาทิตย์มี 1 คาบ");
+  assert.equal(grid[6].length, 3, "เสาร์มี 3 คาบ");
+  assert.deepEqual(grid[6].map((c) => c.startTime), ["09:00", "10:00", "10:30"], "ต้องเรียงตามเวลาเริ่ม");
 });
