@@ -23,9 +23,10 @@ export default function SettingsPage() {
 
   const form: Form = { ...data.settings, ...edits };
   const isOwner = me.role === "owner";
+  // ช่องตัวเลขเท่านั้น — ค่าแบบเปิด/ปิดใช้สวิตช์ด้านล่างแทน
   const field = (key: keyof Form, label: string) => (
     <Field label={label}>
-      <Input type="number" value={form[key]} disabled={!isOwner} onChange={(e) => setEdits({ ...edits, [key]: Number(e.target.value) })} />
+      <Input type="number" value={Number(form[key] ?? 0)} disabled={!isOwner} onChange={(e) => setEdits({ ...edits, [key]: Number(e.target.value) })} />
     </Field>
   );
 
@@ -57,6 +58,21 @@ export default function SettingsPage() {
         {field("rewardBudgetBaht", "งบของรางวัลต่อเดือน (บาท)")}
         {field("royaltyPercent", "อัตรา royalty ส่ง HQ (% ของยอดรับ)")}
         {field("profitTargetBaht", "เป้ากำไรต่อเดือน (บาท)")}
+        <label className="flex items-start gap-3 rounded-xl border-2 border-amber-300 bg-amber-50 p-3 text-sm sm:col-span-2">
+          <input
+            type="checkbox"
+            className="mt-1 h-5 w-5"
+            checked={form.require2fa !== false}
+            disabled={!isOwner}
+            onChange={(e) => setEdits({ ...edits, require2fa: e.target.checked })}
+          />
+          <span>
+            <b>บังคับใช้รหัส 2FA สำหรับเจ้าของและครู</b>
+            <span className="block text-gray-600">
+              ปิดได้ชั่วคราวเวลาเข้าแอป Authenticator ไม่ได้ แต่ระบบนี้เก็บข้อมูลเด็กและเบอร์ผู้ปกครอง ถ้าปิดไว้ ใครรู้รหัสผ่านก็เข้าได้ทันที — เปิดกลับทันทีที่สะดวก
+            </span>
+          </span>
+        </label>
         <p className="text-sm text-gray-500 sm:col-span-2">
           ถึงเพดานโจทย์หรือเวลาข้อใดข้อหนึ่งแล้ว เด็กยังฝึกต่อได้แต่ไม่ได้ XP และเหรียญ · อัตรา royalty ควรตรวจกับสัญญาแฟรนไชส์
         </p>

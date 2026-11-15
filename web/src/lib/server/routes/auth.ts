@@ -1,4 +1,5 @@
 import "server-only";
+import { getSettingsCached } from "../settings";
 import QRCode from "qrcode";
 import type { AppUser, AuthSession, Student } from "../../types";
 import {
@@ -57,7 +58,8 @@ route("POST", "auth/login", "public", async ({ store, body, setSession, req }) =
     await store.set("users", registerFailure(user));
     throw new HttpError(401, "ชื่อเข้าระบบหรือรหัสผ่านไม่ถูกต้อง");
   }
-  if (user.totpEnabled && user.totpSecret) {
+  const { require2fa } = await getSettingsCached(store);
+  if (require2fa && user.totpEnabled && user.totpSecret) {
     if (!body.code) return { needsCode: true };
     if (!verifyTotp(user.totpSecret, body.code)) {
       await store.set("users", registerFailure(user));

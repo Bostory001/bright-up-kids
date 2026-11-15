@@ -1,6 +1,7 @@
 import "server-only";
 import type { AppUser, Role, Student } from "../types";
 import { type Principal, resolveSession, SESSION_COOKIE } from "./auth";
+import { getSettingsCached } from "./settings";
 import { getStore, type Store } from "./store";
 import { HttpError } from "./util";
 
@@ -118,7 +119,8 @@ export async function dispatch(req: Request, path: string[]): Promise<Response> 
     if (access !== "public") {
       if (!me) throw new HttpError(401, "กรุณาเข้าสู่ระบบ");
       if (!access.includes(me.role)) throw new HttpError(403, "ไม่มีสิทธิ์ใช้งานส่วนนี้");
-      const needs2fa = (me.role === "owner" || me.role === "teacher") && !me.user.totpEnabled;
+      const { require2fa } = await getSettingsCached(await getStore());
+      const needs2fa = require2fa && (me.role === "owner" || me.role === "teacher") && !me.user.totpEnabled;
       if (needs2fa && !found.route.allowWithout2fa) throw new HttpError(403, "ต้องเปิดใช้ 2FA ก่อน");
     }
 

@@ -5,7 +5,7 @@ import { createSession } from "../auth";
 import { notifyParent } from "../notify";
 import { OWNER, route, STAFF } from "../router";
 import { starterExercises } from "../seed-exercises";
-import { getSettings } from "../settings";
+import { clearSettingsCache, getSettings } from "../settings";
 import { bkkDate, dateStr, HttpError, newId, nowIso, num, oneOf, optStr, str } from "../util";
 
 import { GRADES } from "../../grade";
@@ -24,8 +24,10 @@ route("PATCH", "admin/settings", OWNER, async ({ store, body }) => {
     royaltyPercent: num(body.royaltyPercent, "อัตรา royalty", 0, 100),
     // ช่องที่เพิ่มทีหลัง: ไม่ส่งมา = ใช้ค่าเดิม เพื่อไม่ให้ฟอร์มรุ่นเก่าพัง
     profitTargetBaht: body.profitTargetBaht === undefined ? current.profitTargetBaht : num(body.profitTargetBaht, "เป้ากำไรต่อเดือน", 0, 10_000_000),
+    require2fa: body.require2fa === undefined ? current.require2fa : body.require2fa === true,
   };
   await store.set("settings", settings);
+  clearSettingsCache();
   return { settings };
 });
 

@@ -431,6 +431,17 @@ check("หลักสูตรนอกรายการ → 400", (await anon
 check("วันเกิดไม่ใช่วันที่ → 400", (await anon.call("public/enroll", { ...fullApp, nickname: "ผิด2", birthDate: "31/12/2018" }, "POST", { "x-forwarded-for": "203.0.113.12" })).status === 400);
 check("ส่งใบสมัครรัว ๆ จาก IP เดียว → 429 (กัน spam)", (await (async () => { let last; for (let i = 0; i < 6; i++) last = await anon.call("public/enroll", { ...fullApp, nickname: `รัว${i}` }, "POST", { "x-forwarded-for": "203.0.113.20" }); return last; })()).status === 429);
 
+// ---------- ปิดบังคับ 2FA ชั่วคราว (เจ้าของเลือกเองได้) ----------
+const noTotp = new Client();
+check("ค่าเริ่มต้นบังคับ 2FA: ล็อกอินไม่ใส่รหัส → needsCode", (await noTotp.call("auth/login", { username: "boss", password: "owner-pass-1" })).data.needsCode === true);
+check("ครูปิดบังคับ 2FA ไม่ได้ → 403", (await teacher.call("admin/settings", { require2fa: false }, "PATCH")).status === 403);
+r = await owner.call("admin/settings", { dailyLimitQuestions: 200, dailyLimitMinutes: 180, rewardBudgetBaht: 5000, royaltyPercent: 20, profitTargetBaht: 50000, require2fa: false }, "PATCH");
+check("เจ้าของปิดบังคับ 2FA ได้", r.data.settings?.require2fa === false);
+check("ปิดแล้ว: ล็อกอินด้วยรหัสผ่านอย่างเดียวผ่าน", (await noTotp.call("auth/login", { username: "boss", password: "owner-pass-1" })).status === 200);
+check("ปิดแล้วยังเข้าหลังบ้านได้", (await noTotp.call("admin/dashboard")).status === 200);
+r = await owner.call("admin/settings", { dailyLimitQuestions: 200, dailyLimitMinutes: 180, rewardBudgetBaht: 5000, royaltyPercent: 20, profitTargetBaht: 50000, require2fa: true }, "PATCH");
+check("เปิดกลับได้ และกลับมาขอรหัส 6 หลัก", r.data.settings?.require2fa === true && (await new Client().call("auth/login", { username: "boss", password: "owner-pass-1" })).data.needsCode === true);
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});

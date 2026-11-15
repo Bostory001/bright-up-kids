@@ -364,6 +364,8 @@ export interface Settings {
   royaltyPercent: number;
   /** เป้ากำไรต่อเดือน (บาท) — ใช้วัดว่าเดือนนี้ถึงเป้าหรือยัง */
   profitTargetBaht: number;
+  /** บังคับให้เจ้าของ/ครูใช้รหัส 2FA ตอนเข้าระบบ — ปิดได้ชั่วคราว แต่ระบบเก็บข้อมูลเด็ก ควรเปิดไว้ */
+  require2fa: boolean;
 }
 
 /**
