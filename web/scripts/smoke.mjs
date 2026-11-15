@@ -363,6 +363,29 @@ r = await owner.call("admin/budget");
 check("หน้างบบอกว่าถึงเป้ากี่ %", typeof r.data.status?.targetPercent === "number" && r.data.status?.profitTarget === 50000);
 check("ลบงบของเดือนนี้ → กลับไปใช้งบตั้งต้น", (await owner.call(`admin/budget/${thisMonth}`, {}, "DELETE")).status === 200 && (await owner.call("admin/budget")).data.source === "default");
 
+// ---------- I4: คลังของใช้ ----------
+r = await teacher.call("admin/supplies", { name: "กระดาษ A4", unit: "รีม", category: "office", minQty: 2 });
+const paperItem = r.data.item?.id;
+check("ครูเพิ่มของใช้เข้าคลังได้", r.status === 200 && Boolean(paperItem));
+check("หมวดที่ไม่ใช่ของใช้ → 400", (await teacher.call("admin/supplies", { name: "x", unit: "ชิ้น", category: "rent" })).status === 400);
+check("ยังไม่มีของ เบิกไม่ได้ → 400", (await teacher.call(`admin/supplies/${paperItem}/move`, { kind: "out", qty: 1 })).status === 400);
+r = await teacher.call("admin/expenses", { date: today, category: "office", detail: "กระดาษ A4 ล็อตใหม่", qty: 5, unitPrice: 120, method: "cash", supplyItemId: paperItem });
+const buyId = r.data.expense?.id;
+check("ซื้อของแล้วตัดเข้าคลังอัตโนมัติ 5 รีม", (await teacher.call("admin/supplies")).data.lines?.find((l) => l.item.id === paperItem)?.qty === 5, JSON.stringify(r.data.expense?.supplyItemId));
+r = await teacher.call(`admin/supplies/${paperItem}/move`, { kind: "out", qty: 3, note: "เติมห้องเรียน 1" });
+check("เบิกออก 3 รีม → เหลือ 2", r.status === 200 && (await teacher.call("admin/supplies")).data.lines?.find((l) => l.item.id === paperItem)?.qty === 2);
+r = await teacher.call("admin/supplies");
+check("เหลือเท่าจุดเตือน → ขึ้นใกล้หมด", r.data.lines?.find((l) => l.item.id === paperItem)?.low === true && r.data.lowCount === 1);
+check("เบิกเกินของที่มี → 400", (await teacher.call(`admin/supplies/${paperItem}/move`, { kind: "out", qty: 99 })).status === 400);
+check("ลบรายการที่มาจากการซื้อโดยตรงไม่ได้ → 400", (await teacher.call(`admin/supplies/moves/exp-${buyId}`, {}, "DELETE")).status === 400);
+r = await teacher.call(`admin/expenses/${buyId}`, { date: today, category: "office", detail: "กระดาษ A4 ล็อตใหม่", qty: 8, unitPrice: 120, method: "cash", supplyItemId: paperItem }, "PATCH");
+check("แก้จำนวนที่ซื้อเป็น 8 → คลังเหลือ 5 (8-3)", (await teacher.call("admin/supplies")).data.lines?.find((l) => l.item.id === paperItem)?.qty === 5, JSON.stringify(r.data.expense?.qty));
+check("ซื้อของที่ไม่มีในคลัง → 404", (await teacher.call("admin/expenses", { date: today, category: "office", detail: "x", qty: 1, unitPrice: 10, method: "cash", supplyItemId: "ไม่มีชิ้นนี้" })).status === 404);
+check("ครูลบของใช้ทั้งชิ้นไม่ได้ → 403", (await teacher.call(`admin/supplies/${paperItem}`, {}, "DELETE")).status === 403);
+await owner.call(`admin/expenses/${buyId}`, {}, "DELETE");
+check("ลบรายจ่ายที่ซื้อ → ของที่รับเข้าหายตาม เหลือ -3", (await teacher.call("admin/supplies")).data.lines?.find((l) => l.item.id === paperItem)?.qty === -3);
+check("เจ้าของลบของใช้พร้อมประวัติได้", (await owner.call(`admin/supplies/${paperItem}`, {}, "DELETE")).data.removedMoves === 1);
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});

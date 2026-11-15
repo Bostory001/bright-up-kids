@@ -15,7 +15,7 @@ interface Data {
   expenses: Expense[];
 }
 
-const EMPTY = { date: "", category: "rent" as ExpenseCategory, detail: "", qty: "1", unitPrice: "", amount: "", method: "cash", vendor: "", recurring: false, note: "" };
+const EMPTY = { date: "", category: "rent" as ExpenseCategory, detail: "", qty: "1", unitPrice: "", amount: "", method: "cash", vendor: "", recurring: false, note: "", supplyItemId: "" };
 type Form = typeof EMPTY & { id?: string };
 
 const baht = (n: number) => n.toLocaleString("th-TH", { maximumFractionDigits: 2 });
@@ -36,6 +36,8 @@ export default function ExpensesPage() {
   const { me } = useMe();
   const [month, setMonth] = useState("");
   const { data, error, reload } = useLoad<Data>(`admin/expenses${month ? `?month=${month}` : ""}`);
+  // คลังของใช้ — ไว้ให้เลือกว่าซื้อของชิ้นไหนเข้าคลัง
+  const supplies = useLoad<{ lines: { item: { id: string; name: string; unit: string } }[] }>("admin/supplies");
   const [form, setForm] = useState<Form | null>(null);
   const [receipt, setReceipt] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
@@ -66,6 +68,7 @@ export default function ExpensesPage() {
       vendor: f.vendor,
       recurring: f.recurring,
       note: f.note,
+      supplyItemId: f.supplyItemId || undefined,
     };
     return run(async () => {
       if (f.id) await api(`admin/expenses/${f.id}`, payload, "PATCH");
@@ -176,6 +179,18 @@ export default function ExpensesPage() {
               <Input type="number" inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
             </Field>
           )}
+          {isSupply && (
+            <Field label="ตัดเข้าคลัง (ไม่บังคับ)">
+              <Select value={form.supplyItemId} onChange={(e) => setForm({ ...form, supplyItemId: e.target.value })}>
+                <option value="">ไม่ต้องตัดเข้าคลัง</option>
+                {(supplies.data?.lines ?? []).map((l) => (
+                  <option key={l.item.id} value={l.item.id}>
+                    {l.item.name} ({l.item.unit})
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
           <Field label="ช่องทางชำระเงิน">
             <Select value={form.method} onChange={(e) => setForm({ ...form, method: e.target.value })}>
               <option value="cash">เงินสด</option>
@@ -269,6 +284,7 @@ export default function ExpensesPage() {
                       vendor: e.vendor ?? "",
                       recurring: e.recurring ?? false,
                       note: e.note ?? "",
+                      supplyItemId: e.supplyItemId ?? "",
                     })
                   }
                 >

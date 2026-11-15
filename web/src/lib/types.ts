@@ -421,6 +421,8 @@ export interface Expense {
   note?: string;
   /** ค่าจ้างครูที่ระบบสร้างให้: "<teacherId>:<YYYY-MM>" — กันสร้างซ้ำเดือนเดียวกัน */
   payrollRef?: string;
+  /** ซื้อของชิ้นนี้เข้าคลัง (id ใน supply_items) — ระบบจะบวกจำนวนเข้าคลังให้อัตโนมัติ */
+  supplyItemId?: string;
   /** มีรูปใบเสร็จแนบอยู่ใน collection receipts */
   hasReceipt?: boolean;
   /** id ผู้ใช้ที่บันทึก */
@@ -461,6 +463,41 @@ export interface Assessment {
   note?: string;
   /** id ผู้ใช้ที่บันทึก */
   recordedBy: string;
+  createdAt: string;
+}
+
+/**
+ * ของใช้ในคลัง เช่น กระดาษ A4 ทิชชู ปากกาไวท์บอร์ด
+ * จำนวนคงเหลือไม่ได้เก็บไว้ที่นี่ แต่คิดจากผลรวมของ supply_moves เสมอ (กันตัวเลขเพี้ยนสะสม)
+ * @collection supply_items
+ */
+export interface SupplyItem {
+  id: string;
+  name: string;
+  /** หน่วยนับ เช่น รีม ม้วน กล่อง ด้าม */
+  unit: string;
+  category: ExpenseCategory;
+  /** เตือนเมื่อเหลือน้อยกว่าหรือเท่ากับจำนวนนี้ */
+  minQty?: number;
+  note?: string;
+  createdAt: string;
+}
+
+/**
+ * การเคลื่อนไหวของของใช้: รับเข้า (ซื้อ) หรือเบิกออก (เอาไปใช้)
+ * รายการที่มาจากการซื้อ id = "exp-<expenseId>" เพื่อให้แก้/ลบรายจ่ายแล้วคลังตามทันเสมอ
+ * @collection supply_moves
+ */
+export interface SupplyMove {
+  id: string;
+  itemId: string;
+  date: string;
+  kind: "in" | "out";
+  qty: number;
+  /** รายจ่ายที่ทำให้เกิดการรับเข้า */
+  expenseId?: string;
+  note?: string;
+  by: string;
   createdAt: string;
 }
 

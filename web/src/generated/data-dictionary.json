@@ -1279,6 +1279,12 @@
         "description": "ค่าจ้างครูที่ระบบสร้างให้: \"<teacherId>:<YYYY-MM>\" — กันสร้างซ้ำเดือนเดียวกัน"
       },
       {
+        "name": "supplyItemId",
+        "type": "string",
+        "required": false,
+        "description": "ซื้อของชิ้นนี้เข้าคลัง (id ใน supply_items) — ระบบจะบวกจำนวนเข้าคลังให้อัตโนมัติ"
+      },
+      {
         "name": "hasReceipt",
         "type": "boolean",
         "required": false,
@@ -1393,6 +1399,116 @@
         "type": "string",
         "required": true,
         "description": "id ผู้ใช้ที่บันทึก"
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "supply_items",
+    "name": "SupplyItem",
+    "description": "ของใช้ในคลัง เช่น กระดาษ A4 ทิชชู ปากกาไวท์บอร์ด\nจำนวนคงเหลือไม่ได้เก็บไว้ที่นี่ แต่คิดจากผลรวมของ supply_moves เสมอ (กันตัวเลขเพี้ยนสะสม)",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "unit",
+        "type": "string",
+        "required": true,
+        "description": "หน่วยนับ เช่น รีม ม้วน กล่อง ด้าม"
+      },
+      {
+        "name": "category",
+        "type": "ExpenseCategory",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "minQty",
+        "type": "number",
+        "required": false,
+        "description": "เตือนเมื่อเหลือน้อยกว่าหรือเท่ากับจำนวนนี้"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "collection": "supply_moves",
+    "name": "SupplyMove",
+    "description": "การเคลื่อนไหวของของใช้: รับเข้า (ซื้อ) หรือเบิกออก (เอาไปใช้)\nรายการที่มาจากการซื้อ id = \"exp-<expenseId>\" เพื่อให้แก้/ลบรายจ่ายแล้วคลังตามทันเสมอ",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "itemId",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "kind",
+        "type": "\"in\" | \"out\"",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "qty",
+        "type": "number",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "expenseId",
+        "type": "string",
+        "required": false,
+        "description": "รายจ่ายที่ทำให้เกิดการรับเข้า"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "by",
+        "type": "string",
+        "required": true,
+        "description": ""
       },
       {
         "name": "createdAt",

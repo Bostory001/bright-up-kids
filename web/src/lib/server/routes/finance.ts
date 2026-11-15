@@ -1,7 +1,7 @@
 import "server-only";
 import { budgetStatus, EXPENSE_CATEGORIES, EXPENSE_CATEGORY_KEYS, payrollForMonth, summarizeMonth } from "../../finance";
 import { findConflicts } from "../../timetable";
-import type { AppUser, Attendance, Budget, Course, Enrollment, Expense, ExpenseCategory, Invoice, Receipt } from "../../types";
+import type { AppUser, Attendance, Budget, Course, Enrollment, Expense, ExpenseCategory, Invoice, Receipt, SupplyItem, SupplyMove } from "../../types";
 import { type Ctx, OWNER, route, STAFF } from "../router";
 import { getSettings } from "../settings";
 import { bkkDate, dateStr, HttpError, newId, nowIso, num, oneOf, optStr, str } from "../util";
@@ -36,7 +36,32 @@ function readExpense(body: Record<string, unknown>): Omit<Expense, "id" | "creat
     vendor: optStr(body.vendor, 80),
     recurring: body.recurring === true,
     note: optStr(body.note, 300),
+    // ตัดของเข้าคลังได้เฉพาะรายการของใช้เบ็ดเตล็ด
+    supplyItemId: kind === "supply" ? optStr(body.supplyItemId, 40) : undefined,
   };
+}
+
+// การซื้อของใช้ 1 รายการ = การรับเข้าคลัง 1 รายการ · id ผูกกับรายจ่าย ทำให้แก้/ลบแล้วคลังตามทันทีและไม่มีของซ้ำ
+async function syncSupplyMove(store: Ctx["store"], expense: Expense, userId: string) {
+  const id = `exp-${expense.id}`;
+  if (expense.kind !== "supply" || !expense.supplyItemId) {
+    await store.remove("supply_moves", id);
+    return;
+  }
+  const item = await store.get<SupplyItem>("supply_items", expense.supplyItemId);
+  if (!item) throw new HttpError(404, "ไม่พบของใช้ชิ้นนี้ในคลัง");
+  const move: SupplyMove = {
+    id,
+    itemId: expense.supplyItemId,
+    date: expense.date,
+    kind: "in",
+    qty: expense.qty ?? 1,
+    expenseId: expense.id,
+    note: expense.detail,
+    by: userId,
+    createdAt: nowIso(),
+  };
+  await store.set("supply_moves", move);
 }
 
 route("GET", "admin/expenses", STAFF, async ({ store, query }) => {
@@ -60,6 +85,7 @@ route("GET", "admin/expenses", STAFF, async ({ store, query }) => {
 
 route("POST", "admin/expenses", STAFF, async ({ store, body, me }) => {
   const expense: Expense = { ...readExpense(body), id: newId(), createdBy: me!.id, createdAt: nowIso() };
+  await syncSupplyMove(store, expense, me!.id);
   await store.set("expenses", expense);
   return { expense };
 });
@@ -68,6 +94,7 @@ route("PATCH", "admin/expenses/:id", STAFF, async ({ store, body, params }) => {
   const cur = await store.get<Expense>("expenses", params.id);
   if (!cur) throw new HttpError(404, "ไม่พบรายการ");
   const next: Expense = { ...cur, ...readExpense(body) };
+  await syncSupplyMove(store, next, cur.createdBy);
   await store.set("expenses", next);
   return { expense: next };
 });
@@ -76,6 +103,8 @@ route("PATCH", "admin/expenses/:id", STAFF, async ({ store, body, params }) => {
 route("DELETE", "admin/expenses/:id", OWNER, async ({ store, params }) => {
   await store.remove("expenses", params.id);
   await store.remove("receipts", params.id);
+  // ลบรายจ่ายแล้วของที่รับเข้าคลังจากรายการนั้นต้องหายตามไปด้วย
+  await store.remove("supply_moves", `exp-${params.id}`);
   return { ok: true };
 });
 

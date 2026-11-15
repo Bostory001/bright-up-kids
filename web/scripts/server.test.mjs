@@ -32,6 +32,7 @@ const { starterExercises } = await import("../src/lib/server/seed-exercises.ts")
 const { summarizeMonth, summarizeRange, EXPENSE_CATEGORIES, payrollForMonth, courseHours, budgetStatus } = await import("../src/lib/finance.ts");
 const { overlaps, findConflicts, weeklyGrid } = await import("../src/lib/timetable.ts");
 const { percent, progressOf, averageGain } = await import("../src/lib/assessment.ts");
+const { stockOf, stockLines } = await import("../src/lib/supplies.ts");
 const { sessionDates, courseProgress, monthGrid, addDays } = await import("../src/lib/schedule.ts");
 
 // กฎที่ผิดแล้วชุดโจทย์ใช้ไม่ได้เลย — ดู .claude/skills/exercise-authoring ข้อ 4 และ 8
@@ -381,4 +382,34 @@ test("budget compares only the categories the owner chose to cap", () => {
   assert.equal(status.targetPercent, Math.round((summary.profit / 50000) * 1000) / 10);
   assert.equal(budgetStatus(summary, {}, 0).targetPercent, null, "ยังไม่ตั้งเป้า ต้องไม่หารศูนย์");
   assert.equal(budgetStatus(summary, {}, 0).lines.every((l) => l.budget === null), true);
+});
+
+// ของคงเหลือคิดจากรับเข้า-เบิกออกเสมอ ไม่เก็บตัวเลขนิ่ง ๆ ที่จะเพี้ยนเมื่อแก้รายจ่ายย้อนหลัง
+test("supply stock sums movements and flags low items", () => {
+  const item = { id: "paper", name: "กระดาษ A4", unit: "รีม", category: "office", minQty: 2, createdAt: "" };
+  const moves = [
+    { id: "exp-1", itemId: "paper", date: "2026-10-20", kind: "in", qty: 5, expenseId: "1" },
+    { id: "m2", itemId: "paper", date: "2026-11-01", kind: "out", qty: 1 },
+    { id: "m3", itemId: "paper", date: "2026-11-10", kind: "out", qty: 2 },
+    { id: "m4", itemId: "อื่น", date: "2026-11-10", kind: "out", qty: 99 }, // ของชิ้นอื่น ต้องไม่ปน
+  ];
+  const line = stockOf(item, moves, "2026-11-15");
+  assert.equal(line.totalIn, 5);
+  assert.equal(line.totalOut, 3);
+  assert.equal(line.qty, 2);
+  assert.equal(line.low, true, "เหลือ 2 เท่ากับจุดเตือน ต้องนับว่าใกล้หมด");
+  assert.equal(line.usedLast30, 3, "เบิก 1+2 ใน 30 วันล่าสุด");
+  assert.equal(line.daysLeft, 20, "เหลือ 2 รีม ใช้วันละ 0.1 รีม = 20 วัน");
+  assert.equal(line.lastMoveDate, "2026-11-10");
+
+  // ลบรายจ่ายที่ซื้อเข้ามา = ลบ move ทิ้ง ของต้องลดลงทันที ไม่ต้องไปแก้ตัวเลขที่ไหนอีก
+  const afterDelete = stockOf(item, moves.filter((m) => m.id !== "exp-1"), "2026-11-15");
+  assert.equal(afterDelete.qty, -3, "ของติดลบแปลว่ามีคนเบิกของที่ไม่เคยบันทึกซื้อ — ต้องเห็นได้ ไม่ใช่ซ่อนเป็น 0");
+
+  const noUse = stockOf({ ...item, minQty: undefined }, [{ id: "a", itemId: "paper", date: "2026-01-01", kind: "in", qty: 10 }], "2026-11-15");
+  assert.equal(noUse.daysLeft, null, "ยังไม่เคยเบิก ต้องไม่เดาว่าจะหมดเมื่อไร");
+  assert.equal(noUse.low, false, "ไม่ได้ตั้งจุดเตือน ต้องไม่ขึ้นใกล้หมด");
+
+  const lines = stockLines([{ ...item, id: "b", name: "ทิชชู", minQty: 0 }, item], moves, "2026-11-15");
+  assert.equal(lines[0].item.name, "กระดาษ A4", "ของใกล้หมดต้องอยู่บนสุด");
 });
