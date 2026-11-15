@@ -15,12 +15,15 @@ const GRADES = [1, 2, 3, 4, 5, 6] as const;
 route("GET", "admin/settings", STAFF, async ({ store }) => ({ settings: await getSettings(store), defaults: DEFAULT_SETTINGS }));
 
 route("PATCH", "admin/settings", OWNER, async ({ store, body }) => {
+  const current = await getSettings(store);
   const settings: Settings = {
     id: "main",
     dailyLimitQuestions: num(body.dailyLimitQuestions, "จำนวนโจทย์ต่อวัน", 5, 1000),
     dailyLimitMinutes: num(body.dailyLimitMinutes, "เวลาต่อวัน (นาที)", 10, 600),
     rewardBudgetBaht: num(body.rewardBudgetBaht, "งบของรางวัล", 0, 1_000_000),
     royaltyPercent: num(body.royaltyPercent, "อัตรา royalty", 0, 100),
+    // ช่องที่เพิ่มทีหลัง: ไม่ส่งมา = ใช้ค่าเดิม เพื่อไม่ให้ฟอร์มรุ่นเก่าพัง
+    profitTargetBaht: body.profitTargetBaht === undefined ? current.profitTargetBaht : num(body.profitTargetBaht, "เป้ากำไรต่อเดือน", 0, 10_000_000),
   };
   await store.set("settings", settings);
   return { settings };

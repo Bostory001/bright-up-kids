@@ -24,9 +24,25 @@ export default function DashboardPage() {
     { href: "/admin/expenses", label: "รายจ่ายเดือนนี้ (รวมของใช้)", value: f.expense, color: "" },
     { href: "/admin/expenses", label: "กำไรประมาณการเดือนนี้", value: f.profit, color: f.profit >= 0 ? "text-green-700" : "text-red-600" },
   ];
+  const budget = d.budget;
   return (
     <>
       <h1 className="mb-4 text-2xl font-bold">ภาพรวม</h1>
+      {budget && (budget.overCount > 0 || budget.warnCount > 0) && (
+        <Link href="/admin/budget">
+          <Card className={`mb-3 border-2 ${budget.overCount ? "border-red-300" : "border-amber-300"}`}>
+            <b className={budget.overCount ? "text-red-700" : "text-amber-700"}>
+              {budget.overCount > 0 ? `เดือนนี้เกินงบ ${budget.overCount} หมวด` : `เดือนนี้ใกล้เต็มงบ ${budget.warnCount} หมวด`}
+            </b>
+            <div className="text-sm text-gray-600">
+              {budget.lines
+                .filter((l: { over: boolean; usedPercent: number | null }) => l.over || (l.usedPercent ?? 0) >= 80)
+                .map((l: { label: string; usedPercent: number | null }) => `${l.label} ${l.usedPercent}%`)
+                .join(" · ")}
+            </div>
+          </Card>
+        </Link>
+      )}
       <div className="mb-3 grid gap-3 sm:grid-cols-3">
         {money.map((c) => (
           <Link key={c.label} href={c.href}>

@@ -1,8 +1,8 @@
 import "server-only";
-import { summarizeMonth } from "../../finance";
+import { budgetStatus, summarizeMonth } from "../../finance";
 import { WEEKDAY_TH, weekdayOf } from "../../schedule";
 import { getSettings } from "../settings";
-import type { AppUser, AuthSession, Application, Attendance, Course, Enrollment, Expense, Grade, Invoice, Redemption, Slip, Student } from "../../types";
+import type { AppUser, AuthSession, Application, Attendance, Budget, Course, Enrollment, Expense, Grade, Invoice, Redemption, Slip, Student } from "../../types";
 import { hashSecret, publicStudent } from "../auth";
 import { notifyParent } from "../notify";
 import { type Ctx, OWNER, route, STAFF, staffUser } from "../router";
@@ -432,5 +432,10 @@ route("GET", "admin/dashboard", STAFF, async ({ store }) => {
     rewardBudget: settings.rewardBudgetBaht,
     // การเงินเดือนนี้ — เจ้าของเปิดหน้าเดียวเห็นกำไร
     finance: summarizeMonth(month, invoices, expenses, settings.royaltyPercent),
+    budget: budgetStatus(
+      summarizeMonth(month, invoices, expenses, settings.royaltyPercent),
+      (await store.get<Budget>("budgets", month))?.amounts ?? (await store.get<Budget>("budgets", "default"))?.amounts ?? {},
+      settings.profitTargetBaht,
+    ),
   };
 });

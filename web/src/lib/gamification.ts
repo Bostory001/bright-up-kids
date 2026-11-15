@@ -15,6 +15,7 @@ export const DEFAULT_SETTINGS: Settings = {
   dailyLimitMinutes: 180,
   rewardBudgetBaht: 3000,
   royaltyPercent: 23, // ตรวจกับสัญญาแฟรนไชส์ก่อนใช้จริง
+  profitTargetBaht: 100000, // เป้าที่เจ้าของตั้งไว้ แก้ได้ที่หน้าตั้งค่า
 };
 
 export type Limits = Pick<Settings, "dailyLimitQuestions" | "dailyLimitMinutes">;

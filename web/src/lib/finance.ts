@@ -192,3 +192,69 @@ export function payrollForMonth(
     })
     .sort((a, b) => b.amount - a.amount || a.name.localeCompare(b.name));
 }
+
+// ---------- งบประมาณรายหมวด ----------
+// ตั้งงบไว้ต่อหมวดต่อเดือน แล้วเทียบกับรายจ่ายจริง เพื่อรู้ตั้งแต่กลางเดือนว่าหมวดไหนจะบาน
+// หมวดที่ไม่ได้ตั้งงบ = ไม่คุม (ไม่ใช่งบ 0) เพราะเจ้าของทยอยตั้งทีละหมวดได้
+
+export interface BudgetLine {
+  category: ExpenseCategory;
+  label: string;
+  kind: ExpenseKind;
+  budget: number | null;
+  spent: number;
+  /** เหลือใช้ได้อีกเท่าไร (ติดลบ = เกินงบ) */
+  left: number | null;
+  /** ใช้ไปกี่เปอร์เซ็นต์ของงบ */
+  usedPercent: number | null;
+  over: boolean;
+}
+
+export interface BudgetStatus {
+  lines: BudgetLine[];
+  budgetTotal: number;
+  /** รายจ่ายของหมวดที่ตั้งงบไว้ */
+  spentBudgeted: number;
+  /** รายจ่ายของหมวดที่ยังไม่ได้ตั้งงบ */
+  spentUnbudgeted: number;
+  overCount: number;
+  /** หมวดที่ใช้เกิน 80% แต่ยังไม่เกินงบ — ไว้เตือนล่วงหน้า */
+  warnCount: number;
+  profit: number;
+  profitTarget: number;
+  /** ถึงเป้ากำไรกี่เปอร์เซ็นต์ (เป้า 0 = ไม่ได้ตั้งเป้า) */
+  targetPercent: number | null;
+}
+
+/** เทียบงบกับรายจ่ายจริงของเดือนนั้น · budget = จำนวนเงินต่อหมวด (หมวดที่ไม่มี = ไม่คุมงบ) */
+export function budgetStatus(summary: MonthSummary, budget: Partial<Record<ExpenseCategory, number>>, profitTarget: number): BudgetStatus {
+  const spentOf = (category: ExpenseCategory) => summary.byCategory.find((c) => c.category === category)?.amount ?? 0;
+  const lines: BudgetLine[] = EXPENSE_CATEGORY_KEYS.map((category) => {
+    const planned = budget[category];
+    const hasBudget = typeof planned === "number" && planned > 0;
+    const spent = spentOf(category);
+    return {
+      category,
+      label: EXPENSE_CATEGORIES[category].label,
+      kind: EXPENSE_CATEGORIES[category].kind,
+      budget: hasBudget ? planned : null,
+      spent,
+      left: hasBudget ? Math.round((planned - spent) * 100) / 100 : null,
+      usedPercent: hasBudget ? Math.round((spent / planned) * 1000) / 10 : null,
+      over: hasBudget ? spent > planned : false,
+    };
+  }).filter((l) => l.budget !== null || l.spent > 0);
+
+  const budgeted = lines.filter((l) => l.budget !== null);
+  return {
+    lines: lines.sort((a, b) => (b.usedPercent ?? -1) - (a.usedPercent ?? -1) || b.spent - a.spent),
+    budgetTotal: budgeted.reduce((s, l) => s + (l.budget ?? 0), 0),
+    spentBudgeted: budgeted.reduce((s, l) => s + l.spent, 0),
+    spentUnbudgeted: lines.filter((l) => l.budget === null).reduce((s, l) => s + l.spent, 0),
+    overCount: lines.filter((l) => l.over).length,
+    warnCount: lines.filter((l) => !l.over && (l.usedPercent ?? 0) >= 80).length,
+    profit: summary.profit,
+    profitTarget,
+    targetPercent: profitTarget > 0 ? Math.round((summary.profit / profitTarget) * 1000) / 10 : null,
+  };
+}

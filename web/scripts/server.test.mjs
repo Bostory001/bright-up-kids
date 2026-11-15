@@ -29,7 +29,7 @@ const { dateStr, num } = await import("../src/lib/server/util.ts");
 const { passwordInput, hashSecret, verifySecret } = await import("../src/lib/server/auth.ts");
 const { getStore } = await import("../src/lib/server/store.ts");
 const { starterExercises } = await import("../src/lib/server/seed-exercises.ts");
-const { summarizeMonth, summarizeRange, EXPENSE_CATEGORIES, payrollForMonth, courseHours } = await import("../src/lib/finance.ts");
+const { summarizeMonth, summarizeRange, EXPENSE_CATEGORIES, payrollForMonth, courseHours, budgetStatus } = await import("../src/lib/finance.ts");
 const { overlaps, findConflicts, weeklyGrid } = await import("../src/lib/timetable.ts");
 const { percent, progressOf, averageGain } = await import("../src/lib/assessment.ts");
 const { sessionDates, courseProgress, monthGrid, addDays } = await import("../src/lib/schedule.ts");
@@ -347,4 +347,38 @@ test("course runs weekly from its start date and counts weeks left", () => {
   assert.equal(grid.filter(Boolean).length, 30);
   const feb = monthGrid("2028-02"); // ปีอธิกสุรทิน
   assert.equal(feb.filter(Boolean).length, 29);
+});
+
+// งบที่ไม่ได้ตั้ง ต้องไม่ถูกมองว่าเป็นงบ 0 ไม่งั้นทุกหมวดจะขึ้นแดงตั้งแต่วันแรก
+test("budget compares only the categories the owner chose to cap", () => {
+  const invoices = [{ id: "a", status: "paid", paidDate: "2026-11-05", amount: 100000 }];
+  const expenses = [
+    { id: "1", date: "2026-11-01", kind: "operating", category: "rent", amount: 12000 },
+    { id: "2", date: "2026-11-10", kind: "operating", category: "teacher", amount: 26000 },
+    { id: "3", date: "2026-11-12", kind: "supply", category: "office", amount: 900 },
+    { id: "4", date: "2026-11-14", kind: "operating", category: "marketing", amount: 3000 },
+  ];
+  const summary = summarizeMonth("2026-11", invoices, expenses, 23);
+  const status = budgetStatus(summary, { rent: 12000, teacher: 25000, office: 2000 }, 50000);
+
+  const line = (c) => status.lines.find((l) => l.category === c);
+  assert.equal(line("teacher").over, true, "จ่าย 26,000 จากงบ 25,000 ต้องขึ้นเกินงบ");
+  assert.equal(line("teacher").left, -1000);
+  assert.equal(line("rent").over, false, "จ่ายเท่างบพอดี ยังไม่ถือว่าเกิน");
+  assert.equal(line("rent").usedPercent, 100);
+  assert.equal(line("office").usedPercent, 45);
+  assert.equal(line("marketing").budget, null, "หมวดที่ไม่ได้ตั้งงบต้องเป็น null ไม่ใช่ 0");
+  assert.equal(line("marketing").over, false, "หมวดที่ไม่ได้ตั้งงบต้องไม่ขึ้นเกินงบ");
+  assert.equal(status.overCount, 1);
+  assert.equal(status.warnCount, 1, "ค่าเช่าใช้ 100% นับเป็นใกล้เต็มงบ");
+  assert.equal(status.budgetTotal, 39000);
+  assert.equal(status.spentBudgeted, 38900);
+  assert.equal(status.spentUnbudgeted, 3000);
+  assert.ok(!status.lines.some((l) => l.budget === null && l.spent === 0), "หมวดที่ไม่มีทั้งงบและรายจ่าย ต้องไม่รกตาราง");
+
+  // เป้ากำไร
+  assert.equal(status.profit, summary.profit);
+  assert.equal(status.targetPercent, Math.round((summary.profit / 50000) * 1000) / 10);
+  assert.equal(budgetStatus(summary, {}, 0).targetPercent, null, "ยังไม่ตั้งเป้า ต้องไม่หารศูนย์");
+  assert.equal(budgetStatus(summary, {}, 0).lines.every((l) => l.budget === null), true);
 });

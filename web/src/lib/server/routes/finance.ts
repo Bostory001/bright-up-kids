@@ -1,8 +1,8 @@
 import "server-only";
-import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_KEYS, payrollForMonth, summarizeMonth } from "../../finance";
+import { budgetStatus, EXPENSE_CATEGORIES, EXPENSE_CATEGORY_KEYS, payrollForMonth, summarizeMonth } from "../../finance";
 import { findConflicts } from "../../timetable";
-import type { AppUser, Attendance, Course, Enrollment, Expense, Invoice, Receipt } from "../../types";
-import { OWNER, route, STAFF } from "../router";
+import type { AppUser, Attendance, Budget, Course, Enrollment, Expense, ExpenseCategory, Invoice, Receipt } from "../../types";
+import { type Ctx, OWNER, route, STAFF } from "../router";
 import { getSettings } from "../settings";
 import { bkkDate, dateStr, HttpError, newId, nowIso, num, oneOf, optStr, str } from "../util";
 
@@ -196,4 +196,58 @@ route("GET", "admin/timetable", STAFF, async ({ store }) => {
     // คอร์สที่เปิดอยู่แต่ยังไม่ได้ผูกครู → ชั่วโมงสอนจะไปเข้าคนที่เช็กชื่อแทน
     withoutTeacher: courses.filter((c) => c.active && !c.teacherId).map((c) => c.name),
   };
+});
+
+// ---------- งบประมาณรายเดือน ----------
+// เฉพาะเจ้าของ: ตั้งงบต่อหมวด แล้วดูว่าเดือนนี้หมวดไหนจะเกิน และกำไรถึงเป้าหรือยัง
+// งบของเดือนนั้นมาก่อน ถ้าไม่ได้ตั้ง ใช้งบตั้งต้น (id "default") ที่ใช้ซ้ำทุกเดือน
+
+async function effectiveBudget(store: Ctx["store"], month: string) {
+  const forMonth = await store.get<Budget>("budgets", month);
+  if (forMonth) return { amounts: forMonth.amounts, source: "month" as const, updatedAt: forMonth.updatedAt };
+  const fallback = await store.get<Budget>("budgets", "default");
+  if (fallback) return { amounts: fallback.amounts, source: "default" as const, updatedAt: fallback.updatedAt };
+  return { amounts: {}, source: "none" as const, updatedAt: undefined };
+}
+
+route("GET", "admin/budget", OWNER, async ({ store, query }) => {
+  const month = monthParam(query.get("month"));
+  const [expenses, invoices, settings, budget] = await Promise.all([
+    store.list<Expense>("expenses"),
+    store.list<Invoice>("invoices"),
+    getSettings(store),
+    effectiveBudget(store, monthParam(query.get("month"))),
+  ]);
+  const summary = summarizeMonth(month, invoices, expenses, settings.royaltyPercent);
+  return {
+    month,
+    source: budget.source,
+    amounts: budget.amounts,
+    updatedAt: budget.updatedAt,
+    summary,
+    status: budgetStatus(summary, budget.amounts, settings.profitTargetBaht),
+    categories: EXPENSE_CATEGORY_KEYS.map((key) => ({ key, label: EXPENSE_CATEGORIES[key].label, kind: EXPENSE_CATEGORIES[key].kind })),
+  };
+});
+
+// scope = "month" (เฉพาะเดือนนี้) หรือ "default" (ใช้เป็นงบตั้งต้นทุกเดือน)
+route("PUT", "admin/budget", OWNER, async ({ store, body, me }) => {
+  const scope = oneOf(body.scope, ["month", "default"] as const, "ขอบเขตงบ");
+  const id = scope === "default" ? "default" : monthParam(str(body.month, "เดือน", 7));
+  const amounts: Partial<Record<ExpenseCategory, number>> = {};
+  for (const key of EXPENSE_CATEGORY_KEYS) {
+    const raw = (body.amounts ?? {})[key];
+    if (raw === undefined || raw === null || raw === "") continue;
+    const value = num(raw, `งบหมวด ${EXPENSE_CATEGORIES[key].label}`, 0, 10_000_000);
+    if (value > 0) amounts[key] = value;
+  }
+  const budget: Budget = { id, amounts, updatedBy: me!.id, updatedAt: nowIso() };
+  await store.set("budgets", budget);
+  return { budget };
+});
+
+// ลบงบของเดือนนั้น → กลับไปใช้งบตั้งต้น
+route("DELETE", "admin/budget/:id", OWNER, async ({ store, params }) => {
+  await store.remove("budgets", params.id);
+  return { ok: true };
 });

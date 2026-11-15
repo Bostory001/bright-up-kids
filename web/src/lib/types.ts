@@ -329,6 +329,21 @@ export interface Settings {
   rewardBudgetBaht: number;
   /** อัตรา royalty ที่ส่ง HQ เป็นเปอร์เซ็นต์ของยอดรับค่าเรียน */
   royaltyPercent: number;
+  /** เป้ากำไรต่อเดือน (บาท) — ใช้วัดว่าเดือนนี้ถึงเป้าหรือยัง */
+  profitTargetBaht: number;
+}
+
+/**
+ * งบประมาณรายจ่ายต่อเดือน แยกตามหมวด
+ * id = "YYYY-MM" (งบของเดือนนั้น) หรือ "default" (งบตั้งต้นที่ใช้ทุกเดือนที่ไม่ได้ตั้งเอง)
+ * @collection budgets
+ */
+export interface Budget {
+  id: string;
+  /** หมวดไหนตั้งงบไว้เท่าไร (บาท/เดือน) — หมวดที่ไม่ได้ตั้ง = ไม่คุมงบ */
+  amounts: Partial<Record<ExpenseCategory, number>>;
+  updatedBy: string;
+  updatedAt: string;
 }
 
 /**

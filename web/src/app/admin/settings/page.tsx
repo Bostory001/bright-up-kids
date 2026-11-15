@@ -56,6 +56,7 @@ export default function SettingsPage() {
         {field("dailyLimitMinutes", "เวลาทำโจทย์ต่อวันที่นับคะแนน (นาที)")}
         {field("rewardBudgetBaht", "งบของรางวัลต่อเดือน (บาท)")}
         {field("royaltyPercent", "อัตรา royalty ส่ง HQ (% ของยอดรับ)")}
+        {field("profitTargetBaht", "เป้ากำไรต่อเดือน (บาท)")}
         <p className="text-sm text-gray-500 sm:col-span-2">
           ถึงเพดานโจทย์หรือเวลาข้อใดข้อหนึ่งแล้ว เด็กยังฝึกต่อได้แต่ไม่ได้ XP และเหรียญ · อัตรา royalty ควรตรวจกับสัญญาแฟรนไชส์
         </p>

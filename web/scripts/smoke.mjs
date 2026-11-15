@@ -337,6 +337,32 @@ check("รายงานตารางเรียนรายคน (ไว�
 r = await teacher.call("admin/reports", { dataset: "sessions", from: sat, to: `${sat.slice(0, 8)}28` });
 check("รายงานปฏิทินคาบเรียนตามช่วงวันที่", r.data.rows?.length >= 1 && r.data.rows[0].time === "09:00-10:30");
 
+// ---------- I5: งบประมาณรายเดือน ----------
+// สถานะตอนนี้: รายจ่ายเดือนนี้ = office 600 + royalty 700 + ค่าจ้างครู 600 = 1,900
+const thisMonth = today.slice(0, 7);
+check("ครูดูงบไม่ได้ → 403", (await teacher.call("admin/budget")).status === 403);
+r = await owner.call("admin/budget");
+check("ยังไม่ตั้งงบ: ไม่มีหมวดไหนถูกคุม", r.data.source === "none" && r.data.status?.overCount === 0 && r.data.status?.budgetTotal === 0, JSON.stringify(r.data.status && { source: r.data.source, over: r.data.status.overCount }));
+check("ครูตั้งงบไม่ได้ → 403", (await teacher.call("admin/budget", { scope: "default", amounts: { office: 1000 } }, "PUT")).status === 403);
+check("งบติดลบ → 400", (await owner.call("admin/budget", { scope: "default", amounts: { office: -5 } }, "PUT")).status === 400);
+r = await owner.call("admin/budget", { scope: "default", amounts: { office: 1000, royalty: 500, teacher: "" } }, "PUT");
+check("ตั้งงบตั้งต้น (หมวดที่เว้นว่างไม่ถูกเก็บ)", r.data.budget?.amounts?.office === 1000 && r.data.budget?.amounts?.teacher === undefined, JSON.stringify(r.data.budget?.amounts));
+r = await owner.call("admin/budget");
+const officeLine = r.data.status?.lines?.find((l) => l.category === "office");
+const royaltyLine = r.data.status?.lines?.find((l) => l.category === "royalty");
+check("งบตั้งต้นถูกใช้กับเดือนนี้: office 600/1000 = 60%", r.data.source === "default" && officeLine?.usedPercent === 60 && officeLine?.over === false, JSON.stringify(officeLine));
+check("royalty จ่าย 700 จากงบ 500 → เกินงบ 200", royaltyLine?.over === true && royaltyLine?.left === -200 && r.data.status?.overCount === 1);
+check("ค่าจ้างครูไม่ได้ตั้งงบ → ไม่นับว่าเกิน", r.data.status?.lines?.find((l) => l.category === "teacher")?.budget === null && r.data.status?.spentUnbudgeted === 600);
+r = await owner.call("admin/budget", { scope: "month", month: thisMonth, amounts: { royalty: 2000 } }, "PUT");
+check("ตั้งงบเฉพาะเดือนนี้ทับงบตั้งต้น", r.status === 200 && (await owner.call("admin/budget")).data.source === "month");
+check("งบเดือนนี้ใหม่ → ไม่มีหมวดไหนเกินแล้ว", (await owner.call("admin/budget")).data.status?.overCount === 0);
+check("แดชบอร์ดมีสถานะงบ", typeof (await owner.call("admin/dashboard")).data.budget?.overCount === "number");
+r = await owner.call("admin/settings", { dailyLimitQuestions: 200, dailyLimitMinutes: 180, rewardBudgetBaht: 5000, royaltyPercent: 20, profitTargetBaht: 50000 }, "PATCH");
+check("ตั้งเป้ากำไร 50,000", r.data.settings?.profitTargetBaht === 50000);
+r = await owner.call("admin/budget");
+check("หน้างบบอกว่าถึงเป้ากี่ %", typeof r.data.status?.targetPercent === "number" && r.data.status?.profitTarget === 50000);
+check("ลบงบของเดือนนี้ → กลับไปใช้งบตั้งต้น", (await owner.call(`admin/budget/${thisMonth}`, {}, "DELETE")).status === 200 && (await owner.call("admin/budget")).data.source === "default");
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});

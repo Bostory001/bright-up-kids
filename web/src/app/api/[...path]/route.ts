@@ -15,4 +15,4 @@ async function handle(req: Request, ctx: RouteContext<"/api/[...path]">) {
   return dispatch(req, (await ctx.params).path);
 }
 
-export { handle as DELETE, handle as GET, handle as PATCH, handle as POST };
+export { handle as DELETE, handle as GET, handle as PATCH, handle as POST, handle as PUT };
