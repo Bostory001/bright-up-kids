@@ -386,6 +386,17 @@ await owner.call(`admin/expenses/${buyId}`, {}, "DELETE");
 check("ลบรายจ่ายที่ซื้อ → ของที่รับเข้าหายตาม เหลือ -3", (await teacher.call("admin/supplies")).data.lines?.find((l) => l.item.id === paperItem)?.qty === -3);
 check("เจ้าของลบของใช้พร้อมประวัติได้", (await owner.call(`admin/supplies/${paperItem}`, {}, "DELETE")).data.removedMoves === 1);
 
+// ---------- I7: ใบตารางสอนของครู ----------
+r = await teacher.call("admin/teacher-sheet");
+check("ครูเปิดเองเห็นตารางของตัวเอง", r.status === 200 && r.data.teacherId === kruId && r.data.courses?.length >= 1, JSON.stringify(r.data.teacherId === kruId));
+const sheetCourse = r.data.courses?.find((c) => c.id === courseId);
+check("ใบตารางบอกวันเวลาและสัปดาห์ที่เหลือ", sheetCourse?.weekdayName === "เสาร์" && sheetCourse?.startTime === "09:00" && sheetCourse?.left === 11, JSON.stringify(sheetCourse && { d: sheetCourse.weekdayName, left: sheetCourse.left }));
+const sheetStudent = sheetCourse?.students?.[0];
+check("มีรายชื่อนักเรียนพร้อมเบอร์ผู้ปกครองและจำนวนขาด/ลา", sheetStudent?.nickname === "มายด์" && sheetStudent?.parentPhone === "0812345678" && typeof sheetStudent?.absences === "number", JSON.stringify(sheetStudent));
+check("เจ้าของเลือกดูของครูคนอื่นได้", (await owner.call(`admin/teacher-sheet?teacherId=${kruId}`)).data.courses?.length >= 1);
+check("เจ้าของที่ไม่ได้สอนเอง เปิดมาเจอครูที่มีคอร์สเลย", (await owner.call("admin/teacher-sheet")).data.teacherId === kruId);
+check("ครูที่ไม่มีคอร์ส → รายการว่าง ไม่ error", (await owner.call("admin/teacher-sheet?teacherId=ไม่มีคนนี้")).data.courses?.length === 0);
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});
