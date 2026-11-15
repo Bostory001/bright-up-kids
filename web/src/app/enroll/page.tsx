@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, Card, ErrorText, Field, Input, Select } from "@/components/ui";
 import { BRAND, BRANCH } from "@/lib/brand";
 import { api, useLoad } from "@/lib/client/api";
+import { GRADES, gradeLabel, SUBJECT_KEYS, SUBJECT_TH } from "@/lib/grade";
 
 interface PublicCourse {
   id: string;
@@ -42,19 +43,22 @@ export default function EnrollPage() {
   const { data } = useLoad<{ courses: PublicCourse[] }>("public/courses");
   const [form, setForm] = useState(EMPTY);
   const [courseIds, setCourseIds] = useState<string[]>([]);
+  const [grades, setGrades] = useState<number[]>([1]);
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [subjectOther, setSubjectOther] = useState("");
   const [consent, setConsent] = useState(false);
   const [photoConsent, setPhotoConsent] = useState(false);
   const [more, setMore] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
   const set = (k: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm({ ...form, [k]: e.target.value });
-  const courses = (data?.courses ?? []).filter((c) => c.grades.includes(Number(form.grade)));
+  const courses = (data?.courses ?? []).filter((c) => c.grades.some((g) => grades.includes(g)));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     try {
-      await api("public/enroll", { ...form, grade: Number(form.grade), courseIds, pdpaConsent: consent, photoConsent });
+      await api("public/enroll", { ...form, grade: grades[0], grades, subjects, subjectOther, courseIds, pdpaConsent: consent, photoConsent });
       setDone(true);
     } catch (err) {
       setError((err as Error).message);
@@ -98,20 +102,25 @@ export default function EnrollPage() {
           <Field label="ชื่อเล่น">
             <Input value={form.nickname} onChange={set("nickname")} required />
           </Field>
-          <Field label="ชั้น">
-            <Select
-              value={form.grade}
-              onChange={(e) => {
-                set("grade")(e);
-                setCourseIds([]);
-              }}
-            >
-              {[1, 2, 3, 4, 5, 6].map((g) => (
-                <option key={g} value={g}>
-                  ป.{g}
-                </option>
-              ))}
-            </Select>
+          <Field label="ระดับชั้น (เลือกได้มากกว่า 1)">
+            <div className="flex flex-wrap gap-2">
+              {GRADES.map((g) => {
+                const on = grades.includes(g);
+                return (
+                  <button
+                    type="button"
+                    key={g}
+                    onClick={() => {
+                      setGrades(on ? grades.filter((x) => x !== g) : [...grades, g].sort((a, b) => a - b));
+                      setCourseIds([]);
+                    }}
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium ${on ? "border-amber-500 bg-amber-100 text-amber-900" : "border-gray-300 bg-white text-gray-700"}`}
+                  >
+                    {gradeLabel(g)}
+                  </button>
+                );
+              })}
+            </div>
           </Field>
           <Field label="ชื่อ-นามสกุล ภาษาอังกฤษ (ไม่บังคับ)">
             <Input value={form.englishName} onChange={set("englishName")} placeholder="Manida Jaidee" />
@@ -182,25 +191,57 @@ export default function EnrollPage() {
             </>
           )}
         </Card>
-        <Card className="grid gap-2">
-          <div className="font-bold">คอร์สที่สนใจ</div>
-          {courses.length === 0 && <p className="text-sm text-gray-500">ยังไม่มีคอร์สสำหรับชั้นนี้</p>}
-          {courses.map((c) => (
-            <label key={c.id} className="flex items-start gap-3 rounded-xl border border-gray-200 p-3">
-              <input
-                type="checkbox"
-                className="mt-1 h-5 w-5"
-                checked={courseIds.includes(c.id)}
-                onChange={(e) => setCourseIds(e.target.checked ? [...courseIds, c.id] : courseIds.filter((id) => id !== c.id))}
-              />
-              <span>
-                <b>{c.name}</b>
-                <span className="block text-sm text-gray-500">
-                  {c.schedule} · {c.pricePerTerm.toLocaleString()} บาท/เทอม
-                </span>
-              </span>
-            </label>
-          ))}
+        <Card className="grid gap-3">
+          <div className="font-bold">วิชาที่สนใจ</div>
+          <div className="grid grid-cols-2 gap-2">
+            {SUBJECT_KEYS.map((key) => {
+              const on = subjects.includes(key);
+              return (
+                <button
+                  type="button"
+                  key={key}
+                  onClick={() => setSubjects(on ? subjects.filter((x) => x !== key) : [...subjects, key])}
+                  className={`rounded-xl border px-3 py-3 text-sm font-medium ${on ? "border-amber-500 bg-amber-100 text-amber-900" : "border-gray-300 bg-white text-gray-700"}`}
+                >
+                  {SUBJECT_TH[key]}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setSubjects(subjects.includes("other") ? subjects.filter((x) => x !== "other") : [...subjects, "other"])}
+              className={`col-span-2 rounded-xl border px-3 py-3 text-sm font-medium ${
+                subjects.includes("other") ? "border-amber-500 bg-amber-100 text-amber-900" : "border-gray-300 bg-white text-gray-700"
+              }`}
+            >
+              อื่น ๆ (ระบุเอง)
+            </button>
+          </div>
+          {subjects.includes("other") && (
+            <Field label="วิชาอื่นที่สนใจ">
+              <Input value={subjectOther} onChange={(e) => setSubjectOther(e.target.value)} placeholder="เช่น ติวสอบเข้า ม.1 / ช่วยทำการบ้าน" required />
+            </Field>
+          )}
+          {courses.length > 0 && (
+            <>
+              <div className="font-bold">คอร์สที่เปิดรับตอนนี้ (ไม่บังคับ)</div>
+              {courses.map((c) => (
+                <label key={c.id} className="flex items-start gap-3 rounded-xl border border-gray-200 p-3">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-5 w-5"
+                    checked={courseIds.includes(c.id)}
+                    onChange={(e) => setCourseIds(e.target.checked ? [...courseIds, c.id] : courseIds.filter((id) => id !== c.id))}
+                  />
+                  <span>
+                    <b>{c.name}</b>
+                    <span className="block text-sm text-gray-500">{c.schedule}</span>
+                  </span>
+                </label>
+              ))}
+            </>
+          )}
+          <p className="text-xs text-gray-500">สถาบันจะแจ้งรอบเรียนที่ว่างและค่าเรียนให้ตอนติดต่อกลับ</p>
         </Card>
         <label className="flex items-start gap-3 rounded-2xl bg-white p-4 text-sm shadow-sm">
           <input type="checkbox" className="mt-1 h-5 w-5" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
@@ -217,7 +258,7 @@ export default function EnrollPage() {
           </span>
         </label>
         <ErrorText>{error}</ErrorText>
-        <Button type="submit" disabled={!consent || courseIds.length === 0} className="py-3 text-base">
+        <Button type="submit" disabled={!consent || grades.length === 0 || (subjects.length === 0 && courseIds.length === 0)} className="py-3 text-base">
           ส่งใบสมัคร
         </Button>
       </form>

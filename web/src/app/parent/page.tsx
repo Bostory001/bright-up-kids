@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Badge, Button, Card, ErrorText } from "@/components/ui";
 import { api, go, useLoad } from "@/lib/client/api";
 import type { Invoice } from "@/lib/types";
+import { gradeLabel } from "@/lib/grade";
 
 const ATT = { present: ["green", "มาเรียน"], late: ["amber", "มาสาย"], absent: ["red", "ขาดเรียน"], leave: ["blue", "ลา"] } as const;
 const INV = { unpaid: ["red", "ยังไม่จ่าย"], slip_uploaded: ["amber", "รอตรวจสลิป"], paid: ["green", "จ่ายแล้ว"], void: ["gray", "ยกเลิก"] } as const;
@@ -118,7 +119,7 @@ export default function ParentPage() {
         <Card key={c.id} className="grid gap-3">
           <div className="flex items-baseline justify-between">
             <h2 className="text-lg font-bold">
-              น้อง{c.nickname} <span className="text-sm font-normal text-gray-500">ป.{c.grade}</span>
+              น้อง{c.nickname} <span className="text-sm font-normal text-gray-500">{gradeLabel(c.grade)}</span>
             </h2>
             <span className="font-mono text-xs text-gray-500">{c.code}</span>
           </div>

@@ -2,8 +2,9 @@
 // หน้า Data Dictionary สร้างจากไฟล์นี้อัตโนมัติ (scripts/gen-data-dictionary.mjs) — เขียน comment ให้คนอ่านรู้เรื่อง
 // เวลาเก็บเป็น ISO string, วันที่เป็น "YYYY-MM-DD" (เวลาไทย), เงินเป็นบาท
 
-export type Grade = 1 | 2 | 3 | 4 | 5 | 6;
-export type Subject = "math" | "thai" | "english" | "science";
+/** ชั้นเรียน: 1-6 = ป.1-6 · 7-9 = ม.1-3 (ใช้ gradeLabel() ใน lib/grade.ts แปลงเป็นข้อความ) */
+export type Grade = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export type Subject = "math" | "thai" | "english" | "science" | "chinese";
 export type Role = "owner" | "teacher" | "parent" | "student";
 export type AssessmentKind = "pre" | "progress" | "post";
 /** หลักสูตรที่นักเรียนเรียนอยู่ที่โรงเรียน: สามัญ(ไทย) / English Program / Inter */
@@ -82,6 +83,12 @@ export interface Application {
   studentFullName: string;
   nickname: string;
   grade: Grade;
+  /** ชั้นที่สนใจทั้งหมด (ผู้ปกครองเลือกได้มากกว่า 1) — grade ด้านบนคือชั้นแรกไว้ใช้ตอนอนุมัติ */
+  grades?: Grade[];
+  /** วิชาที่สนใจ — คีย์วิชาในระบบ หรือ "other" เมื่อกรอกเอง */
+  subjects?: string[];
+  /** วิชาอื่นที่ผู้ปกครองพิมพ์เอง */
+  subjectOther?: string;
   school?: string;
   /** ชื่อ-สกุลภาษาอังกฤษ (ไว้ออกใบรับรอง/สื่อสารกับโรงเรียนอินเตอร์) */
   englishName?: string;

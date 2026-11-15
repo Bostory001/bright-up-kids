@@ -6,6 +6,7 @@ import { Badge, Button, Card, ErrorText, Field, Input, Select, Table } from "@/c
 import { ASSESSMENT_KINDS, percent, type Progress } from "@/lib/assessment";
 import { api, todayStr, useLoad } from "@/lib/client/api";
 import type { Assessment, AssessmentKind, Subject } from "@/lib/types";
+import { gradeLabel } from "@/lib/grade";
 
 type Row = Progress & { code: string; nickname: string; grade: number; history: Assessment[] };
 interface Data {
@@ -144,7 +145,7 @@ export default function AssessmentsPage() {
                 <button className="underline decoration-dotted" onClick={() => setOpen(open === r.studentId ? null : r.studentId)}>
                   {r.nickname}
                 </button>
-                <span className="ml-1 text-xs text-gray-500">ป.{r.grade}</span>
+                <span className="ml-1 text-xs text-gray-500">{gradeLabel(r.grade)}</span>
                 {open === r.studentId && (
                   <div className="mt-1 grid gap-0.5 text-xs text-gray-600">
                     {r.history.length === 0 && <span className="text-gray-400">ยังไม่มีคะแนน</span>}

@@ -34,6 +34,7 @@ const { overlaps, findConflicts, weeklyGrid } = await import("../src/lib/timetab
 const { percent, progressOf, averageGain } = await import("../src/lib/assessment.ts");
 const { stockOf, stockLines } = await import("../src/lib/supplies.ts");
 const { sessionDates, courseProgress, monthGrid, addDays } = await import("../src/lib/schedule.ts");
+const { gradeLabel, gradeRange, GRADES, SUBJECT_KEYS } = await import("../src/lib/grade.ts");
 
 // กฎที่ผิดแล้วชุดโจทย์ใช้ไม่ได้เลย — ดู .claude/skills/exercise-authoring ข้อ 4 และ 8
 // ข้อที่ "ควรปรับ" (ขนาดชุด ตำแหน่งคำตอบกระจุก) อยู่ใน npm run audit:exercises
@@ -412,4 +413,20 @@ test("supply stock sums movements and flags low items", () => {
 
   const lines = stockLines([{ ...item, id: "b", name: "ทิชชู", minQty: 0 }, item], moves, "2026-11-15");
   assert.equal(lines[0].item.name, "กระดาษ A4", "ของใกล้หมดต้องอยู่บนสุด");
+});
+
+// ชั้นเรียนขยายถึง ม.3 — ที่ไหนเขียน "ป." ทับเองจะแสดงผิดทันทีเมื่อมีนักเรียน ม.ต้น
+test("grade labels cover primary and lower secondary", () => {
+  assert.equal(gradeLabel(1), "ป.1");
+  assert.equal(gradeLabel(6), "ป.6");
+  assert.equal(gradeLabel(7), "ม.1");
+  assert.equal(gradeLabel(9), "ม.3");
+  assert.deepEqual([...GRADES], [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.equal(gradeRange([1, 2, 3]), "ป.1-ป.3", "ช่วงต่อเนื่องย่อเป็นช่วง");
+  assert.equal(gradeRange([4, 5, 6, 7, 8, 9]), "ป.4-ม.3", "ข้ามจาก ป. ไป ม. ได้");
+  assert.equal(gradeRange([1, 6]), "ป.1, ป.6", "ไม่ต่อเนื่องให้ขึ้นทีละชั้น");
+  assert.equal(gradeRange([9, 7, 8]), "ม.1-ม.3", "เรียงให้เองก่อนย่อ");
+  assert.equal(gradeRange([]), "-");
+  assert.ok(SUBJECT_KEYS.includes("chinese"), "ต้องมีภาษาจีนในรายการวิชา");
+  assert.equal(SUBJECT_KEYS.length, 5);
 });

@@ -5,6 +5,7 @@ import { thaiDate, visibleExercises, type ExerciseCard, type ExerciseFilter } fr
 import { AvatarSvg } from "@/components/AvatarSvg";
 import { api, go, useLoad } from "@/lib/client/api";
 import type { AvatarSlot, PlayerProfile, Redemption } from "@/lib/types";
+import { SUBJECT_SHORT, gradeLabel } from "@/lib/grade";
 
 interface Home {
   student: { nickname: string; code: string; grade: number };
@@ -56,8 +57,8 @@ interface Shop {
   redemptions: Pick<Redemption, "id" | "rewardName" | "status" | "costCoins" | "requestedAt">[];
 }
 
-const SUBJECT_EMOJI: Record<string, string> = { math: "🔢", thai: "📖", english: "🔤", science: "🔬" };
-const SUBJECT_NAMES: Record<string, string> = { math: "คณิต", thai: "ไทย", english: "อังกฤษ", science: "วิทย์" };
+const SUBJECT_EMOJI: Record<string, string> = { math: "🔢", thai: "📖", english: "🔤", science: "🔬", chinese: "🀄" };
+const SUBJECT_NAMES: Record<string, string> = SUBJECT_SHORT;
 const RED = { requested: "รอรับที่สถาบัน", handed_over: "รับแล้ว", rejected: "ไม่อนุมัติ (คืนเหรียญแล้ว)" };
 const BIG = "min-h-16 rounded-3xl p-4 text-xl font-bold shadow-md active:scale-95 disabled:opacity-50 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-sky-600";
 // แนะนำการใช้งานครั้งแรก — แสดงจนกว่าจะทำแบบฝึกหัดชุดแรกเสร็จ
@@ -354,7 +355,7 @@ export default function PlayPage() {
           )}
           <section className="rounded-3xl bg-white p-4 shadow-sm" aria-label="ค้นหาแบบฝึกหัด">
             <h1 className="text-2xl font-bold">วันนี้อยากฝึกอะไร?</h1>
-            <p className="mt-1 text-sm text-gray-600">แบบฝึกหัด ป.{h.student.grade} · เลือกฝึกทีละชุดได้เลย</p>
+            <p className="mt-1 text-sm text-gray-600">แบบฝึกหัด {gradeLabel(h.student.grade)} · เลือกฝึกทีละชุดได้เลย</p>
             <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5" role="group" aria-label="เลือกวิชา">
               {["all", ...Object.keys(SUBJECT_NAMES)].map((key) => <button key={key} aria-pressed={subject === key} onClick={() => setSubject(key)} className={"min-h-16 rounded-2xl border-2 px-2 py-3 text-sm font-bold focus-visible:outline-4 focus-visible:outline-sky-600 " + (subject === key ? "border-sky-700 bg-sky-50 text-sky-900" : "border-gray-100 bg-white")}>
                 {key === "all" ? "📚 ทั้งหมด" : SUBJECT_EMOJI[key] + " " + SUBJECT_NAMES[key]}

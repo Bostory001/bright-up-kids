@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMe } from "@/components/me";
 import { Badge, Button, Card, ErrorText, Select } from "@/components/ui";
 import { useLoad } from "@/lib/client/api";
+import { gradeLabel, gradeRange } from "@/lib/grade";
 
 interface StudentRow {
   code: string;
@@ -85,7 +86,7 @@ export default function TeacherSheetPage() {
             <div>
               <h2 className="text-lg font-bold">{c.name}</h2>
               <div className="text-sm text-gray-600">
-                {SUBJECT[c.subject]} · ป.{c.grades.join(", ป.")} · <b>ทุกวัน{c.weekdayName} {c.startTime}–{c.endTime}</b>
+                {SUBJECT[c.subject]} · {gradeRange(c.grades)} · <b>ทุกวัน{c.weekdayName} {c.startTime}–{c.endTime}</b>
                 {c.room ? ` · ${c.room}` : ""}
               </div>
             </div>
@@ -124,7 +125,7 @@ export default function TeacherSheetPage() {
                     <tr key={s.code}>
                       <td className="px-2 py-1 font-medium">{s.nickname}</td>
                       <td className="px-2 py-1">{s.fullName}</td>
-                      <td className="px-2 py-1">ป.{s.grade}</td>
+                      <td className="px-2 py-1">{gradeLabel(s.grade)}</td>
                       <td className="px-2 py-1 text-gray-600">{s.school ?? "—"}</td>
                       <td className="whitespace-nowrap px-2 py-1">{s.parentPhone || "—"}</td>
                       <td className={`px-2 py-1 ${s.absences >= 3 ? "font-medium text-red-600" : "text-gray-500"}`}>{s.absences || "—"}</td>

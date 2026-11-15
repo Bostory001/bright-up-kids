@@ -2,4 +2,4 @@
 export const BRAND = "Bright Up Kids";
 export const BRANCH = "สาขาวัดหลวงพ่อโต บางพลี";
 export const BRAND_FULL = `${BRAND} ${BRANCH}`;
-export const TAGLINE = "สถาบันเรียนพิเศษ ป.1-6";
+export const TAGLINE = "สถาบันเรียนพิเศษ ป.1 - ม.3";

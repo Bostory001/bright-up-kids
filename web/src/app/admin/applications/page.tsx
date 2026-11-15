@@ -3,10 +3,17 @@
 import { useState } from "react";
 import { Badge, Button, Card, ErrorText, SecretBox } from "@/components/ui";
 import { api, useLoad } from "@/lib/client/api";
-import type { Application } from "@/lib/types";
+import { gradeRange, SUBJECT_TH } from "@/lib/grade";
+import type { Application, Subject } from "@/lib/types";
 
 const STATUS = { pending: ["amber", "รออนุมัติ"], approved: ["green", "อนุมัติแล้ว"], rejected: ["gray", "ปฏิเสธ"] } as const;
 const PROGRAM = { thai: "ภาคสามัญ (ไทย)", ep: "English Program", inter: "Inter" };
+
+// วิชาที่ผู้ปกครองติ๊กมา + วิชาที่พิมพ์เองในช่อง "อื่น ๆ"
+function subjectText(a: Application): string {
+  const names = (a.subjects ?? []).map((s) => (s === "other" ? a.subjectOther || "อื่น ๆ" : SUBJECT_TH[s as Subject] ?? s));
+  return names.join(", ");
+}
 
 // ช่องที่ผู้ปกครองกรอกเพิ่มในใบสมัคร — แสดงเฉพาะช่องที่กรอกมาจริง
 function detailLines(a: Application): [string, string][] {
@@ -68,7 +75,7 @@ export default function ApplicationsPage() {
         <Card key={a.id} className="grid gap-2">
           <div className="flex items-center justify-between gap-2">
             <b>
-              น้อง{a.nickname} · ป.{a.grade}
+              น้อง{a.nickname} · {gradeRange(a.grades?.length ? a.grades : [a.grade])}
             </b>
             <Badge color={STATUS[a.status][0]}>{STATUS[a.status][1]}</Badge>
           </div>
@@ -77,7 +84,9 @@ export default function ApplicationsPage() {
             <br />
             ผู้ปกครอง: {a.parentName} · {a.phone}
             <br />
-            คอร์ส: {a.courseIds.map(courseName).join(", ")}
+            วิชาที่สนใจ: {subjectText(a) || "—"}
+            <br />
+            คอร์สที่เลือก: {a.courseIds.length ? a.courseIds.map(courseName).join(", ") : "ยังไม่ได้เลือก (รอสถาบันแนะนำรอบ)"}
             <br />
             สมัครเมื่อ {new Date(a.createdAt).toLocaleString("th-TH")} · ยินยอม PDPA แล้ว
             {a.photoConsentAt ? " · ยินยอมให้ใช้ภาพในสื่อ" : " · ไม่ยินยอมให้ใช้ภาพในสื่อ"}

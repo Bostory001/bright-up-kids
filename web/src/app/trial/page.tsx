@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button, Card, ErrorText, Field, Input, Select } from "@/components/ui";
 import { api } from "@/lib/client/api";
+import { GRADES, gradeLabel } from "@/lib/grade";
 
 const EMPTY = { parentName: "", phone: "", childNickname: "", grade: "1", source: "", note: "" };
 
@@ -54,9 +55,9 @@ export default function TrialPage() {
           </Field>
           <Field label="ชั้น">
             <Select value={form.grade} onChange={set("grade")}>
-              {[1, 2, 3, 4, 5, 6].map((g) => (
+              {GRADES.map((g) => (
                 <option key={g} value={g}>
-                  ป.{g}
+                  {gradeLabel(g)}
                 </option>
               ))}
             </Select>

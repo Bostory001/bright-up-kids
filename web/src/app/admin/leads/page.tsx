@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, Card, ErrorText, Field, Input, Select } from "@/components/ui";
 import { api, useLoad } from "@/lib/client/api";
 import type { Lead } from "@/lib/types";
+import { GRADES, gradeLabel } from "@/lib/grade";
 
 const STATUS: Record<Lead["status"], string> = {
   new: "ใหม่ ยังไม่ได้ติดต่อ",
@@ -72,9 +73,9 @@ export default function LeadsPage() {
           </Field>
           <Field label="ชั้น">
             <Select value={form.grade} onChange={(e) => setForm({ ...form, grade: e.target.value })}>
-              {[1, 2, 3, 4, 5, 6].map((g) => (
+              {GRADES.map((g) => (
                 <option key={g} value={g}>
-                  ป.{g}
+                  {gradeLabel(g)}
                 </option>
               ))}
             </Select>
@@ -108,7 +109,7 @@ export default function LeadsPage() {
         <Card key={lead.id} className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <div className="text-sm">
             <b className="text-base">
-              น้อง{lead.childNickname} · ป.{lead.grade}
+              น้อง{lead.childNickname} · {gradeLabel(lead.grade)}
             </b>
             <div className="text-gray-600">
               {lead.parentName} ·{" "}

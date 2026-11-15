@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useMe } from "@/components/me";
 import { Badge, Button, Card, ErrorText, Field, Input, Select, Table } from "@/components/ui";
 import { api, useLoad } from "@/lib/client/api";
+import { GRADES, SUBJECT_TH, gradeLabel } from "@/lib/grade";
 import type { Exercise, Question } from "@/lib/types";
 
-const SUBJECTS = { math: "คณิตศาสตร์", thai: "ภาษาไทย", english: "ภาษาอังกฤษ", science: "วิทยาศาสตร์" };
+const SUBJECTS = SUBJECT_TH;
 type Editing = Omit<Exercise, "id" | "createdAt"> & { id?: string };
 const EMPTY: Editing = { title: "", subject: "math", grade: 1, topic: "", questions: [], published: false };
 const newQuestion = (): Question => ({ prompt: "", choices: ["", "", "", ""], answerIndex: 0, explain: "" });
@@ -88,9 +89,9 @@ export default function ExercisesPage() {
           </Field>
           <Field label="ชั้น">
             <Select value={editing.grade} onChange={(e) => setEditing({ ...editing, grade: Number(e.target.value) as Exercise["grade"] })}>
-              {[1, 2, 3, 4, 5, 6].map((g) => (
+              {GRADES.map((g) => (
                 <option key={g} value={g}>
-                  ป.{g}
+                  {gradeLabel(g)}
                 </option>
               ))}
             </Select>
@@ -154,7 +155,7 @@ export default function ExercisesPage() {
 
         <label className="flex items-center gap-2 rounded-2xl bg-white p-4 shadow-sm">
           <input type="checkbox" className="h-5 w-5" checked={editing.published} onChange={(e) => setEditing({ ...editing, published: e.target.checked })} />
-          เผยแพร่ให้นักเรียน ป.{editing.grade} เห็น (ตรวจโจทย์และเฉลยครบทุกข้อแล้ว)
+          เผยแพร่ให้นักเรียน {gradeLabel(editing.grade)} เห็น (ตรวจโจทย์และเฉลยครบทุกข้อแล้ว)
         </label>
         <ErrorText>{formError}</ErrorText>
         <div className="flex gap-2">
@@ -199,7 +200,7 @@ export default function ExercisesPage() {
           <tr key={e.id}>
             <td className="font-medium">{e.title}</td>
             <td>{SUBJECTS[e.subject]}</td>
-            <td>ป.{e.grade}</td>
+            <td>{gradeLabel(e.grade)}</td>
             <td>{e.topic}</td>
             <td>{e.questions.length}</td>
             <td>{e.published ? <Badge color="green">เผยแพร่</Badge> : <Badge>ร่าง</Badge>}</td>

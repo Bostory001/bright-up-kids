@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, Card, ErrorText, Field, Input, Select } from "@/components/ui";
 import { api, todayStr, useLoad } from "@/lib/client/api";
 import type { Assignment, Course, Exercise } from "@/lib/types";
+import { gradeLabel } from "@/lib/grade";
 
 type Row = Assignment & { courseName?: string; exerciseTitle: string; total: number; doneCount: number; notDone: string[] };
 
@@ -50,7 +51,7 @@ export default function HomeworkPage() {
             <option value="">-- เลือก --</option>
             {options.map((e) => (
               <option key={e.id} value={e.id}>
-                ป.{e.grade} {e.title}
+                {gradeLabel(e.grade)} {e.title}
               </option>
             ))}
           </Select>

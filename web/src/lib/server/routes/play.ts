@@ -1,4 +1,5 @@
 import "server-only";
+import { GRADES, SUBJECT_KEYS } from "../../grade";
 import {
   ACHIEVEMENTS,
   applyRun,
@@ -17,7 +18,7 @@ import type { Store } from "../store";
 import { bkkDate, HttpError, newId, nowIso, num, oneOf, optStr, str } from "../util";
 
 const STUDENT = ["student"] as const;
-const SUBJECTS = ["math", "thai", "english", "science"] as const;
+// รายชื่อวิชาอยู่ที่ lib/grade.ts ที่เดียว (SUBJECT_KEYS)
 const SLOTS: AvatarSlot[] = ["background", "outfit", "hat", "pet"];
 const MAX_RUN_SECONDS = 30 * 60; // กันเปิดทิ้งไว้แล้วเวลาวิ่งจนชนลิมิต
 
@@ -50,8 +51,8 @@ function exerciseFrom(body: Ctx["body"], id: string, createdAt: string): Exercis
   return {
     id,
     title: str(body.title, "ชื่อชุด", 100),
-    subject: oneOf(body.subject, SUBJECTS, "วิชา"),
-    grade: oneOf(Number(body.grade), [1, 2, 3, 4, 5, 6] as const, "ชั้น") as Grade,
+    subject: oneOf(body.subject, SUBJECT_KEYS, "วิชา"),
+    grade: oneOf(Number(body.grade), GRADES, "ชั้น") as Grade,
     topic: str(body.topic, "หัวข้อ", 60),
     questions,
     published: body.published === true,

@@ -1,5 +1,6 @@
 import "server-only";
 import { EXPENSE_CATEGORIES, EXPENSE_KINDS, summarizeRange } from "../../finance";
+import { gradeLabel, SUBJECT_SHORT } from "../../grade";
 import { courseProgress, sessionDates, WEEKDAY_TH } from "../../schedule";
 import { getSettings } from "../settings";
 import type { AppUser, Attempt, Attendance, Course, Enrollment, Exercise, Expense, Invoice, Redemption, Student } from "../../types";
@@ -24,7 +25,7 @@ const col = (key: string, label: string) => ({ key, label });
 const ATT_TH = { present: "มาเรียน", late: "มาสาย", absent: "ขาดเรียน", leave: "ลา" };
 const INV_TH = { unpaid: "ยังไม่จ่าย", slip_uploaded: "รอตรวจสลิป", paid: "จ่ายแล้ว", void: "ยกเลิก" };
 const RED_TH = { requested: "รอส่งมอบ", handed_over: "ส่งมอบแล้ว", rejected: "ปฏิเสธ" };
-const SUBJ_TH = { math: "คณิต", thai: "ไทย", english: "อังกฤษ", science: "วิทย์" };
+const SUBJ_TH = SUBJECT_SHORT;
 
 export const DATASETS: Record<string, Dataset> = {
   students: {
@@ -47,7 +48,7 @@ export const DATASETS: Record<string, Dataset> = {
               code: s.code,
               nickname: s.nickname,
               fullName: s.fullName,
-              grade: `ป.${s.grade}`,
+              grade: gradeLabel(s.grade),
               school: s.school ?? "",
               parent: parent?.displayName ?? "",
               phone: parent?.phone ?? "",
@@ -198,7 +199,7 @@ export const DATASETS: Record<string, Dataset> = {
             return {
               code: s!.code,
               nickname: s!.nickname,
-              grade: `ป.${s!.grade}`,
+              grade: gradeLabel(s!.grade),
               course: c!.name,
               day: WEEKDAY_TH[c!.weekday],
               time: `${c!.startTime}-${c!.endTime}`,

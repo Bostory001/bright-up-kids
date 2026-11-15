@@ -8,7 +8,7 @@ import { starterExercises } from "../seed-exercises";
 import { getSettings } from "../settings";
 import { bkkDate, dateStr, HttpError, newId, nowIso, num, oneOf, optStr, str } from "../util";
 
-const GRADES = [1, 2, 3, 4, 5, 6] as const;
+import { GRADES } from "../../grade";
 
 // ---------- ตั้งค่าสถาบัน ----------
 

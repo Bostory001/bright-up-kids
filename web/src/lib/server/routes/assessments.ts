@@ -1,4 +1,5 @@
 import "server-only";
+import { SUBJECT_KEYS } from "../../grade";
 import { averageGain, progressOf } from "../../assessment";
 import type { Assessment, AssessmentKind, Course, Enrollment, Student, Subject } from "../../types";
 import { OWNER, route, STAFF } from "../router";
@@ -8,7 +9,7 @@ import { dateStr, HttpError, newId, nowIso, num, oneOf, optStr } from "../util";
 // ครูบันทึกได้ (เป็นงานประจำของครู) · ลบได้เฉพาะเจ้าของ เพราะเป็นหลักฐานพัฒนาการที่คุยกับผู้ปกครอง
 
 const KINDS = ["pre", "progress", "post"] as const;
-const SUBJECTS = ["math", "thai", "english", "science"] as const;
+// รายชื่อวิชาอยู่ที่ lib/grade.ts ที่เดียว (SUBJECT_KEYS)
 
 function readAssessment(body: Record<string, unknown>): Omit<Assessment, "id" | "recordedBy" | "createdAt"> {
   const maxScore = num(body.maxScore, "คะแนนเต็ม", 1, 1000);
@@ -17,7 +18,7 @@ function readAssessment(body: Record<string, unknown>): Omit<Assessment, "id" | 
   return {
     studentId: String(body.studentId ?? ""),
     courseId: optStr(body.courseId, 40),
-    subject: oneOf(body.subject, SUBJECTS, "วิชา") as Subject,
+    subject: oneOf(body.subject, SUBJECT_KEYS, "วิชา") as Subject,
     kind: oneOf(body.kind, KINDS, "ประเภทการวัด") as AssessmentKind,
     date: dateStr(body.date, "วันที่สอบ"),
     score,

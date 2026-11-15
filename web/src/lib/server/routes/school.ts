@@ -1,5 +1,6 @@
 import "server-only";
 import { budgetStatus, summarizeMonth } from "../../finance";
+import { GRADES, SUBJECT_KEYS } from "../../grade";
 import { WEEKDAY_TH, weekdayOf } from "../../schedule";
 import { getSettings } from "../settings";
 import type { AppUser, AuthSession, Application, Attendance, Budget, Course, Enrollment, Expense, Grade, Invoice, Redemption, Slip, Student } from "../../types";
@@ -9,9 +10,9 @@ import { type Ctx, OWNER, route, STAFF, staffUser } from "../router";
 import type { Store } from "../store";
 import { bkkDate, dateStr, HttpError, newId, nowIso, num, oneOf, optStr, randomDigits, str } from "../util";
 
-const GRADES = [1, 2, 3, 4, 5, 6] as const;
+// ชั้นที่รับ: ป.1-6 และ ม.1-3 (ดู lib/grade.ts)
 const PROGRAMS = ["thai", "ep", "inter"] as const;
-const SUBJECTS = ["math", "thai", "english", "science"] as const;
+// รายชื่อวิชาอยู่ที่ lib/grade.ts ที่เดียว (SUBJECT_KEYS)
 const WEEKDAYS = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 const STATUS_TH: Record<Attendance["status"], string> = { present: "มาเรียน", late: "มาสาย", absent: "ขาดเรียน", leave: "ลา" };
 
@@ -72,7 +73,7 @@ function courseFrom(body: Ctx["body"], id: string): Course {
     name: str(body.name, "ชื่อคอร์ส", 100),
     startDate,
     weeks,
-    subject: oneOf(body.subject, SUBJECTS, "วิชา"),
+    subject: oneOf(body.subject, SUBJECT_KEYS, "วิชา"),
     grades,
     pricePerTerm: num(body.pricePerTerm, "ค่าเรียน", 0, 1_000_000),
     weekday,
@@ -127,8 +128,19 @@ route("POST", "public/enroll", "public", async ({ store, body, req }) => {
   const phone = str(body.phone, "เบอร์โทร", 20).replace(/\D/g, "");
   if (phone.length < 9 || phone.length > 10) throw new HttpError(400, "เบอร์โทรไม่ถูกต้อง");
   const courseIds: string[] = Array.isArray(body.courseIds) ? body.courseIds.filter((c: unknown) => typeof c === "string").slice(0, 10) : [];
-  if (!courseIds.length) throw new HttpError(400, "เลือกคอร์สอย่างน้อย 1 คอร์ส");
   for (const id of courseIds) if (!(await store.get("courses", id))) throw new HttpError(400, "คอร์สไม่ถูกต้อง");
+  // ชั้นที่สนใจ เลือกได้มากกว่า 1 (ครอบครัวมีลูกหลายคน หรือยังไม่แน่ใจว่าจะลงชั้นไหน)
+  const rawGrades: unknown[] = Array.isArray(body.grades) && body.grades.length ? body.grades : [body.grade];
+  const checked = rawGrades.map((g) => oneOf(Number(g), GRADES, "ชั้น") as Grade);
+  const grades: Grade[] = [...new Set<Grade>(checked)].slice(0, 9);
+  // วิชาที่สนใจ: คีย์วิชาในระบบ หรือ "other" แล้วพิมพ์เอง
+  const subjects = (Array.isArray(body.subjects) ? body.subjects : [])
+    .filter((x: unknown) => typeof x === "string")
+    .map((x: string) => oneOf(x, [...SUBJECT_KEYS, "other"], "วิชาที่สนใจ"))
+    .slice(0, 10);
+  const subjectOther = optStr(body.subjectOther, 100);
+  if (subjects.includes("other") && !subjectOther) throw new HttpError(400, "เลือก “อื่น ๆ” แล้วต้องระบุวิชาด้วย");
+  if (!courseIds.length && !subjects.length) throw new HttpError(400, "เลือกวิชาที่สนใจหรือคอร์สอย่างน้อย 1 อย่าง");
 
   const application: Application = {
     id: newId(),
@@ -136,7 +148,10 @@ route("POST", "public/enroll", "public", async ({ store, body, req }) => {
     phone,
     studentFullName: str(body.studentFullName, "ชื่อ-นามสกุลนักเรียน", 100),
     nickname: str(body.nickname, "ชื่อเล่น", 30),
-    grade: oneOf(Number(body.grade), GRADES, "ชั้น") as Grade,
+    grade: grades[0],
+    grades,
+    subjects,
+    subjectOther,
     school: optStr(body.school, 100),
     englishName: optStr(body.englishName, 100),
     birthDate: body.birthDate ? dateStr(body.birthDate, "วันเกิด") : undefined,

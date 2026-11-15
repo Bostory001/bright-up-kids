@@ -181,6 +181,24 @@
         "description": ""
       },
       {
+        "name": "grades",
+        "type": "Grade[]",
+        "required": false,
+        "description": "ชั้นที่สนใจทั้งหมด (ผู้ปกครองเลือกได้มากกว่า 1) — grade ด้านบนคือชั้นแรกไว้ใช้ตอนอนุมัติ"
+      },
+      {
+        "name": "subjects",
+        "type": "string[]",
+        "required": false,
+        "description": "วิชาที่สนใจ — คีย์วิชาในระบบ หรือ \"other\" เมื่อกรอกเอง"
+      },
+      {
+        "name": "subjectOther",
+        "type": "string",
+        "required": false,
+        "description": "วิชาอื่นที่ผู้ปกครองพิมพ์เอง"
+      },
+      {
         "name": "school",
         "type": "string",
         "required": false,

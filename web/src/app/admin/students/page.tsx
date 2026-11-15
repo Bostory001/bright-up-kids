@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Badge, Button, Card, ErrorText, Field, Input, SecretBox, Select, Table } from "@/components/ui";
 import { BRAND, BRANCH } from "@/lib/brand";
 import { api, useLoad } from "@/lib/client/api";
+import { GRADES, gradeLabel } from "@/lib/grade";
 
 interface Row {
   id: string;
@@ -118,9 +119,9 @@ export default function StudentsPage() {
           </Field>
           <Field label="ชั้น">
             <Select value={editing.grade} onChange={(e) => setEditing({ ...editing, grade: Number(e.target.value) })}>
-              {[1, 2, 3, 4, 5, 6].map((g) => (
+              {GRADES.map((g) => (
                 <option key={g} value={g}>
-                  ป.{g}
+                  {gradeLabel(g)}
                 </option>
               ))}
             </Select>
@@ -171,7 +172,7 @@ export default function StudentsPage() {
               <td className="font-mono">{s.code}</td>
               <td className="font-medium">{s.nickname}</td>
               <td>{s.fullName}</td>
-              <td>ป.{s.grade}</td>
+              <td>{gradeLabel(s.grade)}</td>
               <td>{s.courseIds.map(courseName).filter(Boolean).join(", ")}</td>
               <td>
                 {s.parentName} {s.parentPhone}

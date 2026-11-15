@@ -407,6 +407,16 @@ const fullApp = {
   source: "เพื่อนแนะนำ", note: "น้องแพ้นมวัว", courseIds: [courseId], pdpaConsent: true, photoConsent: true,
 };
 check("ส่งใบสมัครออนไลน์แบบกรอกครบ", (await anon.call("public/enroll", fullApp)).status === 200);
+// ชั้นขยายถึง ม.3 และเลือกได้หลายชั้น · วิชาเลือกได้รวมภาษาจีนและ "อื่น ๆ" ที่พิมพ์เอง
+r = await anon.call("public/enroll", { parentName: "แม่หลายชั้น", phone: "0890001111", studentFullName: "ด.ช.พี่ชาย ทดสอบ", nickname: "พี่", grade: 7, grades: [7, 8, 9], subjects: ["math", "chinese", "other"], subjectOther: "ติวสอบเข้า ม.4", pdpaConsent: true });
+check("สมัครชั้น ม.1-ม.3 พร้อมกัน โดยยังไม่เลือกคอร์ส", r.status === 200, JSON.stringify(r.data));
+const multi = (await teacher.call("admin/applications")).data.applications?.find((x) => x.nickname === "พี่");
+check("เก็บหลายชั้น + วิชาที่สนใจ (รวมภาษาจีนและอื่น ๆ)", JSON.stringify(multi?.grades) === "[7,8,9]" && multi?.subjects?.includes("chinese") && multi?.subjectOther === "ติวสอบเข้า ม.4", JSON.stringify(multi && { g: multi.grades, s: multi.subjects }));
+check("ติ๊กอื่น ๆ แต่ไม่พิมพ์วิชา → 400", (await anon.call("public/enroll", { ...fullApp, nickname: "ไม่ระบุ", subjects: ["other"] }, "POST", { "x-forwarded-for": "203.0.113.31" })).status === 400);
+check("ไม่เลือกทั้งวิชาและคอร์ส → 400", (await anon.call("public/enroll", { ...fullApp, nickname: "ว่างเปล่า", subjects: [], courseIds: [] }, "POST", { "x-forwarded-for": "203.0.113.32" })).status === 400);
+check("ชั้นนอกช่วง ป.1-ม.3 → 400", (await anon.call("public/enroll", { ...fullApp, nickname: "เกิน", grades: [10] }, "POST", { "x-forwarded-for": "203.0.113.33" })).status === 400);
+check("คอร์สรับชั้น ม.ต้นได้", (await owner.call("admin/courses", { name: "คณิต ม.1-3", subject: "math", grades: [7, 8, 9], pricePerTerm: 4000, weekday: 0, startTime: "13:00", endTime: "14:30", capacity: 8 })).status === 200);
+check("วิชาภาษาจีนสร้างคอร์สได้", (await owner.call("admin/courses", { name: "จีน ป.4-6", subject: "chinese", grades: [4, 5, 6], pricePerTerm: 3500, weekday: 0, startTime: "15:00", endTime: "16:30", capacity: 8 })).status === 200);
 r = await teacher.call("admin/applications");
 const saved = r.data.applications?.find((x) => x.nickname === "เต็ม");
 check("เก็บช่องจากใบสมัครกระดาษครบ", saved?.englishName === "Test Fullform" && saved?.program === "ep" && saved?.postcode === "10540" && saved?.lineId === "line-test" && saved?.note === "น้องแพ้นมวัว", JSON.stringify(saved && { en: saved.englishName, program: saved.program, post: saved.postcode }));

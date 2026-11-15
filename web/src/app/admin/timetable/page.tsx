@@ -2,6 +2,8 @@
 
 import { Badge, Card, ErrorText } from "@/components/ui";
 import { useLoad } from "@/lib/client/api";
+import { SUBJECT_SHORT, gradeRange } from "@/lib/grade";
+import type { Subject } from "@/lib/types";
 import { type Conflict, type TimetableCourse, WEEKDAYS, weeklyGrid } from "@/lib/timetable";
 
 interface Data {
@@ -10,12 +12,13 @@ interface Data {
   withoutTeacher: string[];
 }
 
-const SUBJECT = { math: "คณิต", thai: "ไทย", english: "อังกฤษ", science: "วิทย์" };
-const SUBJECT_COLOR = {
+const SUBJECT = SUBJECT_SHORT;
+const SUBJECT_COLOR: Record<Subject, string> = {
   math: "border-amber-400 bg-amber-50",
   thai: "border-rose-400 bg-rose-50",
   english: "border-sky-400 bg-sky-50",
   science: "border-emerald-400 bg-emerald-50",
+  chinese: "border-violet-400 bg-violet-50",
 };
 
 export default function TimetablePage() {
@@ -80,7 +83,7 @@ export default function TimetablePage() {
                   </div>
                   <div className="text-sm">{c.name}</div>
                   <div className="text-xs text-gray-600">
-                    ป.{c.grades.join(", ป.")}
+                    {gradeRange(c.grades)}
                     {c.teacherName ? ` · ${c.teacherName}` : " · ยังไม่ระบุครู"}
                     {c.room ? ` · ${c.room}` : ""}
                   </div>

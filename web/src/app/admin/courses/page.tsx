@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useMe } from "@/components/me";
 import { Badge, Button, Card, ErrorText, Field, Input, Select, Table } from "@/components/ui";
 import { api, useLoad } from "@/lib/client/api";
+import { GRADES, SUBJECT_TH, gradeLabel, gradeRange } from "@/lib/grade";
 import type { Course } from "@/lib/types";
 
 const WEEKDAYS = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
-const SUBJECTS = { math: "คณิตศาสตร์", thai: "ภาษาไทย", english: "ภาษาอังกฤษ", science: "วิทยาศาสตร์" };
+const SUBJECTS = SUBJECT_TH;
 const EMPTY: Omit<Course, "id"> = {
   name: "",
   subject: "math",
@@ -67,14 +68,14 @@ export default function CoursesPage() {
           </Field>
           <Field label="ชั้นที่รับ">
             <div className="flex flex-wrap gap-3 py-2">
-              {([1, 2, 3, 4, 5, 6] as const).map((g) => (
+              {GRADES.map((g) => (
                 <label key={g} className="flex items-center gap-1">
                   <input
                     type="checkbox"
                     checked={editing.grades.includes(g)}
                     onChange={(e) => setEditing({ ...editing, grades: e.target.checked ? [...editing.grades, g].sort() : editing.grades.filter((x) => x !== g) })}
                   />
-                  ป.{g}
+                  {gradeLabel(g)}
                 </label>
               ))}
             </div>
@@ -147,7 +148,7 @@ export default function CoursesPage() {
           <tr key={c.id}>
             <td className="font-medium">{c.name}</td>
             <td>{SUBJECTS[c.subject]}</td>
-            <td>{c.grades.map((g) => `ป.${g}`).join(" ")}</td>
+            <td>{gradeRange(c.grades)}</td>
             <td className="whitespace-nowrap">
               {WEEKDAYS[c.weekday]} {c.startTime}-{c.endTime}
             </td>
