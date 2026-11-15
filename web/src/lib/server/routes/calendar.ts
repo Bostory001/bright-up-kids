@@ -133,3 +133,14 @@ route("GET", "admin/teacher-sheet", STAFF, async ({ store, query, me }) => {
       .sort((a, b) => a.weekday - b.weekday || a.startTime.localeCompare(b.startTime)),
   };
 });
+
+// ---------- ตัวตรวจชั่วคราว (ลบออกหลังแก้ปัญหา deploy เสร็จ) ----------
+// บอกว่า container เห็น host/protocol อะไร เพื่อหาสาเหตุที่ด่านกัน CSRF ปฏิเสธคำขอของผู้ใช้จริง
+route("GET", "diag/request", "public", async ({ req }) => ({
+  buildMarker: "csrf-host-fix-1",
+  host: req.headers.get("host"),
+  forwardedHost: req.headers.get("x-forwarded-host"),
+  forwardedProto: req.headers.get("x-forwarded-proto"),
+  urlProtocol: new URL(req.url).protocol,
+  origin: req.headers.get("origin"),
+}));

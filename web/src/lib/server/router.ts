@@ -104,8 +104,10 @@ export async function dispatch(req: Request, path: string[]): Promise<Response> 
         // จึงต้องเทียบกับ x-forwarded-proto ไม่งั้นคำขอของผู้ใช้จริงจะถูกปฏิเสธว่า "มาจากโดเมนอื่น"
         const forwarded = req.headers.get("x-forwarded-proto")?.split(",")[0].trim();
         const expectedProtocol = forwarded ? `${forwarded}:` : new URL(req.url).protocol;
-        // host ยังเทียบตรง ๆ กับ header host ซึ่งเป็นโดเมนจริงที่ผู้ใช้เปิด — ด่านกันข้ามโดเมนจึงยังอยู่ครบ
-        sameOrigin = source.host === req.headers.get("host") && source.protocol === expectedProtocol;
+        // บาง proxy ส่ง host ของ service ภายในมาใน header host และเก็บโดเมนจริงไว้ที่ x-forwarded-host
+        // จึงยอมรับได้ทั้งสองตัว — ยังเทียบกับโดเมนที่ผู้ใช้เปิดจริง ด่านกันข้ามโดเมนจึงยังอยู่ครบ
+        const hosts = [req.headers.get("x-forwarded-host")?.split(",")[0].trim(), req.headers.get("host")].filter(Boolean);
+        sameOrigin = hosts.includes(source.host) && source.protocol === expectedProtocol;
       } catch { /* Invalid origin. */ }
       if (!sameOrigin) throw new HttpError(403, "คำขอมาจากโดเมนอื่น");
     }
