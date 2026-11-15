@@ -343,9 +343,10 @@ test("course runs weekly from its start date and counts weeks left", () => {
   assert.equal(sessionDates({ startDate: "2026-10-03" }).length, 0);
 
   // ปฏิทินเดือน: ช่องว่างหน้า-หลัง และจำนวนช่องต้องหารด้วย 7 ลงตัว
-  const grid = monthGrid("2026-11"); // 1 พ.ย. 2026 เป็นวันอาทิตย์
+  const grid = monthGrid("2026-11"); // 1 พ.ย. 2026 เป็นวันอาทิตย์ · ปฏิทินเริ่มวันจันทร์ จึงเว้น 6 ช่องก่อน
   assert.equal(grid.length % 7, 0);
-  assert.equal(grid[0], "2026-11-01");
+  assert.equal(grid[6], "2026-11-01");
+  assert.equal(grid[0], null);
   assert.equal(grid.filter(Boolean).length, 30);
   const feb = monthGrid("2028-02"); // ปีอธิกสุรทิน
   assert.equal(feb.filter(Boolean).length, 29);

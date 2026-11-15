@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Badge, Button, Card, ErrorText, Select, Table } from "@/components/ui";
 import { useLoad } from "@/lib/client/api";
-import { WEEKDAY_TH } from "@/lib/schedule";
+import { WEEKDAY_TH, WEEK_ORDER } from "@/lib/schedule";
 
 interface Session {
   courseId: string;
@@ -92,9 +92,9 @@ export default function CalendarPage() {
 
       <Card>
         <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-500">
-          {WEEKDAY_TH.map((d) => (
-            <div key={d} className="py-1">
-              {d.slice(0, 2)}
+          {WEEK_ORDER.map((w) => (
+            <div key={w} className="py-1">
+              {WEEKDAY_TH[w].slice(0, 2)}
             </div>
           ))}
         </div>

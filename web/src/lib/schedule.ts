@@ -5,6 +5,9 @@ import type { Course } from "./types";
 
 export const WEEKDAY_TH = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 
+/** ลำดับวันที่ใช้แสดงผล: จันทร์ → อาทิตย์ (เสาร์-อาทิตย์เป็นวันเรียนหลักของสถาบัน จึงอยู่ท้ายติดกัน) */
+export const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
 const DAY_MS = 86_400_000;
 const parse = (date: string) => new Date(`${date}T00:00:00.000Z`);
 const fmt = (d: Date) => d.toISOString().slice(0, 10);
@@ -58,11 +61,12 @@ export function sessionsInMonth(course: Pick<Course, "startDate" | "weeks">, mon
   return sessionDates(course).filter((d) => d.slice(0, 7) === month);
 }
 
-/** ช่องวันของปฏิทินรายเดือน เริ่มสัปดาห์วันอาทิตย์ · null = ช่องว่างก่อน/หลังเดือน */
+/** ช่องวันของปฏิทินรายเดือน เริ่มสัปดาห์วันจันทร์ · null = ช่องว่างก่อน/หลังเดือน */
 export function monthGrid(month: string): (string | null)[] {
   const first = `${month}-01`;
   const daysInMonth = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).getUTCDate();
-  const lead = weekdayOf(first);
+  // ปฏิทินเริ่มต้นสัปดาห์วันจันทร์ ให้ตรงกับลำดับวันในหน้าอื่น
+  const lead = (weekdayOf(first) + 6) % 7;
   const cells: (string | null)[] = Array.from({ length: lead }, () => null);
   for (let i = 0; i < daysInMonth; i++) cells.push(addDays(first, i));
   while (cells.length % 7 !== 0) cells.push(null);

@@ -5,6 +5,7 @@ import { useLoad } from "@/lib/client/api";
 import { SUBJECT_SHORT, gradeRange } from "@/lib/grade";
 import type { Subject } from "@/lib/types";
 import { type Conflict, type TimetableCourse, WEEKDAYS, weeklyGrid } from "@/lib/timetable";
+import { WEEK_ORDER } from "@/lib/schedule";
 
 interface Data {
   courses: TimetableCourse[];
@@ -26,7 +27,8 @@ export default function TimetablePage() {
   const open = (data?.courses ?? []).filter((c) => c.active);
   const grid = weeklyGrid(open);
   // วันที่ไม่มีคอร์สเลยไม่ต้องกินที่บนจอ — แต่เสาร์อาทิตย์แสดงเสมอเพราะเป็นวันหลักของสถาบัน
-  const days = WEEKDAYS.map((label, weekday) => ({ label, weekday, courses: grid[weekday] })).filter((d) => d.courses.length > 0 || d.weekday === 0 || d.weekday === 6);
+  // เรียงจันทร์ → อาทิตย์ เพื่อให้เสาร์-อาทิตย์ (วันเรียนหลัก) อยู่ติดกันท้ายสัปดาห์
+  const days = WEEK_ORDER.map((weekday) => ({ label: WEEKDAYS[weekday], weekday, courses: grid[weekday] })).filter((d) => d.courses.length > 0 || d.weekday === 0 || d.weekday === 6);
   const closed = (data?.courses ?? []).filter((c) => !c.active);
 
   return (
