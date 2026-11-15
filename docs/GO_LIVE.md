@@ -37,6 +37,8 @@
 - [ ] ตรวจ PWA: iPad Safari > แชร์ > เพิ่มไปยังหน้าจอโฮม · Android Chrome > เมนู > ติดตั้งแอป
 - [ ] ค่าลับที่ต้องใช้ทีหลัง (LINE/AI/CRON) ใส่ผ่าน `firebase apphosting:secrets:set <ชื่อ>` แล้วประกาศใน `web/apphosting.yaml`
 
+**โดเมนที่ได้จริง**: https://bright-up-kids--brightupkids-watluangphoto.asia-southeast1.hosted.app (ขึ้นแล้ว 15 พ.ย. 2569)
+
 **สรุปรายสัปดาห์ (cron)**: App Hosting ไม่มี cron ในตัวเหมือน Vercel → ใช้ **Cloud Scheduler** ยิง `GET https://<โดเมน>/api/cron/weekly`
 พร้อม header `Authorization: Bearer <CRON_SECRET>` ทุกวันอาทิตย์ 18:00 (ตั้ง timezone `Asia/Bangkok`) · ยังไม่ทำก็ไม่กระทบระบบส่วนอื่น
 

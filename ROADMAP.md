@@ -142,7 +142,11 @@
 ## ยังไม่ได้ทดสอบกับของจริง — ต้องมีบัญชี/กุญแจจากเจ้าของ (วิธีทำทีละขั้น: [docs/GO_LIVE.md](docs/GO_LIVE.md))
 
 - [~] **S1 Firestore** — project `brightupkids-watluangphoto` (asia-southeast1) ต่อติดแล้ว ตรวจด้วย `npm run check:firestore` ผ่าน · เหลือสร้างบัญชีเจ้าของที่ `/setup` ให้ข้อมูลจริงลง Firestore
-- [ ] **S2 Deploy Vercel** — ตั้ง env, โดเมน, ทดสอบติดตั้ง PWA บน iPad/Android จริง
+- [x] **S2 ขึ้นออนไลน์แล้ว** — Firebase App Hosting backend `bright-up-kids` (asia-southeast1, root `web`, branch `main`, auto rollout)
+      โดเมน: https://bright-up-kids--brightupkids-watluangphoto.asia-southeast1.hosted.app
+      ตรวจแล้ว: หน้าเว็บขึ้น 200 · `/api/status` = `{"store":"firestore"}` (ต่อ Firestore ด้วย ADC ไม่มีคีย์บนเซิร์ฟเวอร์)
+      · ทุก API ที่ต้องล็อกอินตอบ 401 เมื่อไม่มี session · `x-frame-options: DENY`, `nosniff` · หน้าใหม่ครบถึง I5
+      เหลือ: ทดสอบติดตั้ง PWA บน iPad/Android จริง, ตั้ง Cloud Scheduler ให้สรุปรายสัปดาห์, (ถ้าต้องการ) โดเมนของตัวเอง
 - [ ] **S3 LINE OA** — Messaging API + webhook + (ถ้าต้องการ) LINE Login/LIFF
 - [ ] **S4 AI** — ใส่ `ANTHROPIC_API_KEY`, ทดสอบถาม-ตอบและร่างโจทย์จริง
 - [ ] **S5 ทดลองใช้กับเด็กจริง 3-5 คน** บน tablet
