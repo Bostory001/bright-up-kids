@@ -442,6 +442,26 @@ check("ปิดแล้วยังเข้าหลังบ้านได�
 r = await owner.call("admin/settings", { dailyLimitQuestions: 200, dailyLimitMinutes: 180, rewardBudgetBaht: 5000, royaltyPercent: 20, profitTargetBaht: 50000, require2fa: true }, "PATCH");
 check("เปิดกลับได้ และกลับมาขอรหัส 6 หลัก", r.data.settings?.require2fa === true && (await new Client().call("auth/login", { username: "boss", password: "owner-pass-1" })).data.needsCode === true);
 
+// ---------- I10: ข้อมูลนักเรียนตามใบสมัครกระดาษ ----------
+r = await teacher.call("admin/students", {
+  nickname: "ทดสอบใบสมัคร", fullName: "ด.ช.ทดสอบ ใบสมัคร", grade: 4, school: "โรงเรียนทดสอบ", pdpaConsent: true,
+  formNo: "999", englishName: "Test Form", birthDate: "2016-08-04", program: "ep", targetSchool: "สวนกุหลาบ",
+  addressLine: "80/125", subdistrict: "บางโฉลง", district: "บางพลี", province: "สมุทรปราการ", postcode: "10540",
+  lineId: "line-x", facebook: "fb-x", source: "ป้ายโฆษณา", note: "แพ้นมวัว",
+  parentName: "คุณแม่ทดสอบ", parentPhone: "062-369-4598",
+});
+const formStudent = r.data.student;
+check("สร้างนักเรียนพร้อมข้อมูลใบสมัครครบ", r.status === 200 && formStudent?.formNo === "999" && formStudent?.program === "ep" && formStudent?.postcode === "10540", JSON.stringify(r.data.student && { f: formStudent.formNo, p: formStudent.program }));
+check("สร้างบัญชีผู้ปกครองจากเบอร์ให้อัตโนมัติ", Boolean(r.data.parentTempPassword) && Boolean(formStudent?.parentId));
+r = await teacher.call("admin/students");
+const withParent = r.data.students?.find((x) => x.id === formStudent.id);
+check("หน้านักเรียนเห็นชื่อ/เบอร์ผู้ปกครอง", withParent?.parentPhone === "0623694598" && withParent?.parentName === "คุณแม่ทดสอบ");
+r = await teacher.call(`admin/students/${formStudent.id}`, { nickname: "ทดสอบใบสมัคร", fullName: "ด.ช.ทดสอบ ใบสมัคร", grade: 4, school: "โรงเรียนทดสอบ", birthDate: "2016-08-05", lineId: "line-y" }, "PATCH");
+check("แก้ข้อมูลใบสมัครภายหลังได้", r.data.student?.birthDate === "2016-08-05" && r.data.student?.lineId === "line-y");
+check("ผูกผู้ปกครองเดิมซ้ำ ไม่สร้างบัญชีใหม่", (await teacher.call(`admin/students/${formStudent.id}`, { nickname: "ทดสอบใบสมัคร", fullName: "ด.ช.ทดสอบ ใบสมัคร", grade: 4, parentPhone: "0623694598" }, "PATCH")).data.parentTempPassword === undefined);
+check("วันเกิดผิดรูปแบบ → 400", (await teacher.call("admin/students", { nickname: "x", fullName: "x", grade: 1, pdpaConsent: true, birthDate: "4/8/2561" })).status === 400);
+check("เบอร์ผู้ปกครองสั้นเกิน → 400", (await teacher.call("admin/students", { nickname: "x", fullName: "x", grade: 1, pdpaConsent: true, parentPhone: "123" })).status === 400);
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});

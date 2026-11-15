@@ -374,6 +374,90 @@
         "description": ""
       },
       {
+        "name": "englishName",
+        "type": "string",
+        "required": false,
+        "description": "ชื่อ-สกุลภาษาอังกฤษ (ตามใบสมัคร)"
+      },
+      {
+        "name": "birthDate",
+        "type": "string",
+        "required": false,
+        "description": "วันเกิด YYYY-MM-DD"
+      },
+      {
+        "name": "program",
+        "type": "SchoolProgram",
+        "required": false,
+        "description": "หลักสูตรที่โรงเรียน: สามัญ / EP / Inter"
+      },
+      {
+        "name": "targetSchool",
+        "type": "string",
+        "required": false,
+        "description": "โรงเรียน/มหาวิทยาลัยที่ตั้งใจสอบเข้า"
+      },
+      {
+        "name": "addressLine",
+        "type": "string",
+        "required": false,
+        "description": "ที่อยู่ (บ้านเลขที่ หมู่ ซอย)"
+      },
+      {
+        "name": "subdistrict",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "district",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "province",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "postcode",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "lineId",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "facebook",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "required": false,
+        "description": "รู้จักสถาบันจากไหน"
+      },
+      {
+        "name": "formNo",
+        "type": "string",
+        "required": false,
+        "description": "รหัสใบสมัครกระดาษ เช่น 001 ไว้ย้อนกลับไปหาเอกสารต้นฉบับ"
+      },
+      {
+        "name": "note",
+        "type": "string",
+        "required": false,
+        "description": ""
+      },
+      {
         "name": "parentId",
         "type": "string",
         "required": false,

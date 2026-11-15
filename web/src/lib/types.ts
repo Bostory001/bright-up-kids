@@ -135,6 +135,27 @@ export interface Student {
   fullName: string;
   grade: Grade;
   school?: string;
+  /** ชื่อ-สกุลภาษาอังกฤษ (ตามใบสมัคร) */
+  englishName?: string;
+  /** วันเกิด YYYY-MM-DD */
+  birthDate?: string;
+  /** หลักสูตรที่โรงเรียน: สามัญ / EP / Inter */
+  program?: SchoolProgram;
+  /** โรงเรียน/มหาวิทยาลัยที่ตั้งใจสอบเข้า */
+  targetSchool?: string;
+  /** ที่อยู่ (บ้านเลขที่ หมู่ ซอย) */
+  addressLine?: string;
+  subdistrict?: string;
+  district?: string;
+  province?: string;
+  postcode?: string;
+  lineId?: string;
+  facebook?: string;
+  /** รู้จักสถาบันจากไหน */
+  source?: string;
+  /** รหัสใบสมัครกระดาษ เช่น 001 ไว้ย้อนกลับไปหาเอกสารต้นฉบับ */
+  formNo?: string;
+  note?: string;
   /** id ผู้ปกครองใน users */
   parentId?: string;
   /** เวลาที่ผู้ปกครองยินยอมให้เก็บข้อมูลเด็ก */

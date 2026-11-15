@@ -19,8 +19,19 @@ interface Row {
   parentName?: string;
   parentPhone?: string;
 }
-type Editing = { id?: string; nickname: string; fullName: string; grade: number; school: string; active: boolean; courseIds: string[]; pdpaConsent: boolean };
-const EMPTY: Editing = { nickname: "", fullName: "", grade: 1, school: "", active: true, courseIds: [], pdpaConsent: false };
+type Extras = {
+  englishName: string; birthDate: string; program: string; targetSchool: string;
+  addressLine: string; subdistrict: string; district: string; province: string; postcode: string;
+  lineId: string; facebook: string; source: string; formNo: string; note: string;
+  parentName: string; parentPhone: string;
+};
+type Editing = { id?: string; nickname: string; fullName: string; grade: number; school: string; active: boolean; courseIds: string[]; pdpaConsent: boolean } & Extras;
+const EMPTY_EXTRAS: Extras = {
+  englishName: "", birthDate: "", program: "", targetSchool: "",
+  addressLine: "", subdistrict: "", district: "", province: "", postcode: "",
+  lineId: "", facebook: "", source: "", formNo: "", note: "", parentName: "", parentPhone: "",
+};
+const EMPTY: Editing = { nickname: "", fullName: "", grade: 1, school: "", active: true, courseIds: [], pdpaConsent: false, ...EMPTY_EXTRAS };
 
 export default function StudentsPage() {
   const { data, error, reload } = useLoad<{ students: Row[] }>("admin/students");
@@ -129,6 +140,64 @@ export default function StudentsPage() {
           <Field label="โรงเรียน">
             <Input value={editing.school} onChange={(e) => setEditing({ ...editing, school: e.target.value })} />
           </Field>
+          <Field label="ชื่อผู้ปกครอง">
+            <Input value={editing.parentName} onChange={(e) => setEditing({ ...editing, parentName: e.target.value })} placeholder="ชื่อ-สกุลผู้ปกครอง" />
+          </Field>
+          <Field label="เบอร์ผู้ปกครอง (ใช้เข้าระบบผู้ปกครอง)">
+            <Input value={editing.parentPhone} onChange={(e) => setEditing({ ...editing, parentPhone: e.target.value })} inputMode="tel" placeholder="08xxxxxxxx" />
+          </Field>
+          <details className="sm:col-span-2">
+            <summary className="cursor-pointer text-sm font-medium text-gray-600">ข้อมูลจากใบสมัคร (ไม่บังคับ)</summary>
+            <div className="mt-2 grid gap-3 sm:grid-cols-2">
+              <Field label="เลขที่ใบสมัคร">
+                <Input value={editing.formNo} onChange={(e) => setEditing({ ...editing, formNo: e.target.value })} placeholder="001" />
+              </Field>
+              <Field label="ชื่อ-สกุล ภาษาอังกฤษ">
+                <Input value={editing.englishName} onChange={(e) => setEditing({ ...editing, englishName: e.target.value })} />
+              </Field>
+              <Field label="วันเกิด">
+                <Input type="date" value={editing.birthDate} onChange={(e) => setEditing({ ...editing, birthDate: e.target.value })} />
+              </Field>
+              <Field label="หลักสูตรที่โรงเรียน">
+                <Select value={editing.program} onChange={(e) => setEditing({ ...editing, program: e.target.value })}>
+                  <option value="">— ไม่ระบุ —</option>
+                  <option value="thai">ภาคสามัญ (ไทย)</option>
+                  <option value="ep">English Program (EP)</option>
+                  <option value="inter">Inter</option>
+                </Select>
+              </Field>
+              <Field label="ตั้งใจสอบเข้า">
+                <Input value={editing.targetSchool} onChange={(e) => setEditing({ ...editing, targetSchool: e.target.value })} />
+              </Field>
+              <Field label="รู้จักสถาบันจาก">
+                <Input value={editing.source} onChange={(e) => setEditing({ ...editing, source: e.target.value })} />
+              </Field>
+              <Field label="ที่อยู่ (บ้านเลขที่ หมู่ ซอย)">
+                <Input value={editing.addressLine} onChange={(e) => setEditing({ ...editing, addressLine: e.target.value })} />
+              </Field>
+              <Field label="แขวง / ตำบล">
+                <Input value={editing.subdistrict} onChange={(e) => setEditing({ ...editing, subdistrict: e.target.value })} />
+              </Field>
+              <Field label="เขต / อำเภอ">
+                <Input value={editing.district} onChange={(e) => setEditing({ ...editing, district: e.target.value })} />
+              </Field>
+              <Field label="จังหวัด">
+                <Input value={editing.province} onChange={(e) => setEditing({ ...editing, province: e.target.value })} />
+              </Field>
+              <Field label="รหัสไปรษณีย์">
+                <Input value={editing.postcode} onChange={(e) => setEditing({ ...editing, postcode: e.target.value })} inputMode="numeric" />
+              </Field>
+              <Field label="Line ID">
+                <Input value={editing.lineId} onChange={(e) => setEditing({ ...editing, lineId: e.target.value })} />
+              </Field>
+              <Field label="Facebook">
+                <Input value={editing.facebook} onChange={(e) => setEditing({ ...editing, facebook: e.target.value })} />
+              </Field>
+              <Field label="หมายเหตุ">
+                <Input value={editing.note} onChange={(e) => setEditing({ ...editing, note: e.target.value })} />
+              </Field>
+            </div>
+          </details>
           <div className="sm:col-span-2">
             <div className="mb-1 text-sm font-medium text-gray-700">คอร์สที่ลง</div>
             <div className="flex flex-wrap gap-3">
@@ -179,7 +248,7 @@ export default function StudentsPage() {
               </td>
               <td>{s.active ? <Badge color="green">เรียนอยู่</Badge> : <Badge>พัก/ออก</Badge>}</td>
               <td className="flex gap-1">
-                <Button variant="ghost" onClick={() => setEditing({ ...EMPTY, ...s, school: s.school ?? "" })}>
+                <Button variant="ghost" onClick={() => setEditing({ ...EMPTY, ...s, school: s.school ?? "", parentName: s.parentName ?? "", parentPhone: s.parentPhone ?? "" })}>
                   แก้ไข
                 </Button>
                 <Button variant="ghost" onClick={() => showCard(s)}>

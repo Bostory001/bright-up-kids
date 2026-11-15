@@ -3,7 +3,7 @@ import { budgetStatus, summarizeMonth } from "../../finance";
 import { GRADES, SUBJECT_KEYS } from "../../grade";
 import { WEEKDAY_TH, weekdayOf } from "../../schedule";
 import { getSettings } from "../settings";
-import type { AppUser, AuthSession, Application, Attendance, Budget, Course, Enrollment, Expense, Grade, Invoice, Redemption, Slip, Student } from "../../types";
+import type { AppUser, AuthSession, Application, Attendance, Budget, Course, Enrollment, Expense, Grade, Invoice, Redemption, SchoolProgram, Slip, Student } from "../../types";
 import { hashSecret, publicStudent } from "../auth";
 import { notifyParent } from "../notify";
 import { type Ctx, OWNER, route, STAFF, staffUser } from "../router";
@@ -27,6 +27,52 @@ async function nextStudentCode(store: Store): Promise<string> {
     student: (cur?.student ?? 0) + 1,
   }));
   return `BUK${String(counters!.student).padStart(4, "0")}`;
+}
+
+// ช่องจากใบสมัครกระดาษ — ไม่บังคับทั้งหมด ใส่เพิ่มทีหลังได้
+function studentExtras(body: Ctx["body"]) {
+  return {
+    englishName: optStr(body.englishName, 100),
+    birthDate: body.birthDate ? dateStr(body.birthDate, "วันเกิด") : undefined,
+    program: body.program ? (oneOf(body.program, PROGRAMS, "หลักสูตรที่โรงเรียน") as SchoolProgram) : undefined,
+    targetSchool: optStr(body.targetSchool, 150),
+    addressLine: optStr(body.addressLine, 200),
+    subdistrict: optStr(body.subdistrict, 80),
+    district: optStr(body.district, 80),
+    province: optStr(body.province, 80),
+    postcode: optStr(body.postcode, 10),
+    lineId: optStr(body.lineId, 60),
+    facebook: optStr(body.facebook, 120),
+    source: optStr(body.source, 80),
+    formNo: optStr(body.formNo, 20),
+    note: optStr(body.note, 500),
+  };
+}
+
+// หาผู้ปกครองจากเบอร์โทร ถ้ายังไม่มีก็สร้างบัญชีให้ (ผู้ปกครองใช้เบอร์เป็นชื่อเข้าระบบ)
+async function linkParent(store: Store, phone?: string, displayName?: string) {
+  if (!phone) return { parentId: undefined, tempPassword: undefined };
+  const username = phone.replace(/\D/g, "");
+  if (username.length < 9 || username.length > 10) throw new HttpError(400, "เบอร์ผู้ปกครองไม่ถูกต้อง");
+  const [found] = await store.list<AppUser>("users", { username });
+  if (found) {
+    if (found.role !== "parent") throw new HttpError(400, "เบอร์นี้ถูกใช้เป็นบัญชีครู/เจ้าของแล้ว");
+    return { parentId: found.id, tempPassword: undefined };
+  }
+  const tempPassword = `buk-${randomDigits(6)}`;
+  const parent: AppUser = {
+    id: newId(),
+    role: "parent",
+    username,
+    displayName: displayName || `ผู้ปกครอง (${username})`,
+    phone: username,
+    passwordHash: hashSecret(tempPassword),
+    mustChangePassword: true,
+    active: true,
+    createdAt: nowIso(),
+  };
+  await store.set("users", parent);
+  return { parentId: parent.id, tempPassword };
 }
 
 async function createStudent(store: Store, data: Pick<Student, "nickname" | "fullName" | "grade" | "school" | "parentId" | "pdpaConsentAt">) {
@@ -277,30 +323,36 @@ route("GET", "admin/students", STAFF, async ({ store }) => {
 // เพิ่มนักเรียนเอง (กรณีสมัครหน้าร้าน ผู้ปกครองเซ็นยินยอมบนกระดาษ)
 route("POST", "admin/students", STAFF, async ({ store, body }) => {
   if (body.pdpaConsent !== true) throw new HttpError(400, "ต้องยืนยันว่าผู้ปกครองยินยอมการเก็บข้อมูลแล้ว");
+  const linked = await linkParent(store, optStr(body.parentPhone, 20), optStr(body.parentName, 80));
   const { student, pin } = await createStudent(store, {
     nickname: str(body.nickname, "ชื่อเล่น", 30),
     fullName: str(body.fullName, "ชื่อ-นามสกุล", 100),
     grade: oneOf(Number(body.grade), GRADES, "ชั้น") as Grade,
     school: optStr(body.school, 100),
-    parentId: optStr(body.parentId, 40),
+    parentId: optStr(body.parentId, 40) ?? linked.parentId,
     pdpaConsentAt: nowIso(),
   });
-  return { student: publicStudent(student), pin };
+  const full: Student = { ...student, ...studentExtras(body) };
+  await store.set("students", full);
+  return { student: publicStudent(full), pin, parentTempPassword: linked.tempPassword };
 });
 
 route("PATCH", "admin/students/:id", STAFF, async ({ store, body, params }) => {
   const student = await store.get<Student>("students", params.id);
   if (!student) throw new HttpError(404, "ไม่พบนักเรียน");
+  const linked = await linkParent(store, optStr(body.parentPhone, 20), optStr(body.parentName, 80));
   const next: Student = {
     ...student,
+    ...studentExtras(body),
     nickname: str(body.nickname, "ชื่อเล่น", 30),
     fullName: str(body.fullName, "ชื่อ-นามสกุล", 100),
     grade: oneOf(Number(body.grade), GRADES, "ชั้น") as Grade,
     school: optStr(body.school, 100),
+    parentId: linked.parentId ?? student.parentId,
     active: body.active !== false,
   };
   await store.set("students", next);
-  return { student: publicStudent(next) };
+  return { student: publicStudent(next), parentTempPassword: linked.tempPassword };
 });
 
 route("POST", "admin/students/:id/pin", STAFF, async ({ store, params }) => {
