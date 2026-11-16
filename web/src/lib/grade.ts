@@ -36,3 +36,27 @@ export const SUBJECT_SHORT: Record<Subject, string> = {
 };
 
 export const SUBJECT_KEYS = Object.keys(SUBJECT_TH) as Subject[];
+
+// ---------- ฉบับภาษาอังกฤษ (ใบตารางสอนของครูต่างชาติ) ----------
+
+/** "P.1" … "P.6", "M.1" … "M.3" */
+export function gradeLabelEn(grade: number): string {
+  return grade >= 7 ? `M.${grade - 6}` : `P.${grade}`;
+}
+
+export function gradeRangeEn(grades: number[]): string {
+  const sorted = [...new Set(grades)].sort((a, b) => a - b);
+  if (sorted.length === 0) return "-";
+  const continuous = sorted.every((g, i) => i === 0 || g === sorted[i - 1] + 1);
+  return continuous && sorted.length > 2 ? `${gradeLabelEn(sorted[0])}-${gradeLabelEn(sorted[sorted.length - 1])}` : sorted.map(gradeLabelEn).join(", ");
+}
+
+export const SUBJECT_EN: Record<Subject, string> = {
+  math: "Mathematics",
+  english: "English",
+  science: "Science",
+  thai: "Thai",
+  chinese: "Chinese",
+};
+
+export const WEEKDAY_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];

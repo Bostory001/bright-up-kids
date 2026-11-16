@@ -34,7 +34,7 @@ const { overlaps, findConflicts, weeklyGrid } = await import("../src/lib/timetab
 const { percent, progressOf, averageGain } = await import("../src/lib/assessment.ts");
 const { stockOf, stockLines } = await import("../src/lib/supplies.ts");
 const { sessionDates, courseProgress, monthGrid, addDays } = await import("../src/lib/schedule.ts");
-const { gradeLabel, gradeRange, GRADES, SUBJECT_KEYS } = await import("../src/lib/grade.ts");
+const { gradeLabel, gradeRange, GRADES, SUBJECT_KEYS, gradeLabelEn, gradeRangeEn, SUBJECT_EN } = await import("../src/lib/grade.ts");
 
 // กฎที่ผิดแล้วชุดโจทย์ใช้ไม่ได้เลย — ดู .claude/skills/exercise-authoring ข้อ 4 และ 8
 // ข้อที่ "ควรปรับ" (ขนาดชุด ตำแหน่งคำตอบกระจุก) อยู่ใน npm run audit:exercises
@@ -430,4 +430,12 @@ test("grade labels cover primary and lower secondary", () => {
   assert.equal(gradeRange([]), "-");
   assert.ok(SUBJECT_KEYS.includes("chinese"), "ต้องมีภาษาจีนในรายการวิชา");
   assert.equal(SUBJECT_KEYS.length, 5);
+
+  // ฉบับภาษาอังกฤษสำหรับใบตารางสอนของครูต่างชาติ
+  assert.equal(gradeLabelEn(3), "P.3");
+  assert.equal(gradeLabelEn(8), "M.2");
+  assert.equal(gradeRangeEn([1, 2, 3]), "P.1-P.3");
+  assert.equal(gradeRangeEn([5, 9]), "P.5, M.3");
+  assert.equal(SUBJECT_EN.chinese, "Chinese");
+  assert.equal(Object.keys(SUBJECT_EN).length, SUBJECT_KEYS.length, "วิชาใหม่ต้องมีชื่ออังกฤษด้วยเสมอ");
 });

@@ -120,6 +120,7 @@ route("GET", "admin/teacher-sheet", STAFF, async ({ store, query, me }) => {
               code: s.code,
               nickname: s.nickname,
               fullName: s.fullName,
+              englishName: s.englishName,
               grade: s.grade,
               school: s.school,
               // เบอร์ผู้ปกครองไว้ติดต่อฉุกเฉินระหว่างสอน

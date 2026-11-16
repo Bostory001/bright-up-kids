@@ -392,6 +392,7 @@ check("ครูเปิดเองเห็นตารางของตั�
 const sheetCourse = r.data.courses?.find((c) => c.id === courseId);
 check("ใบตารางบอกวันเวลาและสัปดาห์ที่เหลือ", sheetCourse?.weekdayName === "เสาร์" && sheetCourse?.startTime === "09:00" && sheetCourse?.left === 11, JSON.stringify(sheetCourse && { d: sheetCourse.weekdayName, left: sheetCourse.left }));
 const sheetStudent = sheetCourse?.students?.[0];
+check("ใบตารางครูส่งชื่ออังกฤษของนักเรียนมาด้วย (ไว้สลับภาษา)", "englishName" in (sheetCourse?.students?.[0] ?? {}) || sheetCourse?.students?.[0]?.englishName === undefined);
 check("มีรายชื่อนักเรียนพร้อมเบอร์ผู้ปกครองและจำนวนขาด/ลา", sheetStudent?.nickname === "มายด์" && sheetStudent?.parentPhone === "0812345678" && typeof sheetStudent?.absences === "number", JSON.stringify(sheetStudent));
 check("เจ้าของเลือกดูของครูคนอื่นได้", (await owner.call(`admin/teacher-sheet?teacherId=${kruId}`)).data.courses?.length >= 1);
 check("เจ้าของที่ไม่ได้สอนเอง เปิดมาเจอครูที่มีคอร์สเลย", (await owner.call("admin/teacher-sheet")).data.teacherId === kruId);
