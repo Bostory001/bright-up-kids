@@ -50,10 +50,12 @@ const { hashSecret } = await import("../src/lib/server/auth.ts");
 
 const store = await getStore();
 const RESET = process.argv.includes("--reset");
+// ต้องครบทุก collection ที่ seed แตะ ไม่งั้นข้อมูลตัวอย่างค้างอยู่หลังสั่งล้าง
 const COLLECTIONS = [
   "users", "students", "courses", "enrollments", "attendance", "invoices", "slips",
   "expenses", "receipts", "leads", "makeups", "applications", "assignments",
   "attempts", "player_profiles", "redemptions", "rewards", "notifications",
+  "assessments", "supply_items", "supply_moves", "budgets",
 ];
 
 console.log(`ที่เก็บข้อมูล: ${store.kind === "firestore" ? "Firestore (ของจริง)" : "ไฟล์ในเครื่อง .data/db.json"}`);
