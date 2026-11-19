@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useMe } from "@/components/me";
 import { Badge, Button, Card, ErrorText, Field, Input, Select, Table } from "@/components/ui";
 import { api, useLoad } from "@/lib/client/api";
-import { GRADES, SUBJECT_TH, gradeLabel, gradeRange } from "@/lib/grade";
-import type { Course } from "@/lib/types";
+import { GRADES, SUBJECT_KEYS, SUBJECT_TH, gradeLabel, gradeRange } from "@/lib/grade";
+import type { Course, Subject } from "@/lib/types";
 
 const WEEKDAYS = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 const SUBJECTS = SUBJECT_TH;
@@ -43,6 +43,12 @@ export default function CoursesPage() {
       setFormError((err as Error).message);
     }
   }
+
+  // จัดกลุ่มตามวิชา — ภายในกลุ่มเรียงตามวันและเวลา
+  const grouped = SUBJECT_KEYS.map((key): [Subject, Course[]] => [
+    key,
+    (data?.courses ?? []).filter((c) => c.subject === key).sort((a, b) => a.weekday - b.weekday || a.startTime.localeCompare(b.startTime)),
+  ]).filter(([, list]) => list.length > 0);
 
   return (
     <div className="grid gap-4">
@@ -143,28 +149,42 @@ export default function CoursesPage() {
         </Card>
       )}
 
-      <Table head={["คอร์ส", "วิชา", "ชั้น", "วันเวลา", "ค่าเรียน", "รับ", "สถานะ", ""]}>
-        {data?.courses.map((c) => (
-          <tr key={c.id}>
-            <td className="font-medium">{c.name}</td>
-            <td>{SUBJECTS[c.subject]}</td>
-            <td>{gradeRange(c.grades)}</td>
-            <td className="whitespace-nowrap">
-              {WEEKDAYS[c.weekday]} {c.startTime}-{c.endTime}
-            </td>
-            <td>{c.pricePerTerm.toLocaleString()}</td>
-            <td>{c.capacity}</td>
-            <td>{c.active ? <Badge color="green">เปิดรับ</Badge> : <Badge>ปิด</Badge>}</td>
-            <td>
-              {canEdit && (
-                <Button variant="ghost" onClick={() => setEditing(c)}>
-                  แก้ไข
-                </Button>
-              )}
-            </td>
-          </tr>
-        ))}
-      </Table>
+      {grouped.length === 0 && <p className="text-gray-500">ยังไม่มีคอร์ส</p>}
+      {grouped.map(([subject, list]) => (
+        <section key={subject} className="grid gap-2">
+          <h2 className="flex items-baseline gap-2 text-lg font-bold">
+            {SUBJECTS[subject]}
+            <span className="text-sm font-normal text-gray-500">
+              {list.length} คอร์ส · เปิดรับ {list.filter((c) => c.active).length}
+            </span>
+          </h2>
+          <Table head={["คอร์ส", "ชั้น", "วันเวลา", "ห้อง", "ค่าเรียน", "รับ", "สถานะ", ""]}>
+            {list.map((c) => (
+              <tr key={c.id}>
+                <td className="font-medium">
+                  {c.name}
+                  {c.teacherName && <div className="text-xs font-normal text-gray-500">{c.teacherName}</div>}
+                </td>
+                <td>{gradeRange(c.grades)}</td>
+                <td className="whitespace-nowrap">
+                  {WEEKDAYS[c.weekday]} {c.startTime}-{c.endTime}
+                </td>
+                <td className="whitespace-nowrap text-gray-600">{c.room ?? "—"}</td>
+                <td>{c.pricePerTerm.toLocaleString()}</td>
+                <td>{c.capacity}</td>
+                <td>{c.active ? <Badge color="green">เปิดรับ</Badge> : <Badge>ปิด</Badge>}</td>
+                <td>
+                  {canEdit && (
+                    <Button variant="ghost" onClick={() => setEditing(c)}>
+                      แก้ไข
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </Table>
+        </section>
+      ))}
     </div>
   );
 }
