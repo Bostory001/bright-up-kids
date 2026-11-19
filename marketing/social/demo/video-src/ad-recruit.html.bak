@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>render — แอดรับสมัครนักเรียน 15 วิ (ไดคัท/กระดาษยับ)</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@600;700&family=IBM+Plex+Sans+Thai:wght@500;600;700&display=swap">
+<style>
+  html,body{margin:0;padding:0;background:#000;overflow:hidden}
+  canvas{display:block}
+  img{display:none}
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<img id="imHomework" src="assets/ph-homework.jpg" alt="">
+<img id="imTeacher"  src="assets/ph-teacher.jpg"  alt="">
+<img id="imBoy"      src="assets/ph-boy.jpg"      alt="">
+<img id="imShop"     src="assets/ph-shop.jpg"     alt="">
+<img id="imK1" src="assets/ph-k1.jpg" alt="">
+<img id="imK2" src="assets/ph-k2.jpg" alt="">
+<img id="imK3" src="assets/ph-k3.jpg" alt="">
+<img id="imK4" src="assets/ph-k4.jpg" alt="">
+<!-- ไดคัทตามขอบตัวคน (ตัดพื้นหลังด้วย SegFormer แล้วทำขอบขาวแบบสแตนดี้) -->
+<img id="imCutHw" src="assets/cut-homework.png" alt="">
+<img id="imCutTc" src="assets/cut-teacher.png" alt="">
+<img id="imCutBoy" src="assets/cut-boy.png" alt="">
+<script>
+/* ────────────────────────────────────────────────────────────────
+   แอดรับสมัครนักเรียน — Bright Up Kids สาขาวัดหลวงพ่อโต บางพลี
+   15 วินาที · 9:16 · 1080×1920 · 30fps
+
+   สไตล์: ไดคัท / กระดาษยับ (paper collage)
+     พื้นหลัง = กระดาษยับ วาดด้วยโค้ด (เหลี่ยมยับ + เงา + เกรน) ทำครั้งเดียวแล้วใช้ซ้ำทุกเฟรม
+     รูปทุกใบ = การ์ดกระดาษฉีกขอบหยัก เอียงเล็กน้อย มีเงาตกกระทบ + เทปกาวติดมุม
+     ตัวหนังสือสำคัญ = วางบนแถบกระดาษฉีกสีแบรนด์
+   ตัวหนังสือยังเป็นโค้ดทั้งหมด จึงสะกดไทยถูกและแก้ราคา/เบอร์ได้ทันที
+
+   หน้านี้ไม่ได้มีไว้เปิดดู — capture.mjs เรียก drawAt(t) ทีละเฟรม
+   ──────────────────────────────────────────────────────────────── */
+
+const W = 1080, H = 1920;
+const cv = document.getElementById("c");
+const g  = cv.getContext("2d");
+
+const C = {
+  paper:"#f7f0e1", paperHi:"#fffdf6", paperLo:"#e4d9c2",
+  ink:"#15365c", ink2:"#4a6b8f",
+  blue:"#1f6fd0", navy:"#123a6b",
+  yellow:"#ffd22e", yellowHot:"#fff0a8", yellowDeep:"#c98a00",
+  pink:"#ff4d8d", pinkDeep:"#cf1f63",
+  green:"#23a86d"
+};
+const DISPLAY = "\"Bai Jamjuree\",\"IBM Plex Sans Thai\",sans-serif";
+const BODY    = "\"IBM Plex Sans Thai\",\"Bai Jamjuree\",sans-serif";
+
+/* ── รูป ─────────────────────────────────────────────────────── */
+const IM = {
+  hw:  document.getElementById("imHomework"),
+  tc:  document.getElementById("imTeacher"),
+  boy: document.getElementById("imBoy"),
+  shop:document.getElementById("imShop"),
+  k:   [1, 2, 3, 4].map((n) => document.getElementById("imK" + n)),
+  cutHw:  document.getElementById("imCutHw"),
+  cutTc:  document.getElementById("imCutTc"),
+  cutBoy: document.getElementById("imCutBoy")
+};
+const ALL = [IM.hw, IM.tc, IM.boy, IM.shop, IM.cutHw, IM.cutTc, IM.cutBoy].concat(IM.k);
+window.ASSETS_READY = Promise.all(ALL.map((im) => new Promise((res) => {
+  if (im.complete) return res();
+  im.onload = im.onerror = () => res();
+}))).then(() => true);
+const ok = (im) => im && im.complete && im.naturalWidth > 0;
+
+/* ── ไทม์ไลน์ 6 คัท รวม 15 วินาที ───────────────────────────── */
+const SCENES = [
+  { ms:2200, fn:(lt)=>sHook(lt) },
+  { ms:2600, fn:(lt)=>sHomework(lt) },
+  { ms:2400, fn:(lt)=>sPhonics(lt) },
+  { ms:2400, fn:(lt)=>sSubjects(lt) },
+  { ms:2900, fn:(lt)=>sPromo(lt) },
+  { ms:2500, fn:(lt)=>sCta(lt) }
+];
+const STARTS = [];
+(function(){ let a = 0; for (const s of SCENES){ STARTS.push(a); a += s.ms; } })();
+const TOTAL = STARTS[STARTS.length - 1] + SCENES[SCENES.length - 1].ms;
+window.TOTAL_MS = TOTAL;
+window.PROBE_MS = [1100, 1900, 3900, 4600, 6500, 8900, 11600, 14100];
+
+const BEAT = 500;
+
+/* ── ตัวช่วย ────────────────────────────────────────────────── */
+const clamp = (v, a, b) => { a = a === undefined ? 0 : a; b = b === undefined ? 1 : b;
+  return v < a ? a : v > b ? b : v; };
+const ease3 = (p) => 1 - Math.pow(1 - clamp(p), 3);
+const pop   = (p) => { p = clamp(p); const c1 = 1.70158, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
+const appear = (lt, delay, dur) => clamp((lt - delay) / (dur === undefined ? 320 : dur));
+const mix = (a, b, p) => a + (b - a) * clamp(p);
+const rnd = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+function shadow(color, blur, dy){ g.shadowColor = color; g.shadowBlur = blur; g.shadowOffsetY = dy; }
+function noShadow(){ g.shadowColor = "transparent"; g.shadowBlur = 0; g.shadowOffsetY = 0; }
+
+function fitFont(txt, maxW, size, weight, fam){
+  let s = size;
+  for (; s > 18; s -= 2){ g.font = weight + " " + s + "px " + fam;
+    if (g.measureText(txt).width <= maxW) break; }
+  g.font = weight + " " + s + "px " + fam;
+  return s;
+}
+function textC(txt, cx, y, maxW, size, weight, fam, fill){
+  fitFont(txt, maxW, size, weight, fam);
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillStyle = fill; g.fillText(txt, cx, y);
+}
+
+/* ── ขอบกระดาษฉีก ──────────────────────────────────────────── */
+function tornPath(x, y, w, h, seed, amp){
+  amp = amp === undefined ? 9 : amp;
+  const step = 24;
+  let n = 0;
+  const j = () => (rnd(seed * 7.3 + (n++) * 1.7) - 0.5) * 2 * amp;
+  g.beginPath();
+  g.moveTo(x, y);
+  for (let px = x + step; px < x + w; px += step) g.lineTo(px, y + j());
+  g.lineTo(x + w, y);
+  for (let py = y + step; py < y + h; py += step) g.lineTo(x + w + j(), py);
+  g.lineTo(x + w, y + h);
+  for (let px = x + w - step; px > x; px -= step) g.lineTo(px, y + h + j());
+  g.lineTo(x, y + h);
+  for (let py = y + h - step; py > y; py -= step) g.lineTo(x + j(), py);
+  g.closePath();
+}
+
+/* ── พื้นหลังกระดาษยับ (วาดครั้งเดียว) ──────────────────────── */
+const paperCv = document.createElement("canvas");
+paperCv.width = W; paperCv.height = H;
+(function buildPaper(){
+  const p = paperCv.getContext("2d");
+  const base = p.createLinearGradient(0, 0, W, H);
+  base.addColorStop(0, "#fbf6ea"); base.addColorStop(.5, C.paper); base.addColorStop(1, "#efe4ce");
+  p.fillStyle = base; p.fillRect(0, 0, W, H);
+
+  /* เหลี่ยมยับ — สว่างด้านหนึ่ง เงาอีกด้าน */
+  for (let i = 0; i < 190; i++){
+    const cx = rnd(i * 3.1) * W, cy = rnd(i * 5.7 + 11) * H;
+    const r  = 70 + rnd(i * 2.3 + 5) * 230;
+    const n  = 3 + Math.floor(rnd(i + 77) * 3);
+    const rot = rnd(i + 31) * 6.283;
+    p.beginPath();
+    for (let k = 0; k < n; k++){
+      const a = rot + (k / n) * 6.283, rr2 = r * (.55 + rnd(i * 9 + k) * .7);
+      const px = cx + Math.cos(a) * rr2, py = cy + Math.sin(a) * rr2;
+      k ? p.lineTo(px, py) : p.moveTo(px, py);
+    }
+    p.closePath();
+    const light = rnd(i + 200) > .5;
+    p.fillStyle = light ? "rgba(255,255,255," + (.10 + rnd(i + 3) * .16) + ")"
+                        : "rgba(120,100,66," + (.030 + rnd(i + 4) * .055) + ")";
+    p.fill();
+  }
+  /* รอยพับยาว */
+  for (let i = 0; i < 26; i++){
+    const x0 = rnd(i * 13 + 2) * W, y0 = rnd(i * 17 + 7) * H;
+    const a = rnd(i * 19 + 3) * 6.283, len = 240 + rnd(i + 44) * 700;
+    p.strokeStyle = rnd(i + 90) > .5 ? "rgba(255,255,255,.34)" : "rgba(118,98,64,.10)";
+    p.lineWidth = 1 + rnd(i + 55) * 2.4;
+    p.beginPath(); p.moveTo(x0, y0);
+    p.lineTo(x0 + Math.cos(a) * len, y0 + Math.sin(a) * len); p.stroke();
+  }
+  /* เกรนกระดาษ */
+  for (let i = 0; i < 9000; i++){
+    p.fillStyle = "rgba(90,74,48," + (.015 + rnd(i) * .05) + ")";
+    p.fillRect(rnd(i * 1.3) * W, rnd(i * 2.7 + 9) * H, 1.6, 1.6);
+  }
+  /* ขอบมืดนิด ๆ */
+  const vg = p.createRadialGradient(W / 2, H / 2, 520, W / 2, H / 2, 1260);
+  vg.addColorStop(0, "rgba(90,74,48,0)"); vg.addColorStop(1, "rgba(90,74,48,.22)");
+  p.fillStyle = vg; p.fillRect(0, 0, W, H);
+})();
+function paperBg(){ g.drawImage(paperCv, 0, 0); }
+
+/* ── รูปในกรอบกระดาษฉีก (ไดคัท) ────────────────────────────── */
+function drawCover(im, x, y, w, h, zoom, panx, pany){
+  const iw = im.naturalWidth, ih = im.naturalHeight;
+  const s = Math.max(w / iw, h / ih) * (zoom === undefined ? 1 : zoom);
+  const dw = iw * s, dh = ih * s;
+  g.drawImage(im, x + (w - dw) / 2 + (panx || 0) * (dw - w) / 2,
+                  y + (h - dh) / 2 + (pany || 0) * (dh - h) / 2, dw, dh);
+}
+function photoCard(im, cx, cy, w, h, rot, seed, zoom, panx, pany){
+  if (!ok(im)) return;
+  const pad = 20;
+  g.save(); g.translate(cx, cy); g.rotate(rot);
+  g.save(); shadow("rgba(72,56,30,.38)", 38, 16);
+  g.fillStyle = C.paperHi;
+  tornPath(-w / 2 - pad, -h / 2 - pad, w + pad * 2, h + pad * 2, seed, 10); g.fill();
+  g.restore();
+  g.save(); tornPath(-w / 2, -h / 2, w, h, seed + 40, 6); g.clip();
+  drawCover(im, -w / 2, -h / 2, w, h, zoom, panx, pany);
+  g.restore();
+  g.restore();
+}
+/* ไดคัท: วางรูปที่ตัดพื้นหลังแล้วให้ "ยืน" บนพื้น มีเงาเหมือนป้ายสแตนดี้ */
+function dieCut(im, cx, baseY, h, rot, zoom){
+  if (!ok(im)) return;
+  const s = (h / im.naturalHeight) * (zoom === undefined ? 1 : zoom);
+  const w = im.naturalWidth * s, hh = im.naturalHeight * s;
+  g.save(); g.translate(cx, baseY); g.rotate(rot || 0);
+  g.save(); g.globalAlpha = .22; g.fillStyle = "#5a4a30";
+  g.beginPath(); g.ellipse(0, 4, w * .40, 15, 0, 0, 7); g.fill(); g.restore();
+  g.save(); shadow("rgba(72,56,30,.45)", 30, 14);
+  g.drawImage(im, -w / 2, -hh, w, hh); g.restore();
+  g.restore();
+}
+/* ก้อนกระดาษสีฉีก ไว้รองหลังตัวไดคัทให้ภาพมีชั้น */
+function blob(cx, cy, w, h, col, seed, rot){
+  g.save(); g.translate(cx, cy); g.rotate(rot || 0);
+  g.fillStyle = col; tornPath(-w / 2, -h / 2, w, h, seed, 13); g.fill();
+  g.restore();
+}
+
+/* เทปกาว */
+function tape(cx, cy, w, h, rot){
+  g.save(); g.translate(cx, cy); g.rotate(rot);
+  g.fillStyle = "rgba(255,226,120,.72)"; g.fillRect(-w / 2, -h / 2, w, h);
+  g.fillStyle = "rgba(255,255,255,.28)"; g.fillRect(-w / 2, -h / 2, w, h * .34);
+  g.restore();
+}
+
+/* ── แถบกระดาษฉีกรองตัวหนังสือ ─────────────────────────────── */
+function strip(txt, cx, cy, size, bg, fg, seed, rot, fam){
+  fam = fam || DISPLAY;
+  fitFont(txt, 900, size, "700", fam);
+  const w = g.measureText(txt).width + 76, h = size * 1.72;
+  g.save(); g.translate(cx, cy); g.rotate(rot || 0);
+  g.save(); shadow("rgba(72,56,30,.34)", 24, 9);
+  g.fillStyle = bg; tornPath(-w / 2, -h / 2, w, h, seed, 7); g.fill(); g.restore();
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillStyle = fg; g.fillText(txt, 0, 2);
+  g.restore();
+}
+/* การ์ดกระดาษฉีกเปล่า */
+function paperCard(x, y, w, h, seed, fill){
+  g.save(); shadow("rgba(72,56,30,.34)", 30, 12);
+  g.fillStyle = fill || C.paperHi; tornPath(x, y, w, h, seed, 8); g.fill(); g.restore();
+}
+function starburst(cx, cy, rOut, rIn, pts, rot, fill){
+  g.save(); g.translate(cx, cy); g.rotate(rot); g.beginPath();
+  for (let i = 0; i < pts * 2; i++){
+    const r = i % 2 ? rIn : rOut, a = (i * Math.PI) / pts;
+    if (i) g.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    else   g.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  g.closePath(); g.fillStyle = fill; g.fill(); g.restore();
+}
+function tick(cx, cy, r, col){
+  g.save(); g.fillStyle = col; g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill();
+  g.strokeStyle = C.paperHi; g.lineWidth = r * 0.3; g.lineCap = "round"; g.lineJoin = "round";
+  g.beginPath(); g.moveTo(cx - r * .42, cy + r * .02);
+  g.lineTo(cx - r * .10, cy + r * .36); g.lineTo(cx + r * .46, cy - r * .36); g.stroke(); g.restore();
+}
+/* เศษกระดาษปลิว */
+function scraps(t){
+  const cols = ["#ffd22e", "#ff4d8d", "#ffffff", "#8ed0ff"];
+  for (let i = 0; i < 18; i++){
+    const x = rnd(i + 200) * W, sp = .040 + rnd(i + 230) * .06;
+    const y = ((rnd(i + 260) * (H + 300)) + (t * sp)) % (H + 300) - 150;
+    g.save(); g.globalAlpha = .75; g.translate(x, y); g.rotate(t * .002 + i);
+    g.fillStyle = cols[i % 4]; tornPath(-13, -8, 26, 16, i + 5, 3); g.fill(); g.restore();
+  }
+  g.globalAlpha = 1;
+}
+
+/* ════════════ คัท 1 — ฮุก ════════════ */
+function sHook(lt, t){
+  paperBg();
+  const k = lt / 2200;
+  const sc = mix(1.05, 1.0, ease3(k));
+  blob(540, 740, 900, 640, "#bfe2ff", 301, -0.05);
+  blob(300, 560, 360, 300, "#ffe79a", 303, 0.14);
+  g.save(); g.translate(W / 2, 1065); g.scale(sc, sc); g.translate(-W / 2, -1065);
+  dieCut(IM.cutHw, W / 2, 1065, 700, -0.02, mix(1.04, 1.0, k));
+  g.restore();
+
+  const a = ease3(appear(lt, 60, 300));
+  g.save(); g.globalAlpha = a;
+  strip("ผู้ปกครองย่านบางพลี", W / 2, 300, 40, C.navy, C.paperHi, 11, -0.012, BODY); g.restore();
+
+  const w1 = pop(appear(lt, 240, 420));
+  g.save(); g.translate(W / 2, 1200); g.scale(w1, w1); g.globalAlpha = clamp(w1);
+  textC("เลิกเรียนแล้ว", 0, 0, 900, 118, "700", DISPLAY, C.ink); g.restore();
+
+  const w2 = pop(appear(lt, 520, 460));
+  g.save(); g.translate(W / 2, 1348); g.scale(w2, w2); g.globalAlpha = clamp(w2);
+  strip("ลูกไปทำการบ้านที่ไหน?", 0, 0, 96, C.pink, C.paperHi, 21, 0.015); g.restore();
+
+  const p3 = ease3(appear(lt, 1050, 400));
+  if (p3 > 0){ g.save(); g.globalAlpha = p3;
+    textC("พ่อแม่ยังไม่เลิกงาน · ลูกเลิกเรียนบ่ายสี่", W / 2, 1462, 880, 44, "600", BODY, C.ink2);
+    g.restore(); }
+}
+
+/* ════════════ คัท 2 — ดูแลการบ้าน + ป้ายราคา ════════════ */
+function sHomework(lt, t){
+  paperBg();
+  const k = lt / 2600;
+  blob(540, 620, 880, 560, "#ffd9e6", 311, 0.04);
+  dieCut(IM.cutHw, W / 2, 905, 585, 0.015, mix(1.0, 1.06, k));
+
+  const a = ease3(appear(lt, 40, 280));
+  g.save(); g.globalAlpha = a;
+  strip("ดูแลการบ้านหลังเลิกเรียน", W / 2, 960, 52, C.pink, C.paperHi, 31, -0.01); g.restore();
+
+  const p1 = ease3(appear(lt, 300, 320));
+  if (p1 > 0){ g.save(); g.globalAlpha = p1;
+    strip("จันทร์ – ศุกร์   16.00 – 17.00 น.", W / 2, 1075, 44, C.navy, C.paperHi, 41, .012, BODY);
+    g.restore(); }
+
+  const p2 = ease3(appear(lt, 520, 320));
+  if (p2 > 0){
+    ["มีคุณครูคอยดูแลตลอดชั่วโมง", "ช่วยอธิบายโจทย์ข้อที่ไม่เข้าใจ"].forEach((txt, i) => {
+      const p = ease3(appear(lt, 560 + i * 130, 280));
+      if (p <= 0) return;
+      g.save(); g.globalAlpha = p; g.translate((1 - p) * -40, 0);
+      tick(170, 1185 + i * 78, 24, C.green);
+      fitFont(txt, 720, 44, "600", BODY);
+      g.textAlign = "left"; g.textBaseline = "middle"; g.fillStyle = C.ink;
+      g.fillText(txt, 212, 1187 + i * 78);
+      g.restore();
+    });
+  }
+
+  const pr = pop(appear(lt, 1000, 520));
+  if (pr > 0){
+    const pb = ((lt - 1000) % BEAT) / BEAT, puls = 1 + .035 * Math.pow(1 - clamp(pb), 3);
+    g.save(); g.translate(W / 2, 1400); g.scale(pr * puls, pr * puls); g.globalAlpha = clamp(pr);
+    g.save(); shadow("rgba(72,56,30,.4)", 26, 12);
+    starburst(0, 0, 172, 140, 18, lt * .00022, C.yellow); g.restore();
+    starburst(0, 0, 155, 128, 18, lt * .00022 + .18, C.yellowHot);
+    textC("เพียง", 0, -78, 210, 34, "600", BODY, C.yellowDeep);
+    textC("1,500.-", 0, -12, 285, 96, "700", DISPLAY, C.pinkDeep);
+    textC("บาท / เดือน", 0, 56, 230, 34, "700", BODY, C.ink);
+    g.restore();
+  }
+}
+
+/* ════════════ คัท 3 — ครูเจ้าของภาษา (เห็นเต็มตัว) ════════════ */
+function sPhonics(lt, t){
+  paperBg();
+  const k = lt / 2400;
+  blob(540, 700, 520, 820, "#ffe79a", 321, 0.03);
+  blob(760, 520, 300, 260, "#bfe2ff", 323, -0.12);
+  dieCut(IM.cutTc, W / 2, 1120, 810, -0.015, mix(1.03, 1.0, k));
+  /* มุมขวาบนของรูปมีตัวหนังสือจากโปสเตอร์ติดมา กลบด้วยสีกระดาษให้กลืนไปกับพื้น */
+  if (ok(IM.tc)){
+    g.save(); g.translate(W / 2, 700); g.rotate(-0.018);
+    const gw = g.createLinearGradient(30, 0, 196, 0);
+    gw.addColorStop(0, "rgba(247,240,225,0)"); gw.addColorStop(1, "rgba(247,240,225,.97)");
+    g.fillStyle = gw; g.fillRect(30, -394, 168, 250);
+    const gv = g.createLinearGradient(0, -144, 0, -70);
+    gv.addColorStop(0, "rgba(247,240,225,.80)"); gv.addColorStop(1, "rgba(247,240,225,0)");
+    g.fillStyle = gv; g.fillRect(120, -144, 78, 74);
+    g.restore();
+  }
+  tape(390, 300, 160, 50, -0.3); tape(700, 306, 160, 50, 0.26);
+
+  const a = ease3(appear(lt, 40, 280));
+  g.save(); g.globalAlpha = a;
+  strip("ครูเจ้าของภาษา", W / 2, 1180, 56, C.navy, C.paperHi, 51, .012); g.restore();
+
+  const w1 = pop(appear(lt, 240, 420));
+  g.save(); g.translate(W / 2, 1290); g.scale(w1, w1); g.globalAlpha = clamp(w1);
+  strip("สอนโฟนิค (Phonics)", 0, 0, 86, C.yellow, C.ink, 61, -.014); g.restore();
+
+  const p1 = ease3(appear(lt, 560, 320));
+  if (p1 > 0){
+    ["ออกเสียงถูก สำเนียงเหมือนเจ้าของภาษา",
+     "อ่านคำใหม่ได้เองอย่างเป็นธรรมชาติ"].forEach((txt, i) => {
+      const p = ease3(appear(lt, 600 + i * 140, 280));
+      if (p <= 0) return;
+      g.save(); g.globalAlpha = p; g.translate((1 - p) * -40, 0);
+      tick(150, 1400 + i * 76, 23, C.green);
+      fitFont(txt, 760, 42, "600", BODY);
+      g.textAlign = "left"; g.textBaseline = "middle"; g.fillStyle = C.ink;
+      g.fillText(txt, 190, 1402 + i * 76);
+      g.restore();
+    });
+  }
+}
+
+/* ════════════ คัท 4 — วิชาที่เปิดสอน ════════════ */
+const SUBJ = [
+  { t:"คณิตศาสตร์", s:"ป.1 – ป.6", c:"#1f6fd0", im:0 },
+  { t:"ภาษาอังกฤษ", s:"ป.1 – ป.6", c:"#ff4d8d", im:1 },
+  { t:"วิทยาศาสตร์", s:"ป.4 – ป.6", c:"#23a86d", im:2 },
+  { t:"ภาษาจีน",    s:"5 ระดับ",   c:"#f08020", im:3 }
+];
+function sSubjects(lt, t){
+  paperBg(); scraps(t);
+
+  const w1 = pop(appear(lt, 60, 400));
+  g.save(); g.translate(W / 2, 360); g.scale(w1, w1); g.globalAlpha = clamp(w1);
+  textC("เปิดสอนครบทุกวิชา", 0, 0, 940, 96, "700", DISPLAY, C.ink); g.restore();
+
+  SUBJ.forEach((s, i) => {
+    const p = pop(appear(lt, 300 + i * 165, 400));
+    if (p <= 0) return;
+    const y = 500 + i * 185, rot = (i % 2 ? 1 : -1) * 0.012;
+    g.save(); g.translate(W / 2, y + 75); g.scale(p, p); g.rotate(rot);
+    g.globalAlpha = clamp(p);
+    paperCard(-430, -75, 860, 150, 71 + i * 9);
+    g.save(); tornPath(-430, -75, 860, 150, 71 + i * 9, 8); g.clip();
+    g.fillStyle = s.c; g.fillRect(-430, -75, 22, 150);
+    if (ok(IM.k[s.im])) drawCover(IM.k[s.im], 260, -75, 170, 150, 1.05, 0, -0.1);
+    const fade = g.createLinearGradient(248, 0, 340, 0);
+    fade.addColorStop(0, "rgba(255,253,246,1)"); fade.addColorStop(1, "rgba(255,253,246,0)");
+    g.fillStyle = fade; g.fillRect(248, -75, 92, 150);
+    g.restore();
+    fitFont(s.t, 480, 58, "700", DISPLAY);
+    g.textAlign = "left"; g.textBaseline = "middle"; g.fillStyle = C.ink;
+    g.fillText(s.t, -370, -18);
+    fitFont(s.s, 380, 40, "700", BODY);
+    g.fillStyle = s.c; g.fillText(s.s, -370, 38);
+    g.restore();
+  });
+
+  const p2 = ease3(appear(lt, 1150, 320));
+  if (p2 > 0){ g.save(); g.globalAlpha = p2;
+    strip("ห้องเล็ก ดูแลทั่วถึง รับจำนวนจำกัด", W / 2, 1400, 44, C.yellow, C.ink, 91, .01, BODY);
+    g.restore(); }
+}
+
+/* ════════════ คัท 5 — โปรเปิดสาขา ════════════ */
+const FREE = ["ค่าแรกเข้า", "ค่าหนังสือเรียน", "ค่าทำแบบทดสอบ"];
+function sPromo(lt, t){
+  paperBg(); scraps(t);
+
+  const p0 = pop(appear(lt, 40, 400));
+  g.save(); g.translate(W / 2, 330); g.scale(p0, p0); g.globalAlpha = clamp(p0);
+  strip("GRAND OPENING  สาขาใหม่", 0, 0, 58, C.pink, C.paperHi, 101, -.012); g.restore();
+
+  FREE.forEach((f, i) => {
+    const p = pop(appear(lt, 300 + i * 150, 380));
+    if (p <= 0) return;
+    g.save(); g.translate(200 + i * 340, 580); g.scale(p, p);
+    g.rotate((i - 1) * 0.035); g.globalAlpha = clamp(p);
+    paperCard(-142, -118, 284, 236, 111 + i * 7);
+    textC("ฟรี", 0, -46, 220, 84, "700", DISPLAY, C.pink);
+    textC(f, 0, 52, 240, 38, "600", BODY, C.ink);
+    g.restore();
+  });
+
+  const p2 = pop(appear(lt, 880, 480));
+  if (p2 > 0){
+    const pb = ((lt - 880) % BEAT) / BEAT, puls = 1 + .028 * Math.pow(1 - clamp(pb), 3);
+    g.save(); g.translate(W / 2, 1000); g.scale(p2 * puls, p2 * puls); g.globalAlpha = clamp(p2);
+    starburst(0, 0, 318, 268, 22, lt * .00018, "rgba(255,210,46,.96)");
+    paperCard(-396, -138, 792, 276, 131);
+    textC("สมัคร 2 วิชา", 0, -64, 660, 80, "700", DISPLAY, C.ink);
+    textC("ฟรีอีก 1 วิชา!", 0, 48, 700, 100, "700", DISPLAY, C.pinkDeep);
+    g.restore();
+  }
+
+  const pb0 = ease3(appear(lt, 300, 420));
+  if (pb0 > 0){
+    g.save(); g.globalAlpha = pb0;
+    dieCut(IM.cutBoy, 225, mix(1760, 1700, pb0), 400, -0.05);
+    g.restore();
+  }
+
+  const p3 = ease3(appear(lt, 1450, 340));
+  if (p3 > 0){ g.save(); g.globalAlpha = p3;
+    strip("+ ส่วนลดวิชาละ 200 บาท", 720, 1390, 44, C.navy, C.yellow, 151, .02, BODY); g.restore(); }
+}
+
+/* ════════════ คัท 6 — ปิดท้าย · หน้าร้านจริง ════════════ */
+function sCta(lt, t){
+  paperBg();
+  const k = lt / 2500;
+  photoCard(IM.shop, W / 2, 600, 870, 470, 0.012, 161, mix(1.06, 1.0, k), 0, 0);
+  tape(205, 348, 180, 54, -0.28); tape(885, 354, 180, 54, 0.3);
+
+  const p0 = pop(appear(lt, 40, 420));
+  g.save(); g.translate(W / 2, 960); g.scale(p0, p0); g.globalAlpha = clamp(p0);
+  textC("Bright Up Kids", 0, 0, 880, 106, "700", DISPLAY, C.ink); g.restore();
+
+  const p1 = ease3(appear(lt, 300, 320));
+  g.save(); g.globalAlpha = p1;
+  textC("สาขาวัดหลวงพ่อโต บางพลี · สมุทรปราการ", W / 2, 1055, 880, 42, "600", BODY, C.ink2);
+  g.restore();
+
+  const p2 = pop(appear(lt, 520, 480));
+  if (p2 > 0){
+    const pb = ((lt - 520) % BEAT) / BEAT, puls = 1 + .03 * Math.pow(1 - clamp(pb), 3);
+    g.save(); g.translate(W / 2, 1200); g.scale(p2 * puls, p2 * puls); g.globalAlpha = clamp(p2);
+    g.save(); shadow("rgba(72,56,30,.4)", 30, 14);
+    g.fillStyle = C.yellow; tornPath(-430, -98, 860, 196, 171, 8); g.fill(); g.restore();
+    textC("โทรเลย", 0, -44, 380, 42, "700", BODY, C.yellowDeep);
+    textC("065-447-4691", 0, 30, 740, 108, "700", DISPLAY, C.ink);
+    g.restore();
+  }
+
+  const p3 = ease3(appear(lt, 900, 360));
+  if (p3 > 0){
+    g.save(); g.globalAlpha = p3;
+    strip("ทดลองเรียนฟรี 1 ครั้ง", W / 2, 1380, 54, C.pink, C.paperHi, 181, -.012); g.restore();
+    g.save(); g.globalAlpha = p3;
+    textC("เก่งขึ้นได้ในแบบของลูก", W / 2, 1475, 800, 42, "600", BODY, C.ink2);
+    g.restore();
+  }
+}
+
+/* ── ตัดภาพระหว่างคัท ──────────────────────────────────────── */
+function withCut(lt, dur, fn, t){
+  const inP  = clamp(lt / 240);
+  const outP = clamp((lt - (dur - 170)) / 170);
+  g.save();
+  g.globalAlpha = clamp(inP * 2.0) * (1 - outP * .9);
+  const s = 1 + .05 * (1 - ease3(inP)) - .022 * outP;
+  g.translate(W / 2, H / 2); g.scale(s, s); g.translate(-W / 2, -H / 2);
+  fn(lt, t);
+  g.restore();
+}
+function progress(t){
+  g.fillStyle = "rgba(90,74,48,.25)"; g.fillRect(0, H - 10, W, 10);
+  g.fillStyle = C.pink; g.fillRect(0, H - 10, W * clamp(t / TOTAL), 10);
+}
+
+window.drawAt = function (t){
+  t = clamp(t, 0, TOTAL);
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = C.paper; g.fillRect(0, 0, W, H);
+  let idx = 0;
+  for (let i = 0; i < SCENES.length; i++) if (t >= STARTS[i]) idx = i;
+  withCut(t - STARTS[idx], SCENES[idx].ms, SCENES[idx].fn, t);
+  progress(t);
+};
+
+window.drawAt(0);
+</script>
+</body>
+</html>
