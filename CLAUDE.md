@@ -56,7 +56,8 @@
 6. **เพิ่มหน้าใหม่** = เพิ่มใน `lib/modules.ts` ด้วย (เมนู + คู่มือ) · **เพิ่ม collection** = เพิ่ม interface พร้อม `@collection` และ comment ใน `types.ts`
 7. **Next.js 16** — อ่าน `web/AGENTS.md` + docs ใน `node_modules/next/dist/docs/` ก่อนใช้ API ที่ไม่แน่ใจ · ESLint เข้ม (ห้าม `Date.now()` ใน component, ห้าม setState ตรง ๆ ใน effect)
 8. จบงานแต่ละรอบ: `npm run test:server` + `npm run lint` + `npm run build` + `npm run smoke:isolated` ผ่าน → commit → ติ๊ก ROADMAP.md
-9. ตอบเป็นภาษาไทย รูปแบบ checklist กระชับ
+9. **แก้ข้อมูลจริง (นักเรียน คอร์ส เงิน)** — ยิงผ่าน `web/scripts/admin-api.mjs` ไม่เขียน Firestore ตรง · เงินกับข้อมูลเด็กต้องให้เจ้าของสั่งตรง ๆ **คำถามไม่ใช่คำสั่ง** · อ่าน [docs/DATA_EDITING.md](docs/DATA_EDITING.md) ก่อนลงมือ
+10. ตอบเป็นภาษาไทย รูปแบบ checklist กระชับ
 
 ## ข้อจำกัดจากแฟรนไชส์ (ต้องเคลียร์กับ HQ ก่อนใช้จริง)
 

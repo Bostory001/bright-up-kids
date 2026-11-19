@@ -52,22 +52,20 @@ node scripts/admin-api.mjs GET admin/students   # อ่าน/แก้ข้�
 9. **เพิ่มหน้าใหม่** = เพิ่มใน `web/src/lib/modules.ts` ด้วย (เมนูและคู่มือสร้างจากที่นั่น) · **เพิ่ม collection** = เพิ่ม interface พร้อม `@collection` ใน `types.ts`
 10. **Next.js 16** — อ่าน `web/AGENTS.md` และ docs ใน `node_modules/next/dist/docs/` ก่อนใช้ API ที่ไม่แน่ใจ · ESLint เข้ม (ห้าม `Date.now()` ใน component, ห้าม setState ตรง ๆ ใน effect)
 
-## แก้ข้อมูลจริง (นักเรียน คอร์ส ตาราง) อย่างปลอดภัย
+## แก้ข้อมูลจริง (นักเรียน คอร์ส ตาราง เงิน)
 
-ข้อมูลจริงอยู่บน Firestore **อย่าแก้ตรง ๆ ด้วย Admin SDK ถ้าไม่จำเป็น** ให้ยิงผ่าน API ของระบบ เพื่อให้ validation, สิทธิ์ และการแจ้งเตือนทำงานครบ:
+**คุณแก้ข้อมูลจริงได้** แต่ต้องอ่าน **[docs/DATA_EDITING.md](docs/DATA_EDITING.md)** ก่อนลงมือ — ในนั้นมีคำสั่งพร้อมใช้ ฟิลด์บังคับของทุก entity และรายการ API ทั้งหมด
 
-```bash
-cd web
-node scripts/admin-api.mjs GET  admin/students
-node scripts/admin-api.mjs GET  admin/timetable
-node scripts/admin-api.mjs PATCH admin/courses/<id> '{"name":"อังกฤษ ป.3","subject":"english","grades":[3],"pricePerTerm":0,"weekday":6,"startTime":"10:00","endTime":"11:30","capacity":8,"startDate":"2026-11-07","weeks":4,"active":true}'
-```
+สรุป 4 ข้อที่พลาดไม่ได้:
 
-สคริปต์อ่าน URL และบัญชีเจ้าของจาก `web/.env.local` (`ADMIN_BASE_URL`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`) ถ้าไม่ได้ตั้งจะถามให้ใส่เป็น argument
+1. **ยิงผ่าน API ของระบบ** ด้วย `node scripts/admin-api.mjs <METHOD> <path> '<json>'` (รันจาก `web/`) ไม่เขียน Firestore ตรง ๆ
+   ตั้งค่าใน `web/.env.local`: `ADMIN_BASE_URL`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` (+`ADMIN_TOTP` ถ้าเปิด 2FA) · ไม่ตั้ง BASE_URL = ยิง localhost
+2. **PATCH ต้องส่งฟิลด์เดิมมาครบ** handler ไม่ merge — GET ของเดิมมาก่อนทุกครั้ง ไม่งั้นช่องที่ไม่ส่งจะหาย
+3. **เงินกับข้อมูลเด็ก ต้องให้เจ้าของสั่งตรง ๆ** — ใบแจ้งค่าเรียน (สร้าง/รับชำระ/ยกเลิก/ลบ/ทวง) · สร้างหรือปิดนักเรียน · รีเซ็ต PIN/รหัสผ่าน · ส่งแจ้งเตือนเข้า LINE · `admin/settings`
+   **คำถามไม่ใช่คำสั่ง** — "ทำไมยอดไม่เป็น 0" คือคำถาม ให้ตอบและเสนอทางเลือก ห้ามลงมือแก้ข้อมูลการเงินจากการตีความ
+4. **ลองกับของปลอมก่อน** `npm run smoke:isolated` ปลอดภัยเสมอ · **ห้ามรัน `npm run smoke`** (ไม่มี `:isolated`) ใส่เซิร์ฟเวอร์ที่ต่อ Firestore จริง มันจะสร้างนักเรียน/ใบแจ้งค่าเรียนปลอมปนของจริง
 
-- **PATCH คอร์ส/นักเรียน ต้องส่งฟิลด์เดิมมาครบ** เพราะ handler สร้าง object ใหม่จาก body (อ่านของเดิมด้วย GET ก่อนเสมอ)
-- **ห้ามรัน `npm run smoke`** (ตัวไม่มี `:isolated`) ใส่เซิร์ฟเวอร์ที่ต่อ Firestore จริง — มันจะสร้างนักเรียน/ใบแจ้งค่าเรียนปลอมปนของจริง
-- ข้อมูลตัวอย่างทุกชิ้น id ขึ้นต้น `demo-` ล้างได้ด้วย `npm run seed:demo -- --reset`
+ข้อมูลตัวอย่างทุกชิ้น id ขึ้นต้น `demo-` ล้างได้ด้วย `npm run seed:demo -- --reset`
 
 ## deploy
 
