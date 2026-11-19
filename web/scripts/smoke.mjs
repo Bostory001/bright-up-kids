@@ -463,6 +463,22 @@ check("ผูกผู้ปกครองเดิมซ้ำ ไม่สร
 check("วันเกิดผิดรูปแบบ → 400", (await teacher.call("admin/students", { nickname: "x", fullName: "x", grade: 1, pdpaConsent: true, birthDate: "4/8/2561" })).status === 400);
 check("เบอร์ผู้ปกครองสั้นเกิน → 400", (await teacher.call("admin/students", { nickname: "x", fullName: "x", grade: 1, pdpaConsent: true, parentPhone: "123" })).status === 400);
 
+// ---------- I11: คาบคงเหลือรายคน (แพ็ก 6 ชม.) ----------
+r = await teacher.call(`admin/attendance?courseId=${courseId}&date=${today}`);
+check("รายชื่อเช็กชื่อบอกคาบคงเหลือ (ยังไม่ตั้ง = ไม่จำกัด)", r.data.rows?.[0]?.quota?.left === null && r.data.rows?.[0]?.quota?.paid === null, JSON.stringify(r.data.rows?.[0]?.quota));
+check("ตั้งคาบคงเหลือให้คนที่ไม่ได้ลงคอร์ส → 404", (await teacher.call("admin/enrollments/quota", { studentId: "ไม่มีคนนี้", courseId, remaining: 4 })).status === 404);
+r = await teacher.call("admin/enrollments/quota", { studentId: student.id, courseId, remaining: 4 });
+// นักเรียนคนนี้ถูกเช็กชื่อว่า "มา" ไปแล้ว 1 คาบ → เหลือ 4 แปลว่าซื้อมา 5
+check("ตั้งว่าเหลือ 4 คาบ ระบบแปลงเป็นซื้อมา 5 คาบ (ใช้ไปแล้ว 1)", r.data.quota?.left === 4 && r.data.quota?.paid === 5 && r.data.quota?.used === 1, JSON.stringify(r.data.quota));
+check("ใบตารางครูเห็นคาบคงเหลือรายคน", (await teacher.call(`admin/teacher-sheet?teacherId=${kruId}`)).data.courses?.find((c) => c.id === courseId)?.students?.[0]?.quota?.left === 4);
+check("ผู้ปกครองเห็นคาบคงเหลือของลูก", (await parent.call("parent/overview")).data.children?.[0]?.schedule?.find((s) => s.course.includes("คณิต"))?.quota?.left === 4);
+r = await teacher.call("admin/enrollments/quota", { studentId: student.id, courseId, remaining: 1 });
+check("เหลือ 1 คาบ → ขึ้นเตือนใกล้หมด", r.data.quota?.low === true && r.data.quota?.finished === false);
+r = await teacher.call("admin/enrollments/quota", { studentId: student.id, courseId, remaining: 0 });
+check("เหลือ 0 คาบ → ขึ้นว่าใช้ครบแล้ว", r.data.quota?.finished === true);
+check("ยกเลิกการจำกัดคาบได้", (await teacher.call("admin/enrollments/quota", { studentId: student.id, courseId, remaining: null })).data.quota?.left === null);
+check("คาบคงเหลือติดลบไม่ได้ → 400", (await teacher.call("admin/enrollments/quota", { studentId: student.id, courseId, remaining: -3 })).status === 400);
+
 // ---------- R14: ชุดโจทย์เริ่มต้น ----------
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});

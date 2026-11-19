@@ -1,6 +1,7 @@
 import "server-only";
 import { budgetStatus, summarizeMonth } from "../../finance";
 import { GRADES, SUBJECT_KEYS } from "../../grade";
+import { paidFromRemaining, quotaOf } from "../../quota";
 import { WEEKDAY_TH, weekdayOf } from "../../schedule";
 import { getSettings } from "../settings";
 import type { AppUser, AuthSession, Application, Attendance, Budget, Course, Enrollment, Expense, Grade, Invoice, Redemption, SchoolProgram, Slip, Student } from "../../types";
@@ -383,11 +384,29 @@ route("POST", "admin/students/:id/courses", STAFF, async ({ store, params, body 
   return { ok: true };
 });
 
+// ตั้ง "เหลืออีกกี่คาบ" ของนักเรียนคนหนึ่งในคอร์สหนึ่ง (ระบบแปลงเป็นจำนวนคาบที่จ่ายมาให้เอง)
+route("POST", "admin/enrollments/quota", STAFF, async ({ store, body }) => {
+  const studentId = str(body.studentId, "นักเรียน", 40);
+  const courseId = str(body.courseId, "คอร์ส", 40);
+  const [enrollment] = (await store.list<Enrollment>("enrollments", { studentId, courseId })).filter((e) => e.status === "active");
+  if (!enrollment) throw new HttpError(404, "นักเรียนคนนี้ยังไม่ได้ลงคอร์สนี้");
+
+  const attendance = await store.list<Attendance>("attendance", { courseId });
+  const { used } = quotaOf(enrollment, attendance);
+  // ส่ง remaining = null/"" เพื่อยกเลิกการจำกัดคาบ
+  const clear = body.remaining === null || body.remaining === "";
+  const sessionsPaid = clear ? undefined : paidFromRemaining(num(body.remaining, "คาบคงเหลือ", 0, 200), used);
+  const next: Enrollment = { ...enrollment, sessionsPaid };
+  await store.set("enrollments", next);
+  return { enrollment: next, quota: quotaOf(next, attendance) };
+});
+
 // ---------- เช็กชื่อ ----------
 
 route("GET", "admin/attendance", STAFF, async ({ store, query }) => {
   const courseId = str(query.get("courseId"), "คอร์ส", 40);
   const date = dateStr(query.get("date"), "วันที่");
+  const allAttendance = await store.list<Attendance>("attendance", { courseId });
   const [enrollments, students, marks] = await Promise.all([
     store.list<Enrollment>("enrollments", { courseId, status: "active" }),
     store.list<Student>("students"),
@@ -397,7 +416,12 @@ route("GET", "admin/attendance", STAFF, async ({ store, query }) => {
     rows: enrollments
       .map((e) => students.find((s) => s.id === e.studentId))
       .filter((s): s is Student => Boolean(s?.active))
-      .map((s) => ({ studentId: s.id, code: s.code, nickname: s.nickname, status: marks.find((m) => m.studentId === s.id)?.status ?? null })),
+      .map((s) => {
+        const e = enrollments.find((x) => x.studentId === s.id)!;
+        // คาบคงเหลือนับเฉพาะคาบก่อนหน้า ไม่รวมวันที่กำลังเช็กชื่ออยู่ ครูจะได้เห็นว่าเหลือเท่าไรก่อนจะตัดคาบนี้
+        const quota = quotaOf(e, allAttendance.filter((a) => a.date !== date));
+        return { studentId: s.id, code: s.code, nickname: s.nickname, status: marks.find((m) => m.studentId === s.id)?.status ?? null, quota };
+      }),
   };
 });
 

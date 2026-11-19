@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import type { AppUser, Assessment, Attendance, Course, Enrollment, Invoice, Notification, Slip, Student } from "../../types";
 import { publicStudent } from "../auth";
 import { progressOf } from "../../assessment";
+import { quotaOf } from "../../quota";
 import { courseProgress, sessionDates, WEEKDAY_TH } from "../../schedule";
 import { notifyParent } from "../notify";
 import { route, STAFF } from "../router";
@@ -35,6 +36,8 @@ route("GET", "parent/overview", PARENT, async ({ store, me }) => {
         .filter((c): c is Course => Boolean(c))
         .map((c) => ({
           course: c.name,
+          // คาบคงเหลือของลูกในคอร์สนี้ — ผู้ปกครองจะได้รู้ว่าต้องต่อคอร์สเมื่อไร
+          quota: quotaOf(enrollments.find((e) => e.studentId === s.id && e.courseId === c.id)!, attendance),
           weekday: c.weekday,
           weekdayName: WEEKDAY_TH[c.weekday],
           startTime: c.startTime,

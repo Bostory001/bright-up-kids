@@ -17,6 +17,7 @@ interface StudentRow {
   school?: string;
   parentPhone: string;
   absences: number;
+  quota: { paid: number | null; used: number; left: number | null; low: boolean; finished: boolean };
 }
 interface CourseRow {
   id: string;
@@ -61,7 +62,9 @@ const T = {
     next: "วันสอนถัดไป",
     studentsIn: (n: number) => `นักเรียนในคาบนี้ ${n} คน`,
     noStudents: "ยังไม่มีนักเรียนลงเรียน",
-    cols: ["ชื่อเล่น", "ชื่อ-สกุล", "ชั้น", "โรงเรียน", "เบอร์ผู้ปกครอง", "ขาด/ลา"],
+    cols: ["ชื่อเล่น", "ชื่อ-สกุล", "ชั้น", "คาบคงเหลือ", "เบอร์ผู้ปกครอง", "ขาด/ลา"],
+    unlimited: "ไม่จำกัด",
+    sessions: "คาบ",
     footer: "ครูที่เข้าระบบเองจะเห็นเฉพาะตารางของตัวเอง · เจ้าของเลือกดูของครูคนไหนก็ได้แล้วกดพิมพ์ส่งให้",
   },
   en: {
@@ -79,7 +82,9 @@ const T = {
     next: "Next classes",
     studentsIn: (n: number) => `${n} student${n === 1 ? "" : "s"} in this class`,
     noStudents: "No students enrolled yet",
-    cols: ["Nickname", "Full name", "Grade", "School", "Parent phone", "Absent/Leave"],
+    cols: ["Nickname", "Full name", "Grade", "Sessions left", "Parent phone", "Absent/Leave"],
+    unlimited: "unlimited",
+    sessions: "left",
     footer: "Teachers see only their own schedule when they sign in. The owner can switch teachers and print this sheet.",
   },
 };
@@ -206,7 +211,15 @@ export default function TeacherSheetPage() {
                       {/* ครูต่างชาติอ่านชื่อไทยไม่ออก — ถ้ามีชื่ออังกฤษในใบสมัครให้ใช้ก่อน */}
                       <td className="px-2 py-1">{lang === "en" ? s.englishName || s.fullName : s.fullName}</td>
                       <td className="px-2 py-1">{grade(s.grade)}</td>
-                      <td className="px-2 py-1 text-gray-600">{s.school ?? "—"}</td>
+                      <td className="px-2 py-1">
+                        {s.quota?.left === null || s.quota === undefined ? (
+                          <span className="text-gray-400">{t.unlimited}</span>
+                        ) : (
+                          <span className={s.quota.finished ? "font-bold text-red-600" : s.quota.low ? "font-medium text-amber-600" : ""}>
+                            {s.quota.left} / {s.quota.paid}
+                          </span>
+                        )}
+                      </td>
                       <td className="whitespace-nowrap px-2 py-1">{s.parentPhone || "—"}</td>
                       <td className={`px-2 py-1 ${s.absences >= 3 ? "font-medium text-red-600" : "text-gray-500"}`}>{s.absences || "—"}</td>
                     </tr>

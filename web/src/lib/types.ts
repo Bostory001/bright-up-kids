@@ -205,6 +205,12 @@ export interface Enrollment {
   courseId: string;
   /** เทอม เช่น 2026-T2 */
   term: string;
+  /**
+   * จำนวนคาบที่ผู้ปกครองจ่ายมาในคอร์สนี้ (แพ็กละ 6 ชม. = 4 คาบถ้าคาบละ 1.5 ชม.)
+   * คาบคงเหลือ = sessionsPaid − คาบที่เข้าเรียนไปแล้ว คิดสดทุกครั้ง ไม่เก็บเป็นตัวเลขนิ่ง
+   * ไม่ตั้ง = ไม่จำกัดคาบ (ยังไม่ได้ขายเป็นแพ็ก)
+   */
+  sessionsPaid?: number;
   status: "active" | "cancelled";
   createdAt: string;
 }

@@ -622,6 +622,12 @@
         "description": "เทอม เช่น 2026-T2"
       },
       {
+        "name": "sessionsPaid",
+        "type": "number",
+        "required": false,
+        "description": "จำนวนคาบที่ผู้ปกครองจ่ายมาในคอร์สนี้ (แพ็กละ 6 ชม. = 4 คาบถ้าคาบละ 1.5 ชม.)\nคาบคงเหลือ = sessionsPaid − คาบที่เข้าเรียนไปแล้ว คิดสดทุกครั้ง ไม่เก็บเป็นตัวเลขนิ่ง\nไม่ตั้ง = ไม่จำกัดคาบ (ยังไม่ได้ขายเป็นแพ็ก)"
+      },
+      {
         "name": "status",
         "type": "\"active\" | \"cancelled\"",
         "required": true,

@@ -22,6 +22,7 @@ interface Child {
   progress: { course: string; prePercent: number | null; postPercent: number | null; gain: number | null }[];
   schedule: {
     course: string;
+    quota?: { paid: number | null; used: number; left: number | null; low: boolean; finished: boolean };
     weekdayName: string;
     startTime: string;
     endTime: string;
@@ -201,6 +202,12 @@ export default function ParentPage() {
                     {s.course} · ทุกวัน{s.weekdayName} {s.startTime}–{s.endTime}
                     {s.room ? ` · ${s.room}` : ""}
                   </div>
+                  {s.quota?.left !== null && s.quota !== undefined && (
+                    <div className={`text-sm ${s.quota.finished ? "font-medium text-red-600" : s.quota.low ? "font-medium text-amber-600" : "text-gray-700"}`}>
+                      คาบคงเหลือ {s.quota.left} จาก {s.quota.paid} คาบ
+                      {s.quota.finished ? " · ครบแล้ว ติดต่อสถาบันเพื่อต่อคอร์ส" : s.quota.low ? " · ใกล้ครบแล้ว" : ""}
+                    </div>
+                  )}
                   {s.planned ? (
                     <>
                       <div className="text-gray-700">

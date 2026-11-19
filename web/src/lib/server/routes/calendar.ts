@@ -1,4 +1,5 @@
 import "server-only";
+import { quotaOf } from "../../quota";
 import { courseProgress, monthGrid, sessionDates, sessionsInMonth, WEEKDAY_TH } from "../../schedule";
 import type { AppUser, Attendance, Course, Enrollment, Student } from "../../types";
 import { route, STAFF } from "../router";
@@ -99,7 +100,8 @@ route("GET", "admin/teacher-sheet", STAFF, async ({ store, query, me }) => {
     today,
     courses: mine
       .map((c) => {
-        const ids = enrollments.filter((e) => e.courseId === c.id).map((e) => e.studentId);
+        const courseEnrollments = enrollments.filter((e) => e.courseId === c.id);
+        const ids = courseEnrollments.map((e) => e.studentId);
         const progress = courseProgress(c, today);
         return {
           id: c.id,
@@ -127,6 +129,8 @@ route("GET", "admin/teacher-sheet", STAFF, async ({ store, query, me }) => {
               parentPhone: users.find((u) => u.id === s.parentId)?.phone ?? "",
               // ขาดเรียนบ่อยไหม ไว้ให้ครูรู้ล่วงหน้า
               absences: attendance.filter((a) => a.studentId === s.id && a.courseId === c.id && (a.status === "absent" || a.status === "leave")).length,
+              // คาบคงเหลือของคนนี้ในคอร์สนี้ (คนละแพ็กกัน เหลือไม่เท่ากัน)
+              quota: quotaOf(courseEnrollments.find((e) => e.studentId === s.id)!, attendance),
             }))
             .sort((a, b) => a.nickname.localeCompare(b.nickname)),
         };

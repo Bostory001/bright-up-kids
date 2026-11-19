@@ -33,6 +33,7 @@ const { summarizeMonth, summarizeRange, EXPENSE_CATEGORIES, payrollForMonth, cou
 const { overlaps, findConflicts, weeklyGrid } = await import("../src/lib/timetable.ts");
 const { percent, progressOf, averageGain } = await import("../src/lib/assessment.ts");
 const { stockOf, stockLines } = await import("../src/lib/supplies.ts");
+const { quotaOf, paidFromRemaining } = await import("../src/lib/quota.ts");
 const { sessionDates, courseProgress, monthGrid, addDays } = await import("../src/lib/schedule.ts");
 const { gradeLabel, gradeRange, GRADES, SUBJECT_KEYS, gradeLabelEn, gradeRangeEn, SUBJECT_EN } = await import("../src/lib/grade.ts");
 
@@ -438,4 +439,39 @@ test("grade labels cover primary and lower secondary", () => {
   assert.equal(gradeRangeEn([5, 9]), "P.5, M.3");
   assert.equal(SUBJECT_EN.chinese, "Chinese");
   assert.equal(Object.keys(SUBJECT_EN).length, SUBJECT_KEYS.length, "วิชาใหม่ต้องมีชื่ออังกฤษด้วยเสมอ");
+});
+
+// คาบคงเหลือเป็นรายคน ไม่ใช่รายคอร์ส — ในคอร์สเดียวกันแต่ละคนซื้อคนละแพ็ก
+test("session quota counts per student and only for classes they attended", () => {
+  const attendance = [
+    { studentId: "a", courseId: "c1", status: "present" },
+    { studentId: "a", courseId: "c1", status: "late" },   // มาสายก็นับว่าใช้คาบ
+    { studentId: "a", courseId: "c1", status: "absent" }, // ขาด ไม่ตัดคาบ
+    { studentId: "a", courseId: "c1", status: "leave" },  // ลา ไม่ตัดคาบ
+    { studentId: "a", courseId: "c2", status: "present" },// คนละคอร์ส ไม่นับ
+    { studentId: "b", courseId: "c1", status: "present" },// คนละคน ไม่นับ
+  ];
+  const a = quotaOf({ studentId: "a", courseId: "c1", sessionsPaid: 6 }, attendance);
+  assert.equal(a.used, 2, "มา + สาย = ใช้ไป 2 คาบ");
+  assert.equal(a.left, 4);
+  assert.equal(a.low, false);
+  assert.equal(a.finished, false);
+
+  const b = quotaOf({ studentId: "b", courseId: "c1", sessionsPaid: 2 }, attendance);
+  assert.equal(b.left, 1, "คนละคนในคอร์สเดียวกัน เหลือไม่เท่ากัน");
+  assert.equal(b.low, true, "เหลือ 1 คาบ ต้องเตือนให้ต่อคอร์ส");
+
+  const none = quotaOf({ studentId: "a", courseId: "c1" }, attendance);
+  assert.equal(none.paid, null, "ไม่ได้ตั้งแพ็ก = ไม่จำกัดคาบ");
+  assert.equal(none.left, null);
+  assert.equal(none.low, false, "ไม่จำกัดคาบต้องไม่ขึ้นเตือนว่าใกล้หมด");
+
+  const done = quotaOf({ studentId: "a", courseId: "c1", sessionsPaid: 2 }, attendance);
+  assert.equal(done.left, 0);
+  assert.equal(done.finished, true);
+
+  // ครูกรอกว่า "เหลือ 4" ทั้งที่มาเรียนไปแล้ว 2 → แปลว่าซื้อมา 6
+  assert.equal(paidFromRemaining(4, 2), 6);
+  assert.equal(paidFromRemaining(0, 3), 3);
+  assert.equal(paidFromRemaining(-5, 1), 0, "ติดลบต้องกลายเป็น 0 ไม่ใช่ค่าติดลบ");
 });
