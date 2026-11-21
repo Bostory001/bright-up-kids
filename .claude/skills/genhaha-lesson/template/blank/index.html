@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="{{LANG}}" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>{{TITLE}}</title>
+    <script src="gsap.min.js"></script>
+    <script src="timing.js"></script>
+    <script src="captions.js"></script>
+    <script src="motion.js"></script>
+    <script src="lesson.js"></script>
+    <link rel="stylesheet" href="look.css" />
+  </head>
+  <body>
+    <!-- data-start / data-duration are rewritten by `lesson voice` from the real voice. One <section> per shot in captions.js. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="10" data-width="1080" data-height="1920">
+      <div id="stage" class="clip" data-start="0" data-duration="10" data-track-index="0"><div id="grid"></div><div id="dots"></div></div>
+
+      <section id="sc-hook" class="clip" data-shot="hook" data-start="0" data-duration="4" data-track-index="1"></section>
+      <section id="sc-idea" class="clip" data-shot="idea" data-start="3" data-duration="4" data-track-index="2"></section>
+      <section id="sc-end" class="clip" data-shot="end" data-start="6" data-duration="4" data-track-index="1"></section>
+
+      <audio id="vo" src="assets/voice/voiceover.wav" data-start="0" data-duration="10" data-track-index="8" data-volume="1"></audio>
+      <div id="captions" class="clip" data-start="0" data-duration="10" data-track-index="5"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const M = Motion(tl);
+      const L = Lesson(tl, M);
+      const B = (k, w) => (w ? M.atW(k, w) : M.at(k));     // B("a1") line start · B("a1","word") when that word is spoken
+
+      L.grid();
+      L.hook("#sc-hook", { eyebrow: "LESSON · 1 MIN", a: "term", b: "twist", tb: B("a1", "คำถาม") });
+      L.define("#sc-idea", { eyebrow: "01 · TERM", term: "term", meaning: "ความหมาย", sub: "คำอธิบายสั้นๆ", y: 430, size: 180, tm: B("b1", "แปลว่า"),
+        example: { text: "An [example] sentence.", gloss: "คำแปลภาษาไทย", t: B("b2"), hit: B("b2", "example") } });
+      L.outro("#sc-end", { word: "TERM", sub: "one line to remember", pills: ["SAVE", "FOLLOW"], tp: B("c1", "เซฟ") });
+      L.dots(["#sc-hook", "#sc-idea", "#sc-end"]);
+      M.subtitles();
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
+<!-- genhaha:ed34a05c8342 -->

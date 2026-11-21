@@ -1,0 +1,31 @@
+{
+  "name": "be-verbs",
+  "title": "ศัพท์ ป.5 am is are",
+  "created": "2026-11-22",
+  "voice": {
+    "language": "th",
+    "voice": "th-TH-PremwadeeNeural",
+    "english": "en-US-AriaNeural",
+    "rate": 14.4,
+    "edge_rate": "+0%",
+    "edge_pitch": "+0Hz"
+  },
+  "gap_phrase": 0.03,
+  "gap_shot": 0.6,
+  "tail": 2.6,
+  "sfx": {
+    "scene_cut": "whoosh",
+    "scene_cut_gain": 0.7
+  },
+  "music": {
+    "mood": "calm",
+    "level": 0.09
+  },
+  "cover": {
+    "at": 3,
+    "eyebrow": "GRAMMAR · ป.5",
+    "title": "am · is · are|[be verbs]",
+    "seconds": 0.1
+  },
+  "sources": []
+}

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>ศัพท์ ป.5 กลุ่มสัตว์</title>
+    <script src="gsap.min.js"></script>
+    <script src="timing.js"></script>
+    <script src="captions.js"></script>
+    <script src="motion.js"></script>
+    <script src="lesson.js"></script>
+    <link rel="stylesheet" href="look.css" />
+  </head>
+  <body>
+    <!-- data-start / data-duration are rewritten by `lesson voice` from the real voice. One <section> per shot in captions.js. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="31.38" data-width="1080" data-height="1920">
+      <div id="stage" class="clip" data-start="0" data-duration="31.38" data-track-index="0"><div id="grid"></div><div id="dots"></div></div>
+
+      <section id="sc-hook" class="clip" data-shot="hook" data-start="0" data-duration="2.24" data-track-index="1"></section>
+      <section id="sc-mam" class="clip" data-shot="mam" data-start="1.64" data-duration="4.43" data-track-index="2"></section>
+      <section id="sc-bird" class="clip" data-shot="bird" data-start="5.47" data-duration="4.74" data-track-index="1"></section>
+      <section id="sc-fish" class="clip" data-shot="fish" data-start="9.61" data-duration="4.66" data-track-index="2"></section>
+      <section id="sc-ins" class="clip" data-shot="ins" data-start="13.67" data-duration="4.88" data-track-index="1"></section>
+      <section id="sc-rep" class="clip" data-shot="rep" data-start="17.95" data-duration="4.76" data-track-index="2"></section>
+      <section id="sc-tip" class="clip" data-shot="tip" data-start="22.11" data-duration="5.37" data-track-index="1"></section>
+      <section id="sc-end" class="clip" data-shot="end" data-start="26.88" data-duration="4.5" data-track-index="2"></section>
+
+      <audio id="vo" src="assets/voice/voiceover.wav" data-start="0" data-duration="31.38" data-track-index="8" data-volume="1"></audio>
+      <div id="captions" class="clip" data-start="0" data-duration="31.38" data-track-index="5"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const M = Motion(tl);
+      const L = Lesson(tl, M);
+      const B = (k, w) => (w ? M.atW(k, w) : M.at(k));     // B("a1") line start · B("a1","and") when that word is spoken
+
+      // One block per scene. A new composition every 2–4 s; something changes every 1–2 s (tile / chip / card reveals).
+      L.grid();
+      L.hook("#sc-hook", { eyebrow: "VOCAB · ป.5", a: "whale", b: "fish?", tb: B("a1", "ปลา") });
+
+      const grp = (id, eyebrow, term, meaning, sub, key, text, gloss, word) =>
+        L.define(id, { eyebrow, term, meaning, sub, y: 430, size: 170, tm: B(key[0], "แปลว่า"), ts: B(key[0], sub.slice(0, 3)),
+          example: { text, gloss, t: B(key[1]), hit: B(key[1], word) } });
+      grp("#sc-mam", "01 · MAMMAL", "mammal", "สัตว์ลูกด้วยนม", "หายใจด้วยปอด", ["b1", "b2"], "A whale is a [mammal].", "วาฬเป็นสัตว์เลี้ยงลูกด้วยนม", "mammal");
+      grp("#sc-bird", "02 · BIRD", "bird", "นก", "มีปีกและขนนก", ["c1", "c2"], "An eagle is a [bird].", "อินทรีเป็นนก", "bird");
+      grp("#sc-fish", "03 · FISH", "fish", "ปลา", "หายใจด้วยเหงือก", ["d1", "d2"], "A tuna is a [fish].", "ทูน่าเป็นปลา", "fish");
+      grp("#sc-ins", "04 · INSECT", "insect", "แมลง", "มีหกขา", ["e1", "e2"], "A bee is an [insect].", "ผึ้งเป็นแมลง", "insect");
+      grp("#sc-rep", "05 · REPTILE", "reptile", "เลื้อยคลาน", "ผิวเป็นเกล็ด", ["f1", "f2"], "A snake is a [reptile].", "งูเป็นสัตว์เลื้อยคลาน", "reptile");
+
+      L.tip("#sc-tip", { title: "วาฬไม่ใช่ปลา", sub: "เพราะให้นมลูก",
+        card: { label: "WHALE", text: "A whale is a [mammal].", gloss: "วาฬเป็นสัตว์เลี้ยงลูกด้วยนม", t: B("g1", "วาฬ"), hit: B("g1", "mammal") } });
+
+      L.outro("#sc-end", { word: "ANIMALS", sub: "mammal · bird · fish · insect · reptile", pills: ["SAVE", "FOLLOW"], tp: B("h1", "เซฟ") });
+
+      L.dots(["#sc-hook", "#sc-mam", "#sc-bird", "#sc-fish", "#sc-ins", "#sc-rep", "#sc-tip", "#sc-end"]);
+      M.subtitles();
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
+<!-- genhaha:ed34a05c8342 -->

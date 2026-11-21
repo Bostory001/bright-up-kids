@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>ศัพท์ ป.5 บรรยายสัตว์</title>
+    <script src="gsap.min.js"></script>
+    <script src="timing.js"></script>
+    <script src="captions.js"></script>
+    <script src="motion.js"></script>
+    <script src="lesson.js"></script>
+    <link rel="stylesheet" href="look.css" />
+  </head>
+  <body>
+    <!-- data-start / data-duration are rewritten by `lesson voice` from the real voice. One <section> per shot in captions.js. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="28.15" data-width="1080" data-height="1920">
+      <div id="stage" class="clip" data-start="0" data-duration="28.15" data-track-index="0"><div id="grid"></div><div id="dots"></div></div>
+
+      <section id="sc-hook" class="clip" data-shot="hook" data-start="0" data-duration="2.57" data-track-index="1"></section>
+      <section id="sc-i1" class="clip" data-shot="i1" data-start="1.97" data-duration="4.92" data-track-index="2"></section>
+      <section id="sc-i2" class="clip" data-shot="i2" data-start="6.29" data-duration="4.88" data-track-index="1"></section>
+      <section id="sc-i3" class="clip" data-shot="i3" data-start="10.57" data-duration="4.84" data-track-index="2"></section>
+      <section id="sc-i4" class="clip" data-shot="i4" data-start="14.81" data-duration="5.24" data-track-index="1"></section>
+      <section id="sc-tip" class="clip" data-shot="tip" data-start="19.45" data-duration="4.78" data-track-index="2"></section>
+      <section id="sc-end" class="clip" data-shot="end" data-start="23.63" data-duration="4.52" data-track-index="1"></section>
+
+      <audio id="vo" src="assets/voice/voiceover.wav" data-start="0" data-duration="28.15" data-track-index="8" data-volume="1"></audio>
+      <div id="captions" class="clip" data-start="0" data-duration="28.15" data-track-index="5"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const M = Motion(tl);
+      const L = Lesson(tl, M);
+      const B = (k, w) => (w ? M.atW(k, w) : M.at(k));     // B("a1") line start · B("a1","and") when that word is spoken
+
+      // One block per scene. A new composition every 2–4 s; something changes every 1–2 s (tile / chip / card reveals).
+      L.grid();
+      L.hook("#sc-hook", { eyebrow: "VOCAB · ป.5", a: "fast", b: "slow?", tb: B("a1", "ช้า") });
+      L.define("#sc-i1", { eyebrow: "01 · FAST", term: "fast", meaning: "เร็ว", sub: "ตรงข้าม slow", y: 430, size: 170, tm: B("b1", "แปลว่า"), ts: B("b1", "ตรงข้าม"), example: { text: "A cheetah is [fast].", gloss: "เสือชีตาห์วิ่งเร็ว", t: B("b1x"), hit: B("b1x", "fast") } });
+      L.define("#sc-i2", { eyebrow: "02 · HEAVY", term: "heavy", meaning: "หนัก", sub: "ตรงข้าม light", y: 430, size: 170, tm: B("b2", "แปลว่า"), ts: B("b2", "ตรงข้าม"), example: { text: "An elephant is [heavy].", gloss: "ช้างตัวหนัก", t: B("b2x"), hit: B("b2x", "heavy") } });
+      L.define("#sc-i3", { eyebrow: "03 · TALL", term: "tall", meaning: "สูง", sub: "ตรงข้าม short", y: 430, size: 170, tm: B("b3", "แปลว่า"), ts: B("b3", "ตรงข้าม"), example: { text: "A giraffe is [tall].", gloss: "ยีราฟตัวสูง", t: B("b3x"), hit: B("b3x", "tall") } });
+      L.define("#sc-i4", { eyebrow: "04 · STRONG", term: "strong", meaning: "แข็งแรง", sub: "ตรงข้าม weak", y: 430, size: 170, tm: B("b4", "แปลว่า"), ts: B("b4", "ตรงข้าม"), example: { text: "A bear is [strong].", gloss: "หมีแข็งแรง", t: B("b4x"), hit: B("b4x", "strong") } });
+      L.tip("#sc-tip", { title: "has got = มี", sub: "บอกลักษณะสัตว์", card: { label: "HAS GOT", text: "A giraffe [has got] a long neck.", gloss: "ยีราฟมีคอยาว", t: B("g1", "has got"), hit: B("g2") } });
+      L.outro("#sc-end", { word: "ANIMALS", sub: "fast · heavy · tall · strong", pills: ["SAVE", "FOLLOW"], tp: B("h1", "เซฟ") });
+      L.dots(["#sc-hook", "#sc-i1", "#sc-i2", "#sc-i3", "#sc-i4", "#sc-tip", "#sc-end"]);
+      M.subtitles();
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
+<!-- genhaha:ed34a05c8342 -->

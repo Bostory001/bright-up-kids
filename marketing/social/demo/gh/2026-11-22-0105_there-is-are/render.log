@@ -1,0 +1,26 @@
+… hyperframes check ✓ 17.6 s
+  (1 warning(s) — contrast warnings during cuts are normal)
+… safe area(node:27828) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ 1.8 s
+  ⚠ 9.8–10.8 s #cap-3 "there are แปลว่า มี ใช้กับ ของหลายชิ้น" right 972 > 960 (below y 900)
+  ⚠ 15.3–16.3 s #cap-5 "some แปลว่า หลายๆ ใช้กับนามพหูพจน์" right 975 > 960 (below y 900)
+… cover image ✓ 1.8 s
+… HyperFrames render (29.54 s of video) ✓ 49.5 s
+… mix voice + 11 SFX + music → final ✓ 7.6 s
+
+✓ marketing\social\demo\gh\2026-11-22-0105_there-is-are\renders\there-is-are-final.mp4 · 29.6 s · 3.8 MB · audio mean -17.7 dB / peak -1.9 dB · 81 s total · cost $0
+
+# ศัพท์ ป.5 there is there are — summary
+
+| | |
+|---|---|
+| File | `renders\there-is-are-final.mp4` |
+| Duration | 0:30 (29.6 s) · 1080×1920 · 30 fps · 3.8 MB |
+| Script | 6 shots · 10 lines · 310 chars · 10.5 chars/s |
+| Voice | edge-tts `th-TH-PremwadeeNeural` (th) |
+| Sound | 11 SFX cues · music: calm · mean -17.7 dB / peak -1.9 dB |
+| Render time | 81 s (hyperframes check 17.6 s · safe area 1.8 s · cover image 1.8 s · HyperFrames render 49.5 s · mix voice + 11 SFX + music → final 7.6 s) |
+| **Cash cost** | **$0.00** (free voice, music, SFX, local render) |
+  → renders/there-is-are-summary.md (+ .json)
+  next: lesson frames --video "marketing\social\demo\gh\2026-11-22-0105_there-is-are\renders\there-is-are-final.mp4"  and look at the sheet

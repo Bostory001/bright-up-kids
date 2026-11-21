@@ -1,0 +1,58 @@
+{
+  "title": "ศัพท์ ป.5 กริยาอดีต ed",
+  "file": "renders\\past-ed-final.mp4",
+  "created": "2026-11-21T18:20:57.287Z",
+  "video": {
+    "duration_s": 24.3,
+    "size_mb": 3.3,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 6,
+    "lines": 10,
+    "audio_mean_db": -18.1,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-PremwadeeNeural",
+    "language": "th",
+    "chars": 233,
+    "chars_per_s": 9.6
+  },
+  "sound": {
+    "sfx_cues": 11,
+    "music": "calm"
+  },
+  "time": {
+    "render_total_s": 68.734,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 13.6
+      },
+      {
+        "step": "safe area",
+        "s": 1.8
+      },
+      {
+        "step": "cover image",
+        "s": 1.7
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 40.8
+      },
+      {
+        "step": "mix voice + 11 SFX + music → final",
+        "s": 8.1
+      }
+    ]
+  },
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and a local render are free"
+  }
+}

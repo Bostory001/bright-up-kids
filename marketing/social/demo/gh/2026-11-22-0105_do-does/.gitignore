@@ -1,0 +1,5 @@
+.env
+assets/voice/line-*
+renders/frames/
+renders/*.raw.mp4
+.hyperframes/

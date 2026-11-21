@@ -1,0 +1,8 @@
+{
+  "id": "genhaha-lesson",
+  "var": "LS",
+  "driver": "lesson",
+  "prefix": "LS",
+  "images": false,
+  "imageWhy": "lesson slides are drawn from code"
+}

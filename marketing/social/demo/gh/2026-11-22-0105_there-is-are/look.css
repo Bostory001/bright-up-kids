@@ -1,0 +1,91 @@
+/* look.css — "study card" look: cream graph paper, near-black bold type, ONE blue accent, hard-shadow cards.
+   Phone safe area (Reels / TikTok / Shorts on 1080×1920): text only between y 250 and y 1520, nothing right of x 960 below y 900.
+   Subtitle lane: y 1290–1500 is reserved — keep every scene's content above y 1250. */
+
+@font-face { font-family: "Kanit"; font-weight: 600; src: url("assets/fonts/Kanit-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "Kanit"; font-weight: 700; src: url("assets/fonts/Kanit-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Kanit"; font-weight: 800; src: url("assets/fonts/Kanit-ExtraBold.ttf") format("truetype"); }
+
+:root {
+  --paper: #f4f1ea;
+  --ink: #101114;
+  --blue: #3446e8;     /* the one accent: key word, eyebrows, current subtitle word */
+  --hit: #e8553a;      /* tiny highlight inside example sentences only (the connecting word / comma) */
+  --grey: #75757d;
+  --line: rgba(16, 17, 20, 0.075);
+  --sub-top: 1290px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--paper); color: var(--ink); font-family: "Kanit", system-ui, sans-serif; }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: var(--paper); }
+.clip { position: absolute; inset: 0; }
+
+/* graph paper (drifts slowly via #grid tweens) */
+#grid { position: absolute; inset: -144px; background-image:
+    linear-gradient(var(--line) 2px, transparent 2px), linear-gradient(90deg, var(--line) 2px, transparent 2px),
+    linear-gradient(rgba(16,17,20,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(16,17,20,.04) 1px, transparent 1px);
+  background-size: 288px 288px, 288px 288px, 72px 72px, 72px 72px; }
+
+/* ---------- building blocks (created by lesson.js) ---------- */
+.blk { position: absolute; inset: 0; }
+.eb { position: absolute; left: 0; width: 1080px; top: 300px; text-align: center; font-weight: 700; font-size: 30px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--blue); white-space: nowrap; padding-left: 0.32em; }
+.col { position: absolute; left: 120px; width: 840px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.kw { font-weight: 800; letter-spacing: -0.02em; line-height: 1.02; white-space: nowrap; color: var(--ink); }
+.kw.blue, .blue { color: var(--blue); }
+.mean { font-weight: 800; font-size: 72px; line-height: 1.2; margin-top: 36px; white-space: nowrap; }
+.sub { font-weight: 600; font-size: 40px; line-height: 1.3; color: var(--grey); margin-top: 6px; white-space: nowrap; }
+.h2 { font-weight: 800; font-size: 72px; line-height: 1.15; white-space: nowrap; }
+.chips { display: flex; gap: 16px; margin-top: 34px; justify-content: center; flex-wrap: wrap; }
+.chip { font-weight: 700; font-size: 38px; padding: 6px 30px 8px; border-radius: 999px; background: var(--ink); color: var(--paper); white-space: nowrap; }
+.chip.line { background: #fff; color: var(--ink); border: 4px solid var(--ink); }
+
+/* letter tiles + word chips */
+.tiles { display: flex; gap: 14px; justify-content: center; margin-top: 44px; }
+.tile { width: 108px; text-align: center; }
+.tile .t { height: 132px; border: 5px solid var(--ink); border-radius: 24px; background: #fff; box-shadow: 5px 6px 0 var(--ink); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 84px; color: var(--blue); line-height: 1; padding-top: 6px; }
+.tile .l { margin-top: 24px; font-weight: 700; font-size: 32px; color: var(--ink); white-space: nowrap; }
+.wchips { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 44px; }
+.wchip { font-weight: 800; font-size: 54px; padding: 8px 34px 12px; border: 5px solid var(--ink); border-radius: 24px; background: #fff; box-shadow: 5px 6px 0 var(--ink); white-space: nowrap; }
+.wchip.blue { color: var(--blue); }
+
+/* example sentence card */
+.card { width: 840px; background: #fff; border: 5px solid var(--ink); border-radius: 28px; box-shadow: 12px 14px 0 var(--ink); padding: 34px 40px 40px; text-align: center; }
+.card .lab { font-weight: 700; font-size: 24px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--grey); padding-left: 0.3em; white-space: nowrap; }
+.card .sen { margin-top: 20px; font-weight: 800; font-size: 60px; line-height: 1.22; text-wrap: balance; }
+.card .gloss { margin-top: 18px; font-weight: 600; font-size: 38px; line-height: 1.3; color: var(--grey); }
+.hit { color: var(--hit); }
+.card.tipc { border-left-width: 5px; }
+
+/* compare */
+.cmp { display: flex; gap: 40px; width: 840px; margin-top: 10px; align-items: stretch; position: relative; }
+.cmp .side { flex: 1; width: 400px; background: #fff; border: 5px solid var(--ink); border-radius: 28px; box-shadow: 10px 12px 0 var(--ink); padding: 34px 20px 36px; text-align: center; }
+.cmp .side .kw { font-size: 100px; }
+.cmp .side .m { margin-top: 14px; font-weight: 800; font-size: 46px; white-space: nowrap; }
+.cmp .side .e { margin-top: 18px; font-weight: 600; font-size: 34px; line-height: 1.3; color: var(--grey); text-wrap: balance; }
+.vs { position: absolute; left: 50%; top: 50%; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; background: var(--ink); color: var(--paper); font-weight: 800; font-size: 32px; display: flex; align-items: center; justify-content: center; z-index: 2; padding-top: 4px; }
+
+/* steps */
+.steps { display: flex; flex-direction: column; gap: 34px; width: 840px; margin-top: 50px; }
+.step { display: flex; align-items: center; gap: 32px; text-align: left; }
+.step .n { flex: none; width: 104px; height: 104px; border-radius: 50%; border: 5px solid var(--ink); background: #fff; box-shadow: 5px 6px 0 var(--ink); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 56px; color: var(--blue); padding-top: 6px; }
+.step .tx { font-weight: 800; font-size: 54px; line-height: 1.15; }
+.step .sb { font-weight: 600; font-size: 34px; color: var(--grey); line-height: 1.25; margin-top: 4px; }
+
+/* outro */
+.pills { display: flex; gap: 24px; margin-top: 70px; }
+.pill { font-weight: 700; font-size: 32px; letter-spacing: 0.22em; padding: 14px 40px 14px 52px; border: 5px solid var(--ink); border-radius: 999px; background: #fff; box-shadow: 5px 6px 0 var(--ink); }
+.pill.fill { background: var(--blue); border-color: var(--blue); box-shadow: none; color: #fff; }
+
+/* progress dots (bottom, below the subtitle lane) */
+#dots { position: absolute; left: 0; width: 1080px; top: 1500px; display: flex; gap: 14px; justify-content: center; z-index: 40; }
+#dots i { display: block; width: 14px; height: 14px; border-radius: 50%; background: rgba(16,17,20,.16); }
+#dots i.on { background: var(--blue); }
+
+/* karaoke subtitles: black text, the word being spoken is blue */
+#captions { z-index: 50; pointer-events: none; }
+.cap { position: absolute; left: 100px; right: 100px; top: var(--sub-top); text-align: center; opacity: 0; }
+.cap .line { display: inline-block; max-width: 880px; text-wrap: balance; font-size: 54px; font-weight: 700; line-height: 1.32; color: var(--ink); }
+.cap .hl { color: var(--blue); }
+.cap .w { display: inline-block; white-space: pre; }
+/* genhaha:ed34a05c8342 */

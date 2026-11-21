@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>ศัพท์ ป.5 was were</title>
+    <script src="gsap.min.js"></script>
+    <script src="timing.js"></script>
+    <script src="captions.js"></script>
+    <script src="motion.js"></script>
+    <script src="lesson.js"></script>
+    <link rel="stylesheet" href="look.css" />
+  </head>
+  <body>
+    <!-- data-start / data-duration are rewritten by `lesson voice` from the real voice. One <section> per shot in captions.js. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30.32" data-width="1080" data-height="1920">
+      <div id="stage" class="clip" data-start="0" data-duration="30.32" data-track-index="0"><div id="grid"></div><div id="dots"></div></div>
+
+      <section id="sc-hook" class="clip" data-shot="hook" data-start="0" data-duration="2.59" data-track-index="1"></section>
+      <section id="sc-i1" class="clip" data-shot="i1" data-start="1.99" data-duration="5.74" data-track-index="2"></section>
+      <section id="sc-i2" class="clip" data-shot="i2" data-start="7.13" data-duration="4.97" data-track-index="1"></section>
+      <section id="sc-i3" class="clip" data-shot="i3" data-start="11.5" data-duration="5.51" data-track-index="2"></section>
+      <section id="sc-i4" class="clip" data-shot="i4" data-start="16.41" data-duration="5.75" data-track-index="1"></section>
+      <section id="sc-tip" class="clip" data-shot="tip" data-start="21.56" data-duration="4.69" data-track-index="2"></section>
+      <section id="sc-end" class="clip" data-shot="end" data-start="25.65" data-duration="4.67" data-track-index="1"></section>
+
+      <audio id="vo" src="assets/voice/voiceover.wav" data-start="0" data-duration="30.32" data-track-index="8" data-volume="1"></audio>
+      <div id="captions" class="clip" data-start="0" data-duration="30.32" data-track-index="5"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const M = Motion(tl);
+      const L = Lesson(tl, M);
+      const B = (k, w) => (w ? M.atW(k, w) : M.at(k));     // B("a1") line start · B("a1","and") when that word is spoken
+
+      // One block per scene. A new composition every 2–4 s; something changes every 1–2 s (tile / chip / card reveals).
+      L.grid();
+      L.hook("#sc-hook", { eyebrow: "GRAMMAR · ป.5", a: "was", b: "were?", tb: B("a1", "were") });
+      L.define("#sc-i1", { eyebrow: "01 · WAS", term: "was", meaning: "เคยเป็น", sub: "คนเดียว", y: 430, size: 170, tm: B("b1", "แปลว่า"), ts: B("b1", "คนเดียว"), example: { text: "He [was] tired yesterday.", gloss: "เมื่อวานเขาเหนื่อย", t: B("b1x"), hit: B("b1x", "was") } });
+      L.define("#sc-i2", { eyebrow: "02 · WERE", term: "were", meaning: "เคยเป็น", sub: "หลายคน", y: 430, size: 170, tm: B("b2", "แปลว่า"), ts: B("b2", "หลายคน"), example: { text: "We [were] at the zoo.", gloss: "เราอยู่ที่สวนสัตว์", t: B("b2x"), hit: B("b2x", "were") } });
+      L.define("#sc-i3", { eyebrow: "03 · YESTERDAY", term: "yesterday", meaning: "เมื่อวาน", sub: "บอกอดีต", y: 430, size: 170, tm: B("b3", "แปลว่า"), ts: B("b3", "บอกอดีต"), example: { text: "It [was] sunny yesterday.", gloss: "เมื่อวานแดดออก", t: B("b3x"), hit: B("b3x", "was") } });
+      L.define("#sc-i4", { eyebrow: "04 · AGO", term: "ago", meaning: "ที่แล้ว", sub: "ตามหลังเวลา", y: 430, size: 170, tm: B("b4", "แปลว่า"), ts: B("b4", "ตามหลัง"), example: { text: "They [were] here two days ago.", gloss: "พวกเขาอยู่ที่นี่เมื่อสองวันก่อน", t: B("b4x"), hit: B("b4x", "were") } });
+      L.tip("#sc-tip", { title: "you ใช้ were เสมอ", sub: "แม้เป็นคนเดียว", card: { label: "YOU", text: "You [were] late.", gloss: "คุณมาสาย", t: B("g1", "were"), hit: B("g2") } });
+      L.outro("#sc-end", { word: "was·were", sub: "I was · you were · we were", pills: ["SAVE", "FOLLOW"], tp: B("h1", "เซฟ") });
+      L.dots(["#sc-hook", "#sc-i1", "#sc-i2", "#sc-i3", "#sc-i4", "#sc-tip", "#sc-end"]);
+      M.subtitles();
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
+<!-- genhaha:ed34a05c8342 -->

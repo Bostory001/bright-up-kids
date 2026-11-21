@@ -1,0 +1,24 @@
+… hyperframes check ✓ 16.5 s
+  (3 warning(s) — contrast warnings during cuts are normal)
+… safe area(node:50444) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ 2.2 s
+… cover image ✓ 1.9 s
+… HyperFrames render (31.38 s of video) ✓ 51.0 s
+… mix voice + 15 SFX + music → final ✓ 9.5 s
+
+✓ marketing\social\demo\gh\2026-11-22-0057_animal-groups\renders\animal-groups-final.mp4 · 31.4 s · 4.1 MB · audio mean -17.9 dB / peak -1.5 dB · 83 s total · cost $0
+
+# ศัพท์ ป.5 กลุ่มสัตว์ — summary
+
+| | |
+|---|---|
+| File | `renders\animal-groups-final.mp4` |
+| Duration | 0:31 (31.4 s) · 1080×1920 · 30 fps · 4.1 MB |
+| Script | 8 shots · 14 lines · 299 chars · 9.5 chars/s |
+| Voice | edge-tts `th-TH-PremwadeeNeural` (th) |
+| Sound | 15 SFX cues · music: calm · mean -17.9 dB / peak -1.5 dB |
+| Render time | 83 s (hyperframes check 16.5 s · safe area 2.2 s · cover image 1.9 s · HyperFrames render 51.0 s · mix voice + 15 SFX + music → final 9.5 s) |
+| **Cash cost** | **$0.00** (free voice, music, SFX, local render) |
+  → renders/animal-groups-summary.md (+ .json)
+  next: lesson frames --video "marketing\social\demo\gh\2026-11-22-0057_animal-groups\renders\animal-groups-final.mp4"  and look at the sheet

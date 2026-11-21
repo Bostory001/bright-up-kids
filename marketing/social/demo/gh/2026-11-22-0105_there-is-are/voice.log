@@ -1,0 +1,6 @@
+edge-tts th-TH-PremwadeeNeural · 10/10 line(s) to synthesize via python3 (edge_tts installed)
+  synthesized in 23.0 s (network, free)
+natural rate 16.3 chars/s → tempo 0.953 (target 14.4)
+✓ assets/voice/voiceover.wav 29.54 s (0:30) · 10 lines · 6 scenes · rate 14.5 chars/s
+  word timings: WordBoundary on 10/10 lines (avg 99 % of characters matched)
+  scenes: sc-hook@0 sc-i1@2.5 sc-i2@7.57 sc-i3@13 sc-tip@18.17 sc-end@24.72

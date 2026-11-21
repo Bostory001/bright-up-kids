@@ -1,0 +1,21 @@
+{
+  "name": "{{SLUG}}",
+  "title": "{{TITLE}}",
+  "created": "{{DATE}}",
+  "voice": {
+    "provider": "edge",
+    "language": "{{LANG}}",
+    "voice": "{{VOICE}}",
+    "english": "en-US-AriaNeural",
+    "rate": {{RATE}},
+    "edge_rate": "+0%",
+    "edge_pitch": "+0Hz"
+  },
+  "gap_phrase": 0.03,
+  "gap_shot": 0.22,
+  "tail": 1.5,
+  "sfx": { "scene_cut": "whoosh", "scene_cut_gain": 0.7 },
+  "music": { "mood": "none", "level": 0.09 },
+  "cover": { "at": 1.5, "eyebrow": "LESSON · 1 MIN", "title": "หัวข้อ|[บทเรียน]", "seconds": 0.1 },
+  "sources": []
+}

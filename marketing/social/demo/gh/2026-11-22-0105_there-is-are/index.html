@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>ศัพท์ ป.5 there is there are</title>
+    <script src="gsap.min.js"></script>
+    <script src="timing.js"></script>
+    <script src="captions.js"></script>
+    <script src="motion.js"></script>
+    <script src="lesson.js"></script>
+    <link rel="stylesheet" href="look.css" />
+  </head>
+  <body>
+    <!-- data-start / data-duration are rewritten by `lesson voice` from the real voice. One <section> per shot in captions.js. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="29.54" data-width="1080" data-height="1920">
+      <div id="stage" class="clip" data-start="0" data-duration="29.54" data-track-index="0"><div id="grid"></div><div id="dots"></div></div>
+
+      <section id="sc-hook" class="clip" data-shot="hook" data-start="0" data-duration="3.1" data-track-index="1"></section>
+      <section id="sc-i1" class="clip" data-shot="i1" data-start="2.5" data-duration="5.67" data-track-index="2"></section>
+      <section id="sc-i2" class="clip" data-shot="i2" data-start="7.57" data-duration="6.03" data-track-index="1"></section>
+      <section id="sc-i3" class="clip" data-shot="i3" data-start="13" data-duration="5.77" data-track-index="2"></section>
+      <section id="sc-tip" class="clip" data-shot="tip" data-start="18.17" data-duration="7.15" data-track-index="1"></section>
+      <section id="sc-end" class="clip" data-shot="end" data-start="24.72" data-duration="4.82" data-track-index="2"></section>
+
+      <audio id="vo" src="assets/voice/voiceover.wav" data-start="0" data-duration="29.54" data-track-index="8" data-volume="1"></audio>
+      <div id="captions" class="clip" data-start="0" data-duration="29.54" data-track-index="5"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const M = Motion(tl);
+      const L = Lesson(tl, M);
+      const B = (k, w) => (w ? M.atW(k, w) : M.at(k));     // B("a1") line start · B("a1","and") when that word is spoken
+
+      // One block per scene. A new composition every 2–4 s; something changes every 1–2 s (tile / chip / card reveals).
+      L.grid();
+      L.hook("#sc-hook", { eyebrow: "GRAMMAR · ป.5", a: "there is", b: "there are?", tb: B("a1", "are") });
+      L.define("#sc-i1", { eyebrow: "01 · THERE IS", term: "there is", meaning: "มี", sub: "ชิ้นเดียว", y: 430, size: 170, tm: B("b1", "แปลว่า"), ts: B("b1", "ชิ้นเดียว"), example: { text: "There [is] a bin on the street.", gloss: "มีถังขยะอยู่บนถนน", t: B("b1x"), hit: B("b1x", "is") } });
+      L.define("#sc-i2", { eyebrow: "02 · THERE ARE", term: "there are", meaning: "มี", sub: "หลายชิ้น", y: 430, size: 170, tm: B("b2", "แปลว่า"), ts: B("b2", "หลายชิ้น"), example: { text: "There [are] three apples on the table.", gloss: "มีแอปเปิลสามผลบนโต๊ะ", t: B("b2x"), hit: B("b2x", "are") } });
+      L.define("#sc-i3", { eyebrow: "03 · SOME", term: "some", meaning: "หลายๆ", sub: "พหูพจน์", y: 430, size: 170, tm: B("b3", "แปลว่า"), ts: B("b3", "พหูพจน์"), example: { text: "There are [some] birds in the tree.", gloss: "มีนกหลายตัวบนต้นไม้", t: B("b3x"), hit: B("b3x", "some") } });
+      L.tip("#sc-tip", { title: "ถามว่า มีไหม?", sub: "สลับ is ไปหน้า there", card: { label: "QUESTION", text: "[Is] there a bin here?", gloss: "แถวนี้มีถังขยะไหม", t: B("g1", "is"), hit: B("g2") } });
+      L.outro("#sc-end", { word: "there is/are", sub: "one → is · many → are", pills: ["SAVE", "FOLLOW"], tp: B("h1", "เซฟ") });
+      L.dots(["#sc-hook", "#sc-i1", "#sc-i2", "#sc-i3", "#sc-tip", "#sc-end"]);
+      M.subtitles();
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
+<!-- genhaha:ed34a05c8342 -->

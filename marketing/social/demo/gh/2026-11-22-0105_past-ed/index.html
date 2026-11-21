@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>ศัพท์ ป.5 กริยาอดีต ed</title>
+    <script src="gsap.min.js"></script>
+    <script src="timing.js"></script>
+    <script src="captions.js"></script>
+    <script src="motion.js"></script>
+    <script src="lesson.js"></script>
+    <link rel="stylesheet" href="look.css" />
+  </head>
+  <body>
+    <!-- data-start / data-duration are rewritten by `lesson voice` from the real voice. One <section> per shot in captions.js. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="24.3" data-width="1080" data-height="1920">
+      <div id="stage" class="clip" data-start="0" data-duration="24.3" data-track-index="0"><div id="grid"></div><div id="dots"></div></div>
+
+      <section id="sc-hook" class="clip" data-shot="hook" data-start="0" data-duration="2.54" data-track-index="1"></section>
+      <section id="sc-i1" class="clip" data-shot="i1" data-start="1.94" data-duration="4.7" data-track-index="2"></section>
+      <section id="sc-i2" class="clip" data-shot="i2" data-start="6.04" data-duration="5.57" data-track-index="1"></section>
+      <section id="sc-i3" class="clip" data-shot="i3" data-start="11.01" data-duration="5.04" data-track-index="2"></section>
+      <section id="sc-tip" class="clip" data-shot="tip" data-start="15.45" data-duration="4.83" data-track-index="1"></section>
+      <section id="sc-end" class="clip" data-shot="end" data-start="19.68" data-duration="4.62" data-track-index="2"></section>
+
+      <audio id="vo" src="assets/voice/voiceover.wav" data-start="0" data-duration="24.3" data-track-index="8" data-volume="1"></audio>
+      <div id="captions" class="clip" data-start="0" data-duration="24.3" data-track-index="5"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const M = Motion(tl);
+      const L = Lesson(tl, M);
+      const B = (k, w) => (w ? M.atW(k, w) : M.at(k));     // B("a1") line start · B("a1","and") when that word is spoken
+
+      // One block per scene. A new composition every 2–4 s; something changes every 1–2 s (tile / chip / card reveals).
+      L.grid();
+      L.hook("#sc-hook", { eyebrow: "GRAMMAR · ป.5", a: "play", b: "played?", tb: B("a1", "ed") });
+      L.define("#sc-i1", { eyebrow: "01 · PLAYED", term: "played", meaning: "เติม ed", sub: "กริยาทั่วไป", y: 430, size: 170, tm: B("b1", "เติม"), ts: B("b1", "ed"), example: { text: "The children [played] outside.", gloss: "เด็กๆ เล่นข้างนอก", t: B("b1x"), hit: B("b1x", "played") } });
+      L.define("#sc-i2", { eyebrow: "02 · LIVED", term: "lived", meaning: "เติม d", sub: "ลงท้ายด้วย e", y: 430, size: 170, tm: B("b2", "ลงท้าย"), ts: B("b2", "e"), example: { text: "Mammoths [lived] long ago.", gloss: "แมมมอธอยู่เมื่อนานมาแล้ว", t: B("b2x"), hit: B("b2x", "lived") } });
+      L.define("#sc-i3", { eyebrow: "03 · STUDIED", term: "studied", meaning: "y → ied", sub: "ลงท้ายด้วย y", y: 430, size: 170, tm: B("b3", "เปลี่ยน"), ts: B("b3", "ied"), example: { text: "She [studied] hard.", gloss: "เธอตั้งใจเรียน", t: B("b3x"), hit: B("b3x", "studied") } });
+      L.tip("#sc-tip", { title: "บางคำไม่เติม ed", sub: "จำเป็นคำๆ", card: { label: "IRREGULAR", text: "I [went] to the zoo.", gloss: "ฉันไปสวนสัตว์", t: B("g1", "went"), hit: B("g2") } });
+      L.outro("#sc-end", { word: "+ed", sub: "play → played", pills: ["SAVE", "FOLLOW"], tp: B("h1", "เซฟ") });
+      L.dots(["#sc-hook", "#sc-i1", "#sc-i2", "#sc-i3", "#sc-tip", "#sc-end"]);
+      M.subtitles();
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
+<!-- genhaha:ed34a05c8342 -->

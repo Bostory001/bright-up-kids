@@ -1,0 +1,25 @@
+… hyperframes check ✓ 15.0 s
+  (1 warning(s) — contrast warnings during cuts are normal)
+… safe area(node:47684) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ 1.8 s
+  ⚠ 11.3–12.3 s #cap-5 "are ใช้กับ หลายคน และ คนที่เราคุยด้วย" right 970 > 960 (below y 900)
+… cover image ✓ 1.7 s
+… HyperFrames render (23.27 s of video) ✓ 53.6 s
+… mix voice + 11 SFX + music → final ✓ 7.2 s
+
+✓ marketing\social\demo\gh\2026-11-22-0105_be-verbs\renders\be-verbs-final.mp4 · 23.3 s · 3.1 MB · audio mean -18.1 dB / peak -1.7 dB · 82 s total · cost $0
+
+# ศัพท์ ป.5 am is are — summary
+
+| | |
+|---|---|
+| File | `renders\be-verbs-final.mp4` |
+| Duration | 0:23 (23.3 s) · 1080×1920 · 30 fps · 3.1 MB |
+| Script | 6 shots · 10 lines · 218 chars · 9.4 chars/s |
+| Voice | edge-tts `th-TH-PremwadeeNeural` (th) |
+| Sound | 11 SFX cues · music: calm · mean -18.1 dB / peak -1.7 dB |
+| Render time | 82 s (hyperframes check 15.0 s · safe area 1.8 s · cover image 1.7 s · HyperFrames render 53.6 s · mix voice + 11 SFX + music → final 7.2 s) |
+| **Cash cost** | **$0.00** (free voice, music, SFX, local render) |
+  → renders/be-verbs-summary.md (+ .json)
+  next: lesson frames --video "marketing\social\demo\gh\2026-11-22-0105_be-verbs\renders\be-verbs-final.mp4"  and look at the sheet

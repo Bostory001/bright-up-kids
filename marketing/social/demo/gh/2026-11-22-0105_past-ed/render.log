@@ -1,0 +1,26 @@
+… hyperframes check ✓ 13.6 s
+  (1 warning(s) — contrast warnings during cuts are normal)
+… safe area(node:49060) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ 1.8 s
+  ⚠ 8.3–8.8 s #cap-3 "live ลงท้ายด้วย e เติมแค่ d เป็น lived" right 962 > 960 (below y 900)
+  ⚠ 12.8–13.8 s #cap-5 "study เปลี่ยน y เป็น ied เป็น studied" right 962 > 960 (below y 900)
+… cover image ✓ 1.7 s
+… HyperFrames render (24.3 s of video) ✓ 40.8 s
+… mix voice + 11 SFX + music → final ✓ 8.1 s
+
+✓ marketing\social\demo\gh\2026-11-22-0105_past-ed\renders\past-ed-final.mp4 · 24.3 s · 3.3 MB · audio mean -18.1 dB / peak -1.5 dB · 69 s total · cost $0
+
+# ศัพท์ ป.5 กริยาอดีต ed — summary
+
+| | |
+|---|---|
+| File | `renders\past-ed-final.mp4` |
+| Duration | 0:24 (24.3 s) · 1080×1920 · 30 fps · 3.3 MB |
+| Script | 6 shots · 10 lines · 233 chars · 9.6 chars/s |
+| Voice | edge-tts `th-TH-PremwadeeNeural` (th) |
+| Sound | 11 SFX cues · music: calm · mean -18.1 dB / peak -1.5 dB |
+| Render time | 69 s (hyperframes check 13.6 s · safe area 1.8 s · cover image 1.7 s · HyperFrames render 40.8 s · mix voice + 11 SFX + music → final 8.1 s) |
+| **Cash cost** | **$0.00** (free voice, music, SFX, local render) |
+  → renders/past-ed-summary.md (+ .json)
+  next: lesson frames --video "marketing\social\demo\gh\2026-11-22-0105_past-ed\renders\past-ed-final.mp4"  and look at the sheet

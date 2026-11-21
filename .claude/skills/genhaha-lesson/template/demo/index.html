@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="{{LANG}}" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>{{TITLE}}</title>
+    <script src="gsap.min.js"></script>
+    <script src="timing.js"></script>
+    <script src="captions.js"></script>
+    <script src="motion.js"></script>
+    <script src="lesson.js"></script>
+    <link rel="stylesheet" href="look.css" />
+  </head>
+  <body>
+    <!-- data-start / data-duration are rewritten by `lesson voice` from the real voice. One <section> per shot in captions.js. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="10" data-width="1080" data-height="1920">
+      <div id="stage" class="clip" data-start="0" data-duration="10" data-track-index="0"><div id="grid"></div><div id="dots"></div></div>
+
+      <section id="sc-hook" class="clip" data-shot="hook" data-start="0" data-duration="4" data-track-index="1"></section>
+      <section id="sc-what" class="clip" data-shot="what" data-start="3" data-duration="4" data-track-index="2"></section>
+      <section id="sc-fan" class="clip" data-shot="fan" data-start="6" data-duration="4" data-track-index="1"></section>
+      <section id="sc-and" class="clip" data-shot="and" data-start="9" data-duration="4" data-track-index="2"></section>
+      <section id="sc-but" class="clip" data-shot="but" data-start="12" data-duration="4" data-track-index="1"></section>
+      <section id="sc-so" class="clip" data-shot="so" data-start="15" data-duration="4" data-track-index="2"></section>
+      <section id="sc-because" class="clip" data-shot="because" data-start="18" data-duration="4" data-track-index="1"></section>
+      <section id="sc-tip" class="clip" data-shot="tip" data-start="21" data-duration="4" data-track-index="2"></section>
+      <section id="sc-end" class="clip" data-shot="end" data-start="24" data-duration="4" data-track-index="1"></section>
+
+      <audio id="vo" src="assets/voice/voiceover.wav" data-start="0" data-duration="10" data-track-index="8" data-volume="1"></audio>
+      <div id="captions" class="clip" data-start="0" data-duration="10" data-track-index="5"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const M = Motion(tl);
+      const L = Lesson(tl, M);
+      const B = (k, w) => (w ? M.atW(k, w) : M.at(k));     // B("a1") line start · B("a1","and") when that word is spoken
+
+      // One block per scene. A new composition every 2–4 s; something changes every 1–2 s (tile / chip / card reveals).
+      L.grid();
+      L.hook("#sc-hook", { eyebrow: "GRAMMAR · 1 MIN", a: "and", b: "but", tb: B("a1", "but") });
+
+      L.define("#sc-what", { eyebrow: "WHAT IS IT", term: "Conjunction", tone: "ink", meaning: "คำเชื่อม", tm: B("a2", "คือ"),
+        chips: [{ text: "คำ", t: B("a3", "คำ") }, { text: "วลี", t: B("a3", "วลี") }, { text: "ประโยค", t: B("a3", "ประโยค") }] });
+
+      L.tiles("#sc-fan", { eyebrow: "MEMORY TRICK", title: "FANBOYS", y: 480,
+        items: [["F", "for", "for"], ["A", "and", "and"], ["N", "nor", "nor"], ["B", "but", "but"], ["O", "or", " or"], ["Y", "yet", "yet"], ["S", "so", "so"]]
+          .map(([k, label, w]) => ({ k, label, t: B("a5", w) })) });
+
+      const sentence = (id, eyebrow, term, meaning, sub, key, text, gloss, word) =>
+        L.define(id, { eyebrow, term, meaning, sub, y: 430, size: 180, tm: B(key[0], meaning), ts: B(key[0], sub.slice(0, 5)),
+          example: { text, gloss, t: B(key[1]), hit: B(key[1], word) } });
+      sentence("#sc-and", "01 · AND", "and", "และ", "เพิ่มข้อมูล", ["b1", "b2"], "I like tea [and] coffee.", "ฉันชอบชาและกาแฟ", "and");
+      sentence("#sc-but", "02 · BUT", "but", "แต่", "เรื่องที่ขัดกัน", ["c1", "c2"], "It's cheap, [but] it's good.", "ราคาถูก แต่ก็ดี", "but");
+      sentence("#sc-so", "03 · SO", "so", "ดังนั้น", "บอกผลลัพธ์", ["d1", "d2"], "It rained, [so] I stayed home.", "ฝนตก ฉันเลยอยู่บ้าน", "so");
+      sentence("#sc-because", "BONUS · BECAUSE", "because", "เพราะ", "บอกเหตุผล", ["e1", "e2"], "I stayed home [because] it rained.", "ฉันอยู่บ้านเพราะฝนตก", "because");
+
+      L.tip("#sc-tip", { title: "เชื่อม 2 ประโยค", sub: "ด้วย FANBOYS",
+        card: { label: "CLAUSE , FANBOYS CLAUSE", text: "I was tired[,] but I went.", t: B("f1", "FANBOYS"), hit: B("f2", "comma") } });
+
+      L.outro("#sc-end", { word: "FANBOYS", sub: "for · and · nor · but · or · yet · so", pills: ["SAVE", "FOLLOW"], tp: B("g1", "เซฟ") });
+
+      L.dots(["#sc-hook", "#sc-what", "#sc-fan", "#sc-and", "#sc-but", "#sc-so", "#sc-because", "#sc-tip", "#sc-end"]);
+      M.subtitles();
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
+<!-- genhaha:ed34a05c8342 -->
