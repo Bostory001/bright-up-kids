@@ -1,0 +1,19 @@
+/* cutout.css — look of the cutout explainer. Fonts + base page come from ../look.css (Kanit). Safe area: text only y 250-1520, nothing right of x 960 below y 900. */
+:root { --accent: #ffd23a; --sub-top: 1330px; --ink: #23284f; }
+body { background: #6ec6f2; }
+#root { background: #6ec6f2; }
+#stage svg { position: absolute; left: 0; top: 0; }
+/* karaoke subtitles: rows are 840 px wide max (x 120-960), at most 2 rows, phrases stay together */
+#captions { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
+.cap { position: absolute; left: 120px; width: 840px; top: var(--sub-top); text-align: center; opacity: 0; }
+.cap .line { display: block; font-size: 70px; font-weight: 800; line-height: 1.22; color: #fff; text-wrap: balance;
+  -webkit-text-stroke: 16px var(--ink); paint-order: stroke fill; text-shadow: 0 8px 0 rgba(20, 24, 70, 0.35); }
+.cap .ph { display: inline-block; white-space: nowrap; }
+.cap .ph + .ph { margin-left: 0.3em; }
+.cap .line.wordwrap .ph { display: inline; white-space: normal; }
+.cap .w { display: inline-block; white-space: pre; }
+.cap .hl { color: var(--accent); }
+/* cover title (cutout cover --title "a|b") */
+.coTitle { position: absolute; left: 60px; right: 60px; top: 330px; text-align: center; font-size: 104px; font-weight: 800; line-height: 1.1; color: #fff;
+  -webkit-text-stroke: 22px var(--ink); paint-order: stroke fill; text-shadow: 0 10px 0 rgba(0, 0, 0, 0.3); }
+/* genhaha:5f8f980bb7f3 */

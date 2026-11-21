@@ -1,0 +1,11 @@
+/* look.css — fonts + page base for the cutout explainer (copied into each project). Kanit (SIL OFL) is loaded from assets/fonts.
+   Text on screen: Kanit only, inside the phone safe area (y 250-1520, nothing right of x 960 below y 900). No emoji, no glass blur. */
+@font-face { font-family: "Kanit"; font-weight: 500; src: url("assets/fonts/Kanit-Medium.ttf") format("truetype"); }
+@font-face { font-family: "Kanit"; font-weight: 600; src: url("assets/fonts/Kanit-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "Kanit"; font-weight: 700; src: url("assets/fonts/Kanit-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Kanit"; font-weight: 800; src: url("assets/fonts/Kanit-ExtraBold.ttf") format("truetype"); }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #6ec6f2; color: #fff; font-family: "Kanit", system-ui, sans-serif; }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #6ec6f2; }
+.clip { position: absolute; inset: 0; }
+/* genhaha:5f8f980bb7f3 */

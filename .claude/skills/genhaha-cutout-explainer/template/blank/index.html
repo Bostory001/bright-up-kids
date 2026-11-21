@@ -1,0 +1,57 @@
+<!doctype html>
+<!-- Blank 2-shot skeleton. Rewrite captions.js (the script) and this scene script; one <section data-shot> + one K.scene per shot. Never edit engine/*.
+     Names (props, backgrounds, faces, poses): see references/cutout-craft.md, or run `cutout check` — wrong names get "did you mean" errors. -->
+<html lang="{{LANG}}" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>{{TITLE}}</title>
+    <script src="vendor/gsap.min.js"></script>
+    <script src="timing.js"></script>
+    <script src="captions.js"></script>
+    <script src="engine/validate.js"></script>
+    <script src="engine/motion.js"></script>
+    <script src="engine/cutout-kit.js"></script>
+    <link rel="stylesheet" href="look.css" />
+    <link rel="stylesheet" href="engine/cutout.css" />
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1080" data-height="1920">
+      <div id="stage" class="clip" data-start="0" data-duration="12" data-track-index="0"></div>
+      <section id="sc-hook" class="clip" data-shot="hook" data-start="0" data-duration="6" data-track-index="1"></section>
+      <section id="sc-next" class="clip" data-shot="next" data-start="5.7" data-duration="6.3" data-track-index="2"></section>
+      <audio id="vo" src="assets/voice/voiceover.wav" data-start="0" data-duration="12" data-track-index="20" data-volume="1"></audio>
+      <div id="captions" class="clip" data-start="0" data-duration="12" data-track-index="21"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const M = Motion(tl);
+      const K = Cutout(tl, M);
+      const { at, atW, end } = M;
+      const P = K.prop, HX = 215, HY = 1300;                       // host: x 215 (left), feet on y 1300 (subtitles start at y 1330)
+
+      // ---- shot 1: bedroom, the phone shows 0 % ----
+      const a = K.scene("hook", "room");
+      a.add(P("bed"), 790, 1135, { s: 1.15, t: 0.2, anim: "slide:r" });
+      a.add(P("clock", { h: 6, m: 30 }), 380, 330, { s: 0.85, t: at("h1") });
+      const phone = a.add(P("phone", { screen: "battery", pct: "0%" }), 660, 800, { s: 1.4, t: atW("h2", "มือถือ"), anim: "pop" });
+      K.wiggle(phone, atW("h2", "ดับ"), 3, 5);
+      const hero = a.char({ x: HX, y: HY });
+      hero.say("h1"); hero.face(at("h1"), "worry"); hero.say("h2"); hero.face(at("h2"), "shock"); hero.pose("shock", atW("h2", "ดับ"), 0.25);
+
+      // ---- shot 2: sky + a pill label, diagonal wipe in ----
+      const b = K.scene("next", "sky", { enter: "wipe" });
+      b.add(P("bulb", { on: false }), 700, 560, { s: 1.5, t: at("b1"), anim: "drop" });
+      K.pill(b, "ไม่มีไฟฟ้า!", 540, 340, { t: at("b1") + 0.3, bg: "#ff5a5f", fg: "#fff" });
+      const h2 = b.char({ x: HX, y: HY });
+      h2.say("b1"); h2.face(at("b1"), "smug");
+
+      M.subtitles();
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+      K.finish();                                                  // validation result + ready flag (throws "SCENE has N error(s)" if a name was wrong)
+    </script>
+  </body>
+</html>
+<!-- genhaha:5f8f980bb7f3 -->

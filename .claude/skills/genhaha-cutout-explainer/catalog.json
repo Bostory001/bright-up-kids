@@ -1,0 +1,12 @@
+{
+  "_comment": "Catalog row for scripts/publish-skill.mjs (D1 vids-mcp-db → skills). Not shipped in the zip (pack-skills still includes it; harmless). All text Thai + English. mode: local (runs on the user's computer) | connector. access: free | paid | sub. style: the MCP style it drives, or the skill's own style name. sort: list order.",
+  "name": "คลิปอธิบาย ถ้าโลกนี้ไม่มี… สไตล์ผ้าสักหลาดตัดกระดาษ (Cutout Explainer)",
+  "name_en": "Cutout Explainer — pastel felt-cutout \"what if the world had no…\" shorts",
+  "summary": "ทำคลิปอธิบายสไตล์ผ้าสักหลาด/กระดาษตัดสีพาสเทล เรื่อง ถ้าโลกนี้ไม่มี… ป้ายแคปซูล การ์ดมือถือ จอแบ่งเฉียง ตาราง 2×2 พิธีกรหัวกลมใส่แว่นกลมปากขยับตามเสียงจริง ซับคาราโอเกะไม่ตัดกลางคำ เสียงพากย์ไทยฟรี เพลงและเสียงประกอบสร้างจากโค้ด ฟรีบนเครื่องคุณ ไม่ต้องมี API key",
+  "summary_en": "Make pastel felt-cutout \"what if the world had no…\" explainers (44 flat SVG props, 9 backgrounds, capsule labels, phone/UI cards, diagonal split screens, 2x2 matrix, a round-head glasses presenter whose mouth follows the real voice, 2-row karaoke subtitles) with a free edge-tts voice and synthesized SFX and music. Free on your computer, no API key",
+  "kind": "skill",
+  "style": "cutout-explainer",
+  "access": "free",
+  "mode": "local",
+  "sort": 60
+}

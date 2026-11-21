@@ -1,0 +1,19 @@
+{
+  "name": "{{SLUG}}",
+  "title": "{{TITLE}}",
+  "created": "{{DATE}}",
+  "template": "cutout-explainer",
+  "mode": "narrated",
+  "voice": { "language": "{{LANG}}", "voice": "{{VOICE}}", "rate": {{RATE}} },
+  "gap_phrase": 0.2,
+  "gap_shot": 0.3,
+  "tail": 2,
+  "music": { "mood": "playful", "level": 0.12 },
+  "sfx": { "scene_cut": "whoosh", "scene_cut_gain": 0.6 },
+  "thumbnail": { "mode": "frame", "at": 1.2, "title": null },
+  "cover": { "seconds": 0.1 },
+  "publish": {
+    "title": null, "caption": null, "hashtags": [],
+    "ai_disclosure": "ตัวละครและเหตุการณ์สมมติเพื่อการอธิบาย · เสียงพากย์สร้างด้วย AI · ภาพเคลื่อนไหวสร้างด้วยโค้ด"
+  }
+}

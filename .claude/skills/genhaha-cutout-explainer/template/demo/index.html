@@ -1,0 +1,144 @@
+<!doctype html>
+<!-- Demo "ถ้าโลกนี้ไม่มีไฟฟ้า 1 วัน" (an original what-if explainer). One <section data-shot> per shot in captions.js (`cutout voice` retimes them).
+     Each shot = one K.scene(id, background) layer; props pop in with K.prop(...) at at("key") / atW("key","word"); the host speaks with hero.say("key"). Never edit engine/*. -->
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>{{TITLE}}</title>
+    <script src="vendor/gsap.min.js"></script>
+    <script src="timing.js"></script>
+    <script src="captions.js"></script>
+    <script src="engine/validate.js"></script>
+    <script src="engine/motion.js"></script>
+    <script src="engine/cutout-kit.js"></script>
+    <link rel="stylesheet" href="look.css" />
+    <link rel="stylesheet" href="engine/cutout.css" />
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="47.26" data-width="1080" data-height="1920">
+      <div id="stage" class="clip" data-start="0" data-duration="47.26" data-track-index="0"></div>
+      <section id="sc-hook" class="clip" data-shot="hook" data-start="0" data-duration="5.03" data-track-index="1"></section>
+      <section id="sc-phone" class="clip" data-shot="phone" data-start="4.43" data-duration="5.22" data-track-index="2"></section>
+      <section id="sc-fridge" class="clip" data-shot="fridge" data-start="9.05" data-duration="4.49" data-track-index="3"></section>
+      <section id="sc-tap" class="clip" data-shot="tap" data-start="12.94" data-duration="5.26" data-track-index="4"></section>
+      <section id="sc-road" class="clip" data-shot="road" data-start="17.6" data-duration="4.73" data-track-index="5"></section>
+      <section id="sc-split" class="clip" data-shot="split" data-start="21.73" data-duration="5.2" data-track-index="6"></section>
+      <section id="sc-candle" class="clip" data-shot="candle" data-start="26.33" data-duration="5.86" data-track-index="7"></section>
+      <section id="sc-city" class="clip" data-shot="city" data-start="31.59" data-duration="5.04" data-track-index="8"></section>
+      <section id="sc-four" class="clip" data-shot="four" data-start="36.03" data-duration="6.15" data-track-index="9"></section>
+      <section id="sc-outro" class="clip" data-shot="outro" data-start="41.58" data-duration="5.68" data-track-index="10"></section>
+      <audio id="vo" src="assets/voice/voiceover.wav" data-start="0" data-duration="47.26" data-track-index="20" data-volume="1"></audio>
+      <div id="captions" class="clip" data-start="0" data-duration="47.26" data-track-index="21"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const M = Motion(tl);
+      const K = Cutout(tl, M);
+      const { at, atW, end } = M;
+      const P = K.prop, HX = 215, HY = 1300;                       // host: x 215 (left), feet on y 1300 (subtitles sit at y 1330)
+
+      // 1 · wake-up POV: the bulb dies, the phone says 0 %
+      const A = K.scene("hook", "room");
+      A.add(P("clock", { h: 6, m: 30 }), 380, 330, { s: 0.85, t: 0.2 });
+      const bulb = A.add(P("bulb", { on: true }), 880, 400, { s: 1.15, t: 0.1, anim: "drop" });
+      const tOff = atW("h1", "ไฟดับ"); K.swap(bulb, ".glow, .on", tOff, false); K.wiggle(bulb, tOff, 3, 7);
+      A.add(P("bed"), 790, 1135, { s: 1.15, t: 0.2, anim: "slide:r" });
+      const ph = A.add(P("phone", { screen: "battery", pct: "0%" }), 660, 800, { s: 1.4, t: atW("h2", "มือถือ"), anim: "pop" });
+      K.wiggle(ph, atW("h2", "ดับ"), 3, 5);
+      const h1 = A.char({ x: HX, y: HY }); h1.say("h1"); h1.face(at("h1"), "worry"); h1.say("h2"); h1.face(at("h2"), "shock"); h1.pose("shock", atW("h2", "ดับ"), 0.25);
+
+      // 2 · micro-interaction close-up: dead phone, wifi crossed out
+      const B = K.scene("phone", "polka", { enter: "wipe", bgOpts: { color: "#3de0a2" } });
+      K.closeup(B, { prop: "phone", props: { screen: "dead" }, x: 470, y: 760, s: 2.1, t: 0.15 });
+      const wf = B.add(P("wifi", { color: "#fff" }), 880, 430, { s: 1.4, t: at("p1") + 0.2 });
+      B.add(P("xmark"), 880, 440, { s: 1.2, t: atW("p1", "ไม่มีโทรศัพท์") - 0.2 });
+      K.pill(B, "ติดต่อไม่ได้", 540, 1190, { t: at("p2"), bg: "#ff5a5f", fg: "#fff", size: 64 });
+
+      // 3 · fridge dies: thermometer climbs, food spoils
+      const C = K.scene("fridge", "polka", { enter: "curtain", bgOpts: { color: "#8fd0f0" } });
+      const fr = C.add(P("fridge", { open: true }), 600, 760, { s: 1.55, t: 0.2, anim: "slide:l" });
+      const th = C.add(P("thermo", { level: 0.2 }), 930, 800, { s: 1.15, t: at("f1") });
+      const mer = th.q(".mer"); const lv = (v) => ({ y: 90 - v * 220, height: v * 220 + 20 });
+      gsap.set(mer, { attr: lv(0.2) }); tl.to(mer, { attr: lv(0.95), duration: end("f2") - at("f1"), ease: "none" }, at("f1"));
+      const tx = C.add(K.txt("4°", 0, 0, 90, "#ff5a5f", { stroke: "#fff", sw: 14 }), 930, 560, { s: 1, t: at("f1") });
+      K.counter(tx.q("text"), at("f1"), end("f2"), 4, 32, (v) => Math.round(v) + "°");
+      const sp = [[-150, -10], [-20, -60], [110, -20]].map(([dx, dy], i) => C.add(`<path d="M0 40 q-18 -22 0 -44 q18 -22 0 -44" fill="none" stroke="#6b8f3a" stroke-width="12" stroke-linecap="round"/>`, 560 + dx, 380 + dy, { s: 0.9, t: atW("f2", "เน่า") + i * 0.12, shadow: false }));
+      K.pill(C, "ภายในหนึ่งวัน", 560, 1150, { t: at("f2"), bg: "#ffd23a", size: 60 });
+      K.tint(fr.qa(".food circle"), atW("f2", "เน่า"), "#8fa04a", 0.4);
+      const h3 = C.char({ x: HX, y: HY }); h3.say("f1"); h3.face(at("f1"), "worry"); h3.say("f2"); h3.face(at("f2"), "shock");
+
+      // 4 · dead traffic light, honking jam
+      const D = K.scene("road", "sky", { enter: "wipe" });
+      D.add(`<rect x="-700" y="-95" width="1400" height="190" fill="#59607a"/><rect x="-700" y="-95" width="1400" height="14" fill="#7a8199"/><g fill="#fff6c9">${Array.from({ length: 10 }, (_, i) => `<rect x="${-640 + i * 140}" y="-6" width="76" height="12" rx="6"/>`).join("")}</g>`, 540, 1010, { s: 1, anim: "none", shadow: false });
+      const c1 = D.add(P("car", { color: "#ff5a5f" }), 590, 985, { s: 1.0, t: 0.2, anim: "slide:r" });
+      const c2 = D.add(P("car", { color: "#3d86d9" }), 850, 985, { s: 1.0, t: 0.35, anim: "slide:r" });
+      D.add(P("trafficlight", { lit: "none" }), 975, 640, { s: 1.15, t: 0.15, anim: "drop" });
+      [[570, 790], [830, 790]].forEach(([x, y], i) => { const hk = D.add(P("honk", { text: ["ปิ๊น!", "แปร๊น!"][i] }), x, y, { s: 0.9, t: at("r2") + i * 0.18 }); K.wiggle(hk, at("r2") + i * 0.18 + 0.4, 3, 6); });
+      K.shake(at("r2"), 8, 6);
+      const h4 = D.char({ x: HX, y: HY }); h4.say("r1"); h4.face(at("r1"), "shock"); h4.say("r2"); h4.face(at("r2"), "worry"); h4.pose("hips", at("r2") + 0.2, 0.3); h4.say("r3"); h4.face(at("r3"), "think");
+
+      // 4 · tap runs dry: a drop falls, the plug is out
+      const T4 = K.scene("tap", "polka", { enter: "wipe", bgOpts: { color: "#ffd23a" } });
+      const fq = T4.add(P("faucet", { drop: true }), 640, 640, { s: 1.8, t: 0.2, anim: "slide:l" });
+      tl.fromTo(fq.q(".drop"), { y: 0, opacity: 1 }, { y: 270, opacity: 0, duration: 0.7, ease: "power2.in", immediateRender: false }, atW("w1", "ไม่มีน้ำ"));
+      T4.add(P("bucket", { water: 0 }), 650, 1070, { s: 1.35, t: atW("w1", "ก๊อก") });
+      T4.add(P("qmark"), 930, 800, { s: 0.8, t: atW("w1", "ไม่มีน้ำ") + 0.5 });
+      const pl = T4.add(P("plug", { rot: -20 }), 900, 420, { s: 1.4, t: atW("w2", "ไฟฟ้า") - 0.3 }); K.wiggle(pl, atW("w2", "ไฟฟ้า") + 0.3, 3, 8);
+      K.pill(T4, "ปั๊มน้ำ = ไฟฟ้า", 540, 320, { t: at("w2"), bg: "#3d86d9", fg: "#fff", size: 60 });
+      const h4a = T4.char({ x: HX, y: HY }); h4a.say("w1"); h4a.face(at("w1"), "worry"); h4a.say("w2"); h4a.face(at("w2"), "think"); h4a.pose("think", at("w2") + 0.1, 0.3);
+
+      // 5 · split screen: ATM dead / hospital on backup power
+      const E = K.scene("split", "plain", { enter: "pop", push: 1.0 });
+      const sp5 = K.split(E, { a: { fill: "#ffe3a8" }, b: { fill: "#d6f3dc" }, t: 0.1 });
+      sp5.a.add(P("atm", { dead: true }), 520, 520, { s: 1.15, t: 0.5 });
+      sp5.a.add(P("xmark"), 800, 480, { s: 1.0, t: at("s1") + 0.6 });
+      sp5.b.add(P("hospital"), 440, 1130, { s: 1.35, t: at("s2") - 0.1 });
+      const bat = sp5.b.add(P("battery", { pct: 0.9 }), 840, 1170, { s: 1.0, t: atW("s2", "ไฟสำรอง") });
+      sp5.b.add(P("check"), 840, 1040, { s: 0.8, t: atW("s2", "ไฟสำรอง") + 0.3 });
+
+      // 7 · candle light: dark room, warm glow
+      const Cd = K.scene("candle", "room", { enter: "curtain" });
+      Cd.add(P("window", { night: true }), 830, 430, { s: 1.5, t: 0.1, anim: "none" });
+      Cd.add(P("table", { w: 360 }), 700, 1050, { s: 1.3, t: 0.2 });
+      Cd.add(P("candle"), 700, 905, { s: 1.5, t: 0.3, anim: "drop" });
+      K.dim(Cd.t0 + 0.15, Cd.t1, 0.6, "#0a0e2a", 0.4); K.glow(700, 835, 430, { t0: Cd.t0 + 0.5, t1: Cd.t1 + 0.1 });
+      const hc = Cd.char({ x: HX, y: HY }); hc.say("k1"); hc.face(at("k1"), "happy"); hc.say("k2"); hc.face(at("k2"), "cheer"); hc.say("k3"); hc.face(at("k3"), "happy");
+
+      // 6 · the whole city goes dark… and the stars come out
+      const F = K.scene("city", "night", { enter: "curtain", bgOpts: { stars: 40 } });
+      const sk = F.add(P("skyline", { w: 1080, lit: 0.8 }), 540, 1010, { s: 1, anim: "none", shadow: false });
+      K.blackout(sk, atW("m1", "มืดสนิท"), atW("m1", "มืดสนิท") + 1.0, 3);
+      K.dim(atW("m1", "มืดสนิท"), F.t1, 0.5, "#0a0e2a", 0.8);
+      [[160, 300, 1.1], [420, 220, 0.8], [700, 330, 1.2], [900, 240, 0.9], [300, 560, 0.9], [790, 560, 1.0], [560, 460, 1.3]].forEach(([x, y, s], i) => { const st = F.add(P("star"), x, y, { s, t: atW("m2", "ดาว") + i * 0.14 }); K.wiggle(st, atW("m2", "ดาว") + 0.9 + i * 0.1, 2, 10); });
+      const h6 = F.char({ x: HX, y: HY }); h6.say("m1"); h6.face(at("m1"), "worry"); h6.say("m2"); h6.face(at("m2"), "cheer"); h6.pose("pointUp", at("m2"), 0.3); h6.say("m3"); h6.face(at("m3"), "happy");
+
+      // 7 · 2×2 matrix: what electricity gives us
+      const G = K.scene("four", "polka", { enter: "wipe", bgOpts: { color: "#8a5bd6" } });
+      K.pill(G, "ไฟฟ้าให้อะไรเราบ้าง", 540, 330, { t: 0.2, bg: "#ffd23a", size: 62 });
+      K.matrix(G, { y: 880, in: 0.4, cards: [
+        { title: "แสงสว่าง", icon: P("bulb", { on: true }), color: "#ff9a2f", t: atW("g1", "แสงสว่าง"), size: 62 },
+        { title: "ความเย็น", icon: P("fridge", {}), color: "#3d86d9", t: atW("g1", "ความเย็น"), size: 62 },
+        { title: "สื่อสาร", icon: P("wifi", { color: "#fff" }), color: "#3fcf8e", t: atW("g2", "การสื่อสาร"), size: 66 },
+        { title: "เดินทาง", icon: P("car", { color: "#fff" }), color: "#ff5a8a", t: atW("g2", "การเดินทาง"), size: 66, iconS: 0.62 },
+      ] });
+
+      // 8 · outro: choice cards
+      const Hh = K.scene("outro", "sky", { enter: "pop" });
+      K.pill(Hh, "ตัดได้อย่างเดียว", 540, 330, { t: 0.2, bg: "#ff5a5f", fg: "#fff", size: 66 });
+      K.choice(Hh, { y: 650, t: 0.3, cards: [
+        { label: "มือถือ", svg: P("phone", { screen: "app" }), iconS: 0.6 },
+        { label: "ตู้เย็น", svg: P("fridge", {}), iconS: 0.7 },
+        { label: "เน็ต", svg: P("wifi", { color: "#3d86d9" }), iconS: 0.8 },
+      ] });
+      const h8 = Hh.char({ x: 200, y: 1320, s: 0.8 }); h8.say("o1"); h8.face(at("o1"), "think"); h8.say("o2"); h8.face(at("o2"), "cheer"); h8.pose("cheer", at("o2"), 0.3);
+
+      M.subtitles();
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+      K.finish();                                                  // validation result + ready flag (throws "SCENE has N error(s)" if a name was wrong)
+    </script>
+  </body>
+</html>
+<!-- genhaha:5f8f980bb7f3 -->

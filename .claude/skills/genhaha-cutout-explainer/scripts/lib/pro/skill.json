@@ -1,0 +1,8 @@
+{
+  "id": "genhaha-cutout-explainer",
+  "var": "CO",
+  "driver": "cutout",
+  "prefix": "CO",
+  "images": false,
+  "imageWhy": "the picture is drawn from code (flat SVG cutout shapes)"
+}
