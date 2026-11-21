@@ -15,7 +15,8 @@
         "audit:exercises": "node scripts/audit-exercises.mjs",
         "check:firestore": "node scripts/check-firestore.mjs",
         "firebase:key": "node scripts/use-service-account.mjs",
-        "seed:demo": "node scripts/seed-demo.mjs"
+        "seed:demo": "node scripts/seed-demo.mjs",
+        "import:lessons": "node scripts/import-lessons.mjs"
     },
     "dependencies": {
         "@anthropic-ai/sdk": "^0.132.1",

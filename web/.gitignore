@@ -45,3 +45,6 @@ next-env.d.ts
 
 # Commit the blank configuration template only.
 !.env.local.example
+
+# คลิปสอนที่นำเข้า (ไฟล์ใหญ่ ไม่เก็บใน git — ต้นฉบับอยู่ marketing/social/demo/vc)
+/public/lessons/

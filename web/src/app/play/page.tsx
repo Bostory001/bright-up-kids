@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { thaiDate, visibleExercises, type ExerciseCard, type ExerciseFilter } from "@/lib/play-view";
 import { AvatarSvg } from "@/components/AvatarSvg";
+import { LessonsView } from "@/components/LessonsView";
 import { api, go, useLoad } from "@/lib/client/api";
 import type { AvatarSlot, PlayerProfile, Redemption } from "@/lib/types";
 import { SUBJECT_SHORT, gradeLabel } from "@/lib/grade";
@@ -73,7 +74,7 @@ export default function PlayPage() {
   const me = useLoad<{ me: { role: string } | null }>("me");
   const isStudent = me.data?.me?.role === "student";
   const home = useLoad<Home>(isStudent ? "play/home" : null);
-  const [tab, setTab] = useState<"learn" | "wardrobe" | "shop">("learn");
+  const [tab, setTab] = useState<"learn" | "lessons" | "wardrobe" | "shop">("learn");
   const shop = useLoad<Shop>(isStudent && tab === "shop" ? "play/rewards" : null);
   const [run, setRun] = useState<Run | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -329,10 +330,11 @@ export default function PlayPage() {
         </section>
       )}
 
-      <nav aria-label="เมนูนักเรียน" className="grid grid-cols-3 gap-2">
+      <nav aria-label="เมนูนักเรียน" className="grid grid-cols-4 gap-2">
         {(
           [
             ["learn", "✏️ ฝึก"],
+            ["lessons", "🎬 คลิปสอน"],
             ["wardrobe", "👕 แต่งตัว"],
             ["shop", "🎁 แลกของ"],
           ] as const
@@ -343,6 +345,17 @@ export default function PlayPage() {
         ))}
       </nav>
       {error && <p className="rounded-2xl bg-red-50 p-3 text-center text-red-700">{error}</p>}
+
+      {tab === "lessons" && (
+        <LessonsView
+          onPractice={(topic) => {
+            setSubject("all");
+            setFilter("all");
+            setSearch(topic);
+            setTab("learn");
+          }}
+        />
+      )}
 
       {tab === "learn" && (
         <>

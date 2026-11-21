@@ -284,6 +284,36 @@ export interface Exercise {
 }
 
 /**
+ * คลิปสอน 1 เรื่อง — จัดลำดับชั้น วิชา → ชั้น → เทอม → หน่วย → ลำดับในหน่วย
+ * ไฟล์วิดีโออยู่นอกฐานข้อมูล (Firebase Storage หรือ /lessons/ ในเครื่อง) เก็บแค่ลิงก์
+ * @collection lessons
+ */
+export interface Lesson {
+  id: string;
+  title: string;
+  subject: Subject;
+  grade: Grade;
+  /** เทอม 1 หรือ 2 */
+  term: 1 | 2;
+  /** ชื่อหน่วยการเรียนรู้ เช่น "สารและการเปลี่ยนแปลงของสาร" */
+  unit: string;
+  /** ลำดับของคลิปในหน่วย (เริ่มจาก 1) */
+  order: number;
+  /** ลิงก์ไฟล์ .mp4 — https://... หรือ /lessons/xxx.mp4 */
+  videoUrl: string;
+  /** ลิงก์ซับไตเติล .srt (ไม่บังคับ) */
+  subtitleUrl?: string;
+  durationSec?: number;
+  /** สรุปสั้น ๆ ให้ครู/เด็กอ่านก่อนดู */
+  summary?: string;
+  /** หัวข้อ (topic) ของชุดแบบฝึกหัดที่คู่กัน — ใช้ปุ่ม "ไปทำแบบฝึกหัด" */
+  exerciseTopic?: string;
+  /** เผยแพร่ให้นักเรียนชั้นนั้นเห็นแล้ว */
+  published: boolean;
+  createdAt: string;
+}
+
+/**
  * การทำแบบฝึกหัด 1 รอบ — คิดคะแนนฝั่ง server
  * @collection attempts
  */

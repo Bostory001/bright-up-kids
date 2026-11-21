@@ -838,6 +838,97 @@
     ]
   },
   {
+    "collection": "lessons",
+    "name": "Lesson",
+    "description": "คลิปสอน 1 เรื่อง — จัดลำดับชั้น วิชา → ชั้น → เทอม → หน่วย → ลำดับในหน่วย\nไฟล์วิดีโออยู่นอกฐานข้อมูล (Firebase Storage หรือ /lessons/ ในเครื่อง) เก็บแค่ลิงก์",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "subject",
+        "type": "Subject",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "grade",
+        "type": "Grade",
+        "required": true,
+        "description": ""
+      },
+      {
+        "name": "term",
+        "type": "1 | 2",
+        "required": true,
+        "description": "เทอม 1 หรือ 2"
+      },
+      {
+        "name": "unit",
+        "type": "string",
+        "required": true,
+        "description": "ชื่อหน่วยการเรียนรู้ เช่น \"สารและการเปลี่ยนแปลงของสาร\""
+      },
+      {
+        "name": "order",
+        "type": "number",
+        "required": true,
+        "description": "ลำดับของคลิปในหน่วย (เริ่มจาก 1)"
+      },
+      {
+        "name": "videoUrl",
+        "type": "string",
+        "required": true,
+        "description": "ลิงก์ไฟล์ .mp4 — https://... หรือ /lessons/xxx.mp4"
+      },
+      {
+        "name": "subtitleUrl",
+        "type": "string",
+        "required": false,
+        "description": "ลิงก์ซับไตเติล .srt (ไม่บังคับ)"
+      },
+      {
+        "name": "durationSec",
+        "type": "number",
+        "required": false,
+        "description": ""
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "required": false,
+        "description": "สรุปสั้น ๆ ให้ครู/เด็กอ่านก่อนดู"
+      },
+      {
+        "name": "exerciseTopic",
+        "type": "string",
+        "required": false,
+        "description": "หัวข้อ (topic) ของชุดแบบฝึกหัดที่คู่กัน — ใช้ปุ่ม \"ไปทำแบบฝึกหัด\""
+      },
+      {
+        "name": "published",
+        "type": "boolean",
+        "required": true,
+        "description": "เผยแพร่ให้นักเรียนชั้นนั้นเห็นแล้ว"
+      },
+      {
+        "name": "createdAt",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }
+    ]
+  },
+  {
     "collection": "attempts",
     "name": "Attempt",
     "description": "การทำแบบฝึกหัด 1 รอบ — คิดคะแนนฝั่ง server",

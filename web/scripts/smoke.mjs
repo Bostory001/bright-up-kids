@@ -386,6 +386,27 @@ await owner.call(`admin/expenses/${buyId}`, {}, "DELETE");
 check("ลบรายจ่ายที่ซื้อ → ของที่รับเข้าหายตาม เหลือ -3", (await teacher.call("admin/supplies")).data.lines?.find((l) => l.item.id === paperItem)?.qty === -3);
 check("เจ้าของลบของใช้พร้อมประวัติได้", (await owner.call(`admin/supplies/${paperItem}`, {}, "DELETE")).data.removedMoves === 1);
 
+// ---------- P10: คลิปสอน แยกตาม วิชา → ชั้น → เทอม → หน่วย ----------
+const lessonBase = { subject: "science", grade: 2, term: 1, unit: "สาร", videoUrl: "/lessons/a.mp4", published: true };
+r = await teacher.call("admin/lessons", { ...lessonBase, title: "คลิปที่ 2", order: 2 });
+const lessonB = r.data.lesson?.id;
+check("ครูเพิ่มคลิปสอนได้", r.status === 200 && !!lessonB);
+await teacher.call("admin/lessons", { ...lessonBase, title: "คลิปที่ 1", order: 1, videoUrl: "https://example.com/b.mp4" });
+await teacher.call("admin/lessons", { ...lessonBase, title: "คลิปร่าง", order: 3, published: false });
+await teacher.call("admin/lessons", { ...lessonBase, title: "คลิป ป.5", grade: 5, order: 1 });
+check("ลิงก์วิดีโอผิดรูปแบบ (javascript:) → 400", (await teacher.call("admin/lessons", { ...lessonBase, title: "x", order: 1, videoUrl: "javascript:alert(1)" })).status === 400);
+check("เทอม 3 ไม่มี → 400", (await teacher.call("admin/lessons", { ...lessonBase, title: "x", order: 1, term: 3 })).status === 400);
+check("ไม่ใส่ลิงก์วิดีโอ → 400", (await teacher.call("admin/lessons", { ...lessonBase, title: "x", order: 1, videoUrl: "" })).status === 400);
+r = await kid.call("play/lessons");
+check("เด็ก ป.2 เห็นเฉพาะคลิปที่เผยแพร่ของ ป.2 (ไม่เห็นร่าง/ป.5)", r.data.lessons?.length === 2, JSON.stringify(r.data.lessons?.map((l) => l.title)));
+check("เรียงตามลำดับในหน่วย (1 ก่อน 2)", r.data.lessons?.[0]?.title === "คลิปที่ 1" && r.data.lessons?.[1]?.title === "คลิปที่ 2");
+check("ส่งให้เด็กไม่มีฟิลด์ภายใน (published/createdAt)", !("published" in (r.data.lessons?.[0] ?? {})) && !("createdAt" in (r.data.lessons?.[0] ?? {})));
+check("ซ่อนคลิป → เด็กไม่เห็นทันที", (await teacher.call(`admin/lessons/${lessonB}`, { ...lessonBase, title: "คลิปที่ 2", order: 2, published: false }, "PATCH")).status === 200 && (await kid.call("play/lessons")).data.lessons?.length === 1);
+check("ไม่ล็อกอินเรียกดูคลิปไม่ได้ → 401", (await anon.call("play/lessons")).status === 401);
+check("เด็กเรียก API ของครูไม่ได้ → 403", (await kid.call("admin/lessons")).status === 403);
+check("ครูลบคลิปไม่ได้ → 403", (await teacher.call(`admin/lessons/${lessonB}`, {}, "DELETE")).status === 403);
+check("เจ้าของลบคลิปได้", (await owner.call(`admin/lessons/${lessonB}`, {}, "DELETE")).status === 200);
+
 // ---------- I7: ใบตารางสอนของครู ----------
 r = await teacher.call("admin/teacher-sheet");
 check("ครูเปิดเองเห็นตารางของตัวเอง", r.status === 200 && r.data.teacherId === kruId && r.data.courses?.length >= 1, JSON.stringify(r.data.teacherId === kruId));
