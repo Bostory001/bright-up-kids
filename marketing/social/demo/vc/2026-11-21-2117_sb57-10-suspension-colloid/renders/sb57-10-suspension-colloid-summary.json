@@ -1,0 +1,62 @@
+{
+  "title": "สารแขวนลอยและคอลลอยด์ (ละเอียด)",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb57-10-suspension-colloid-final.mp4",
+  "created": "2026-11-21T14:45:12.361Z",
+  "video": {
+    "duration_s": 48.37,
+    "size_mb": 12.7,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 12,
+    "lines": 12,
+    "audio_mean_db": -16.7,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 672,
+    "chars_per_s": 14.3
+  },
+  "sound": {
+    "sfx_cues": 12,
+    "music": "calm"
+  },
+  "time": {
+    "render_total_s": 112.975,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 17.1
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.5
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 78.2
+      },
+      {
+        "step": "mix voice + 12 SFX + music → final",
+        "s": 13.5
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

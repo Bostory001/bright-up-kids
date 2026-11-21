@@ -1,0 +1,62 @@
+{
+  "title": "คูณแนวตั้งมีการทด",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\mb24-6-carry-final.mp4",
+  "created": "2026-11-21T18:01:40.004Z",
+  "video": {
+    "duration_s": 24.13,
+    "size_mb": 6.8,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 7,
+    "lines": 7,
+    "audio_mean_db": -16.4,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-PremwadeeNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 326,
+    "chars_per_s": 14.4
+  },
+  "sound": {
+    "sfx_cues": 7,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 138.646,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 19.7
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 2.3
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 99.4
+      },
+      {
+        "step": "mix voice + 7 SFX + music → final",
+        "s": 13.7
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

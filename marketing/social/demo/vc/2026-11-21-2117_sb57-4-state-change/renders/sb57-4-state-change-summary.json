@@ -1,0 +1,62 @@
+{
+  "title": "การเปลี่ยนสถานะของสาร 6 แบบ (ละเอียด)",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb57-4-state-change-final.mp4",
+  "created": "2026-11-21T14:28:22.704Z",
+  "video": {
+    "duration_s": 78.8,
+    "size_mb": 24.8,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 19,
+    "lines": 19,
+    "audio_mean_db": -16.7,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 1106,
+    "chars_per_s": 14.3
+  },
+  "sound": {
+    "sfx_cues": 19,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 139.713,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 18.8
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.2
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 90.8
+      },
+      {
+        "step": "mix voice + 19 SFX + music → final",
+        "s": 26.2
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

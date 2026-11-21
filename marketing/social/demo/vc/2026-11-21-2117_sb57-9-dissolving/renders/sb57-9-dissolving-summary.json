@@ -1,0 +1,62 @@
+{
+  "title": "ปัจจัยที่มีผลต่อการละลาย (ละเอียด)",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb57-9-dissolving-final.mp4",
+  "created": "2026-11-21T14:42:46.279Z",
+  "video": {
+    "duration_s": 63.7,
+    "size_mb": 20.1,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 15,
+    "lines": 15,
+    "audio_mean_db": -16.8,
+    "audio_peak_db": -1.6
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 891,
+    "chars_per_s": 14.3
+  },
+  "sound": {
+    "sfx_cues": 15,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 133.653,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 19.2
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.4
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 93.1
+      },
+      {
+        "step": "mix voice + 15 SFX + music → final",
+        "s": 17.5
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

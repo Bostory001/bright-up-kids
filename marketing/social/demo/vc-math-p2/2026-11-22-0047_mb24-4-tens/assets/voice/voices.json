@@ -1,0 +1,62 @@
+{
+ "provider": "edge",
+ "cast": [],
+ "lines": [
+  {
+   "key": "e1",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 0.3,
+   "end": 3.22
+  },
+  {
+   "key": "e2",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 3.52,
+   "end": 5.721
+  },
+  {
+   "key": "e3",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 6.021,
+   "end": 8.37
+  },
+  {
+   "key": "e4",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 8.67,
+   "end": 10.691
+  },
+  {
+   "key": "e5",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 10.991,
+   "end": 13.978
+  },
+  {
+   "key": "e6",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 14.278,
+   "end": 18.087
+  },
+  {
+   "key": "e7",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 18.387,
+   "end": 21.667
+  }
+ ]
+}

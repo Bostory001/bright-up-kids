@@ -1,0 +1,62 @@
+{
+  "title": "ธาตุ: โลหะ อโลหะ กึ่งโลหะ (ละเอียด)",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb57-6-elements-f-final.mp4",
+  "created": "2026-11-21T15:08:12.468Z",
+  "video": {
+    "duration_s": 47.77,
+    "size_mb": 13.1,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 13,
+    "lines": 13,
+    "audio_mean_db": -16.8,
+    "audio_peak_db": -2.4
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-PremwadeeNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 660,
+    "chars_per_s": 14.3
+  },
+  "sound": {
+    "sfx_cues": 13,
+    "music": "calm"
+  },
+  "time": {
+    "render_total_s": 112.947,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 17.9
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.4
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 75.7
+      },
+      {
+        "step": "mix voice + 13 SFX + music → final",
+        "s": 15.5
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

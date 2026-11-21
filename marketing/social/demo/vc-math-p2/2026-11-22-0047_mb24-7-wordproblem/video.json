@@ -1,0 +1,43 @@
+{
+  "name": "mb24-7-wordproblem",
+  "title": "โจทย์ปัญหาคูณ จับโจทย์ 3 ข้อ",
+  "created": "2026-11-22",
+  "mode": "narrated",
+  "aspect": "9:16",
+  "width": 1080,
+  "height": 1920,
+  "voice": {
+    "voice": "th-TH-PremwadeeNeural",
+    "language": "th",
+    "rate": 14.4
+  },
+  "gap_phrase": 0.2,
+  "gap_shot": 0.3,
+  "tail": 1.2,
+  "music": {
+    "mood": "bright",
+    "level": 0.1
+  },
+  "sfx": {
+    "scene_cut": null
+  },
+  "thumbnail": {
+    "mode": "frame",
+    "at": 1.8
+  },
+  "cover": {
+    "seconds": 0.1
+  },
+  "story": {
+    "logline": "",
+    "source": "",
+    "fact_notes": "ขนม 4 ถุง ถุงละ 6 ชิ้น = 24 ชิ้น · โครงวิเคราะห์โจทย์ ถามอะไร/ให้อะไร/เท่ากันไหม (ตัวอย่างแต่งใหม่ ไม่ใช้ดินสอ 3 กล่องของหนังสือ HQ)"
+  },
+  "publish": {
+    "title": null,
+    "caption": null,
+    "hashtags": [],
+    "sources": [],
+    "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด"
+  }
+}

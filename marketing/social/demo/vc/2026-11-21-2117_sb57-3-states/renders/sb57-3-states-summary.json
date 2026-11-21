@@ -1,0 +1,62 @@
+{
+  "title": "สถานะของสาร 3 แบบ (ละเอียด)",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb57-3-states-final.mp4",
+  "created": "2026-11-21T14:25:27.327Z",
+  "video": {
+    "duration_s": 57.4,
+    "size_mb": 18,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 14,
+    "lines": 14,
+    "audio_mean_db": -16.8,
+    "audio_peak_db": -1.6
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 801,
+    "chars_per_s": 14.3
+  },
+  "sound": {
+    "sfx_cues": 14,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 97.495,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 16
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.2
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 65
+      },
+      {
+        "step": "mix voice + 14 SFX + music → final",
+        "s": 13.2
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

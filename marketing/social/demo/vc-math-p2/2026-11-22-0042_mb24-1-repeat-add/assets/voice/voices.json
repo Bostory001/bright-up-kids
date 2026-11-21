@@ -1,0 +1,70 @@
+{
+ "provider": "edge",
+ "cast": [],
+ "lines": [
+  {
+   "key": "e1",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 0.3,
+   "end": 4.335
+  },
+  {
+   "key": "e2",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 4.635,
+   "end": 6.829
+  },
+  {
+   "key": "e3",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 7.129,
+   "end": 9.654
+  },
+  {
+   "key": "e4",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 9.954,
+   "end": 13.392
+  },
+  {
+   "key": "e5",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 13.692,
+   "end": 17.324
+  },
+  {
+   "key": "e6",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 17.624,
+   "end": 20.334
+  },
+  {
+   "key": "e7",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 20.634,
+   "end": 23.715
+  },
+  {
+   "key": "e8",
+   "speaker": null,
+   "name": null,
+   "voice": "th-TH-PremwadeeNeural",
+   "start": 24.015,
+   "end": 27.472
+  }
+ ]
+}

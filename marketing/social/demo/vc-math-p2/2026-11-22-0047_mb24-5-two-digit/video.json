@@ -1,0 +1,43 @@
+{
+  "name": "mb24-5-two-digit",
+  "title": "คูณแนวตั้ง สองหลักคูณหนึ่งหลัก (ไม่ทด)",
+  "created": "2026-11-22",
+  "mode": "narrated",
+  "aspect": "9:16",
+  "width": 1080,
+  "height": 1920,
+  "voice": {
+    "voice": "th-TH-PremwadeeNeural",
+    "language": "th",
+    "rate": 14.4
+  },
+  "gap_phrase": 0.2,
+  "gap_shot": 0.3,
+  "tail": 1.2,
+  "music": {
+    "mood": "playful",
+    "level": 0.1
+  },
+  "sfx": {
+    "scene_cut": null
+  },
+  "thumbnail": {
+    "mode": "frame",
+    "at": 1.8
+  },
+  "cover": {
+    "seconds": 0.1
+  },
+  "story": {
+    "logline": "",
+    "source": "",
+    "fact_notes": "23x3=69 (ไม่มีการทด) · 12x4=48 · ตัวอย่างแต่งใหม่ ไม่ใช้ 14x2 ของหนังสือ HQ"
+  },
+  "publish": {
+    "title": null,
+    "caption": null,
+    "hashtags": [],
+    "sources": [],
+    "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด"
+  }
+}

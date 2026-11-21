@@ -1,0 +1,9 @@
+{
+  "name": "sb57-2-properties",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "npx --yes hyperframes@0.8.153 check",
+    "render": "npx --yes hyperframes@0.8.153 render"
+  }
+}

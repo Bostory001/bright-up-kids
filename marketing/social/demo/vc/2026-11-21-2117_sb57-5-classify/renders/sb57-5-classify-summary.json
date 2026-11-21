@@ -1,0 +1,62 @@
+{
+  "title": "การจำแนกสาร: เนื้อเดียว เนื้อผสม (ละเอียด)",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb57-5-classify-final.mp4",
+  "created": "2026-11-21T14:31:24.394Z",
+  "video": {
+    "duration_s": 77.87,
+    "size_mb": 23.3,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 19,
+    "lines": 19,
+    "audio_mean_db": -16.8,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 1093,
+    "chars_per_s": 14.3
+  },
+  "sound": {
+    "sfx_cues": 19,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 142.542,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 20.7
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.3
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 97.1
+      },
+      {
+        "step": "mix voice + 19 SFX + music → final",
+        "s": 20.1
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

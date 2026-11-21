@@ -1,0 +1,62 @@
+{
+  "title": "โจทย์ปัญหาคูณ จับโจทย์ 3 ข้อ",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\mb24-7-wordproblem-final.mp4",
+  "created": "2026-11-21T18:04:30.710Z",
+  "video": {
+    "duration_s": 25.6,
+    "size_mb": 8.3,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 7,
+    "lines": 7,
+    "audio_mean_db": -16.5,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-PremwadeeNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 346,
+    "chars_per_s": 14.4
+  },
+  "sound": {
+    "sfx_cues": 7,
+    "music": "bright"
+  },
+  "time": {
+    "render_total_s": 117.11,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 26.7
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 2
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 72
+      },
+      {
+        "step": "mix voice + 7 SFX + music → final",
+        "s": 13.2
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

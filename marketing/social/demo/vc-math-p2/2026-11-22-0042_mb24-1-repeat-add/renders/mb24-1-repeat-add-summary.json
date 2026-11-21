@@ -1,0 +1,62 @@
+{
+  "title": "คูณคือบวกซ้ำ",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\mb24-1-repeat-add-final.mp4",
+  "created": "2026-11-21T17:50:12.887Z",
+  "video": {
+    "duration_s": 28.7,
+    "size_mb": 9.7,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 8,
+    "lines": 8,
+    "audio_mean_db": -16.5,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-PremwadeeNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 391,
+    "chars_per_s": 14.4
+  },
+  "sound": {
+    "sfx_cues": 8,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 127.459,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 17.8
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 2
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 90.2
+      },
+      {
+        "step": "mix voice + 8 SFX + music → final",
+        "s": 17
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

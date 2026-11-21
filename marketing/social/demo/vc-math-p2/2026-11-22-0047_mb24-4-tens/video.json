@@ -1,0 +1,43 @@
+{
+  "name": "mb24-4-tens",
+  "title": "คูณสิบ ยี่สิบ สามสิบ ลัดๆ",
+  "created": "2026-11-22",
+  "mode": "narrated",
+  "aspect": "9:16",
+  "width": 1080,
+  "height": 1920,
+  "voice": {
+    "voice": "th-TH-PremwadeeNeural",
+    "language": "th",
+    "rate": 14.4
+  },
+  "gap_phrase": 0.2,
+  "gap_shot": 0.3,
+  "tail": 1.2,
+  "music": {
+    "mood": "bright",
+    "level": 0.1
+  },
+  "sfx": {
+    "scene_cut": null
+  },
+  "thumbnail": {
+    "mode": "frame",
+    "at": 1.8
+  },
+  "cover": {
+    "seconds": 0.1
+  },
+  "story": {
+    "logline": "",
+    "source": "",
+    "fact_notes": "3x20=60, 4x50=200 · วิธีคูณเลขหน้าแล้วเติมศูนย์ (ตัวอย่างแต่งใหม่)"
+  },
+  "publish": {
+    "title": null,
+    "caption": null,
+    "hashtags": [],
+    "sources": [],
+    "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด"
+  }
+}

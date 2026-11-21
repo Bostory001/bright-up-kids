@@ -1,0 +1,43 @@
+{
+  "name": "sb57-12-separate-liquid",
+  "title": "การแยกสารผสมที่เป็นของเหลว (ละเอียด)",
+  "created": "2026-11-21",
+  "mode": "narrated",
+  "aspect": "9:16",
+  "width": 1080,
+  "height": 1920,
+  "voice": {
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "rate": 14.4
+  },
+  "gap_phrase": 0.2,
+  "gap_shot": 0.3,
+  "tail": 1.2,
+  "music": {
+    "mood": "calm",
+    "level": 0.1
+  },
+  "sfx": {
+    "scene_cut": null
+  },
+  "thumbnail": {
+    "mode": "frame",
+    "at": 1.8
+  },
+  "cover": {
+    "seconds": 0.1
+  },
+  "story": {
+    "logline": "",
+    "source": "",
+    "fact_notes": "เรียบเรียงใหม่จากหัวข้อ SB56 (ปรากฏการณ์จากการหมุนรอบตัวเองของโลก) ข้อเท็จจริงทั่วไป ไม่คัดลอกข้อความ HQ"
+  },
+  "publish": {
+    "title": null,
+    "caption": null,
+    "hashtags": [],
+    "sources": [],
+    "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด"
+  }
+}

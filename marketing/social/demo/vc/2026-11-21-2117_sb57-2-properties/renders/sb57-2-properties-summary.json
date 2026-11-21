@@ -1,0 +1,62 @@
+{
+  "title": "สมบัติทางกายภาพและทางเคมี (ละเอียด)",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb57-2-properties-final.mp4",
+  "created": "2026-11-21T14:23:18.792Z",
+  "video": {
+    "duration_s": 72.5,
+    "size_mb": 22.7,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 17,
+    "lines": 17,
+    "audio_mean_db": -16.7,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 1013,
+    "chars_per_s": 14.3
+  },
+  "sound": {
+    "sfx_cues": 17,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 127.455,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 19.3
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.2
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 86.4
+      },
+      {
+        "step": "mix voice + 17 SFX + music → final",
+        "s": 17.9
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

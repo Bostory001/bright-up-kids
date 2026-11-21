@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- variety-captions project. Data lives in captions.js (spoken lines + keys) and scene.js (VC_SCENE: palette, camera, shots -> items).
+     One <section data-shot> per shot (`variety-captions sync` writes them from scene.js + captions.js, `variety-captions voice` retimes them to the voice).
+     Everything is painted on ONE canvas by vc-kit.js as a pure function of time. Nothing else to edit here. -->
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>x</title>
+    <script src="vendor/gsap.min.js"></script>
+    <script src="timing.js"></script>
+    <script src="captions.js"></script>
+    <script src="vc-lib.js"></script>
+    <script src="vc-art.js"></script>
+    <script src="vc-validate.js"></script>
+    <script src="scene.js"></script>
+    <script src="vc-kit.js"></script>
+    <link rel="stylesheet" href="vc.css" />
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="24.63" data-width="1080" data-height="1920">
+      <div id="stage" class="clip" data-start="0" data-duration="24.63" data-track-index="0"></div>
+      <!-- vc:sections -->
+      <section id="sc-e1" class="clip" data-shot="e1" data-start="0" data-duration="3.62" data-track-index="1"></section>
+      <section id="sc-e2" class="clip" data-shot="e2" data-start="3.02" data-duration="3.14" data-track-index="2"></section>
+      <section id="sc-e3" class="clip" data-shot="e3" data-start="5.56" data-duration="3.05" data-track-index="3"></section>
+      <section id="sc-e4" class="clip" data-shot="e4" data-start="8.01" data-duration="3.27" data-track-index="4"></section>
+      <section id="sc-e5" class="clip" data-shot="e5" data-start="10.68" data-duration="3.61" data-track-index="5"></section>
+      <section id="sc-e6" class="clip" data-shot="e6" data-start="13.69" data-duration="3.57" data-track-index="6"></section>
+      <section id="sc-e7" class="clip" data-shot="e7" data-start="16.66" data-duration="4.27" data-track-index="7"></section>
+      <section id="sc-e8" class="clip" data-shot="e8" data-start="20.33" data-duration="4.3" data-track-index="8"></section>
+      <!-- /vc:sections -->
+      <audio id="vo" src="assets/voice/voiceover.wav" data-start="0" data-duration="24.63" data-track-index="30" data-volume="1"></audio>
+      <div id="captions" class="clip" data-start="0" data-duration="24.63" data-track-index="31"></div>
+      <div id="chrome" class="clip" data-start="0" data-duration="24.63" data-track-index="32"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      VC.boot(tl, window.VC_SCENE);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
+<!-- genhaha:4846ca29f0d0 -->

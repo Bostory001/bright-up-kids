@@ -1,0 +1,8 @@
+node_modules/
+.env
+.hyperframes/
+assets/voice/line-*
+assets/sfx/
+assets/music/
+renders/frames/
+renders/*.raw.mp4
