@@ -1,18 +1,21 @@
 // นำเข้าคลิปสอนจาก marketing/social/demo/vc/* เข้าระบบ (collection lessons) ผ่าน API ของระบบเอง
 //
 //   npm run import:lessons              # ดูก่อนว่าจะทำอะไร (dry-run) ไม่แตะอะไรเลย
-//   npm run import:lessons -- --apply   # คัดลอกไฟล์ไป web/public/lessons/ + สร้าง/อัปเดตรายการเป็น "ร่าง"
+//   npm run import:lessons -- --apply   # คัดลอกไฟล์ไป web/public/lessons/ + สร้าง/อัปเดตรายการเป็น "ร่าง" (ใช้กับเครื่องตัวเอง)
+//   npm run import:lessons -- --apply --storage   # อัปโหลดไฟล์ขึ้น Firebase Storage (ใช้กับเว็บจริง) ต้องเปิด Storage ใน Console ก่อน
 //
 // ใช้ค่าเชื่อมต่อชุดเดียวกับ admin-api.mjs (ADMIN_BASE_URL / ADMIN_USERNAME / ADMIN_PASSWORD ใน .env.local)
 // ทำซ้ำได้ปลอดภัย: เจอคลิปเดิม (ลิงก์ไฟล์เดียวกัน) จะอัปเดตข้อมูลหน่วย/ลำดับให้ แต่ไม่แตะสถานะเผยแพร่
 // เทอม/หน่วย/ลำดับ ตั้งเป็นค่าเริ่มต้นตาม MANIFEST ด้านล่าง — ตรวจแล้วแก้ที่หน้า /admin/lessons ได้
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 const WEB = path.resolve(import.meta.dirname, "..");
 const VC = path.resolve(WEB, "..", "marketing", "social", "demo", "vc");
 const OUT = path.join(WEB, "public", "lessons");
 const APPLY = process.argv.includes("--apply");
+const STORAGE = process.argv.includes("--storage");
 
 // กติกาจัดหน่วย/ลำดับจากชื่อ slug — วิทยาศาสตร์ ป.5 (เทอมยังเดาไม่ได้จากหนังสือ จึงตั้งเทอม 1 ไว้ก่อน ให้เจ้าของยืนยัน)
 const SB56 = "ปรากฏการณ์จากการหมุนรอบตัวเองของโลก";
@@ -89,14 +92,54 @@ if (login.status !== 200 || login.data?.needsCode) {
   process.exit(1);
 }
 
-mkdirSync(OUT, { recursive: true });
+// อัปโหลดขึ้น Firebase Storage แล้วคืนลิงก์ https แบบมี token (เดาไม่ได้) — ไฟล์เดิมที่ขนาดเท่ากันจะข้าม
+let bucket;
+if (STORAGE) {
+  let raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!raw) {
+    console.error("ต้องมี FIREBASE_SERVICE_ACCOUNT ใน .env.local เพื่ออัปโหลดขึ้น Storage");
+    process.exit(1);
+  }
+  if (!raw.trim().startsWith("{")) raw = Buffer.from(raw, "base64").toString("utf8");
+  const sa = JSON.parse(raw);
+  const { cert, initializeApp } = await import("firebase-admin/app");
+  const { getStorage } = await import("firebase-admin/storage");
+  initializeApp({ credential: cert(sa) });
+  for (const name of [process.env.STORAGE_BUCKET, `${sa.project_id}.firebasestorage.app`, `${sa.project_id}.appspot.com`].filter(Boolean)) {
+    const b = getStorage().bucket(name);
+    if ((await b.exists())[0]) { bucket = b; break; }
+  }
+  if (!bucket) {
+    console.error("ไม่พบ bucket — เปิด Firebase Storage ก่อน (Console > Build > Storage > Get started, region asia-southeast1) หรือตั้ง STORAGE_BUCKET=ชื่อ bucket");
+    process.exit(1);
+  }
+}
+async function storageUrl(c) {
+  const dest = `lessons/${c.slug}.mp4`;
+  const file = bucket.file(dest);
+  const [exists] = await file.exists();
+  let token;
+  if (exists) {
+    const [meta] = await file.getMetadata();
+    token = meta.metadata?.firebaseStorageDownloadTokens;
+    if (token && Number(meta.size) === statSync(c.mp4).size) return urlOf(bucket.name, dest, token);
+  }
+  token = randomUUID();
+  await bucket.upload(c.mp4, { destination: dest, metadata: { contentType: "video/mp4", cacheControl: "public, max-age=31536000", metadata: { firebaseStorageDownloadTokens: token } } });
+  return urlOf(bucket.name, dest, token);
+}
+const urlOf = (b, dest, token) => `https://firebasestorage.googleapis.com/v0/b/${b}/o/${encodeURIComponent(dest)}?alt=media&token=${token}`;
+
+if (!STORAGE) mkdirSync(OUT, { recursive: true });
 const existing = (await call("admin/lessons")).data.lessons ?? [];
 let created = 0;
 let updated = 0;
 for (const c of clips) {
-  copyFileSync(c.mp4, path.join(OUT, `${c.slug}.mp4`));
-  const videoUrl = `/lessons/${c.slug}.mp4`;
-  const prev = existing.find((l) => l.videoUrl === videoUrl);
+  let videoUrl = `/lessons/${c.slug}.mp4`;
+  if (STORAGE) videoUrl = await storageUrl(c);
+  else copyFileSync(c.mp4, path.join(OUT, `${c.slug}.mp4`));
+  // หาคลิปเดิมจากชื่อไฟล์ (ลิงก์ Storage มี token จึงเทียบทั้งลิงก์ไม่ได้)
+  const prev = existing.find((l) => l.videoUrl === videoUrl || l.videoUrl.includes(`${c.slug}.mp4`) || l.videoUrl.includes(`${c.slug}.mp4`.replace("/", "%2F")));
   const body = {
     ...(prev ?? { published: false, summary: "", exerciseTopic: "" }),
     title: c.title,
@@ -116,4 +159,4 @@ for (const c of clips) {
   if (prev) updated++;
   else created++;
 }
-console.log(`เสร็จ: สร้างใหม่ ${created} · อัปเดต ${updated} · ไฟล์อยู่ที่ ${OUT} · ทุกคลิปเป็น "ร่าง" ตรวจที่ /admin/lessons แล้วกดเผยแพร่`);
+console.log(`เสร็จ: สร้างใหม่ ${created} · อัปเดต ${updated} · ${STORAGE ? "ไฟล์อยู่ใน Firebase Storage" : `ไฟล์อยู่ที่ ${OUT}`} · ทุกคลิปเป็น "ร่าง" ตรวจที่ /admin/lessons แล้วกดเผยแพร่`);
