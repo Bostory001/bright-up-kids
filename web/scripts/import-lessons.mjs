@@ -12,7 +12,9 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSyn
 import path from "node:path";
 
 const WEB = path.resolve(import.meta.dirname, "..");
-const VC = path.resolve(WEB, "..", "marketing", "social", "demo", "vc");
+const DEMO = path.resolve(WEB, "..", "marketing", "social", "demo");
+// โฟลเดอร์ที่เก็บคลิป: vc = วิทย์ ป.5 · vc-math-p2 = คณิต ป.2 · gh = อังกฤษ ป.5
+const ROOTS = ["vc", "vc-math-p2", "gh"].map((d) => path.join(DEMO, d));
 const OUT = path.join(WEB, "public", "lessons");
 const APPLY = process.argv.includes("--apply");
 const STORAGE = process.argv.includes("--storage");
@@ -22,10 +24,13 @@ const SB56 = "ปรากฏการณ์จากการหมุนรอ
 const SB57 = "สารและการเปลี่ยนแปลงของสาร";
 function classify(slug) {
   let m;
-  if (slug === "earth-rotation") return { unit: SB56, order: 1 };
-  if ((m = slug.match(/^sb56-d(\d+)-/))) return { unit: SB56, order: 9 + Number(m[1]) };
-  if ((m = slug.match(/^sb56-(\d+)-/))) return { unit: SB56, order: 1 + Number(m[1]) };
-  if ((m = slug.match(/^sb57-(\d+)-/))) return { unit: SB57, order: Number(m[1]) };
+  if (slug === "earth-rotation") return { subject: "science", grade: 5, unit: SB56, order: 1 };
+  if ((m = slug.match(/^sb56-d(\d+)-/))) return { subject: "science", grade: 5, unit: SB56, order: 9 + Number(m[1]) };
+  if ((m = slug.match(/^sb56-(\d+)-/))) return { subject: "science", grade: 5, unit: SB56, order: 1 + Number(m[1]) };
+  if ((m = slug.match(/^sb57-(\d+)-/))) return { subject: "science", grade: 5, unit: SB57, order: Number(m[1]) };
+  if ((m = slug.match(/^mb24-(\d+)-/))) return { subject: "math", grade: 2, unit: "การคูณ", order: Number(m[1]) };
+  const ENGLISH = { "be-verbs": ["ไวยากรณ์", 1], "do-does": ["ไวยากรณ์", 2], "was-were": ["ไวยากรณ์", 3], "past-ed": ["ไวยากรณ์", 4], "there-is-are": ["ไวยากรณ์", 5], "animal-groups": ["ศัพท์", 1], "animal-adjectives": ["ศัพท์", 2], "3rs-recycle": ["ศัพท์", 3] };
+  if (ENGLISH[slug]) return { subject: "english", grade: 5, unit: ENGLISH[slug][0], order: ENGLISH[slug][1] };
   return null;
 }
 
@@ -45,17 +50,17 @@ if (existsSync(envFile)) {
 
 // รวบรวมคลิป: ข้ามโฟลเดอร์ตัวอย่างเสียงหญิง (-f) และโฟลเดอร์ที่ยังไม่มี mp4
 const clips = [];
-for (const dir of readdirSync(VC, { withFileTypes: true })) {
+for (const { root, dir } of ROOTS.filter(existsSync).flatMap((root) => readdirSync(root, { withFileTypes: true }).map((dir) => ({ root, dir })))) {
   if (!dir.isDirectory()) continue;
   const slug = dir.name.replace(/^\d{4}-\d{2}-\d{2}-\d{4}_/, "");
   if (slug.endsWith("-f")) continue;
   const info = classify(slug);
   if (!info) continue;
-  const mp4 = path.join(VC, dir.name, "renders", `${slug}-final.mp4`);
+  const mp4 = path.join(root, dir.name, "renders", `${slug}-final.mp4`);
   if (!existsSync(mp4)) continue;
   const read = (f) => (existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : {});
-  const meta = read(path.join(VC, dir.name, "video.json"));
-  const summary = read(path.join(VC, dir.name, "renders", `${slug}-summary.json`));
+  const meta = read(path.join(root, dir.name, "video.json"));
+  const summary = read(path.join(root, dir.name, "renders", `${slug}-summary.json`));
   clips.push({
     slug,
     mp4,
@@ -64,10 +69,10 @@ for (const dir of readdirSync(VC, { withFileTypes: true })) {
     ...info,
   });
 }
-clips.sort((a, b) => a.unit.localeCompare(b.unit, "th") || a.order - b.order);
+clips.sort((a, b) => a.subject.localeCompare(b.subject) || a.grade - b.grade || a.unit.localeCompare(b.unit, "th") || a.order - b.order);
 
 console.log(`พบ ${clips.length} คลิป ${APPLY ? "(นำเข้าจริง)" : "(dry-run — ใส่ --apply เพื่อนำเข้าจริง)"}`);
-for (const c of clips) console.log(`  [${c.unit.slice(0, 12)}…] #${String(c.order).padStart(2)}  ${c.title}  (${c.durationSec ?? "?"} วิ)  ← ${c.slug}`);
+for (const c of clips) console.log(`  ${c.subject} ป.${c.grade} [${c.unit.slice(0, 12)}…] #${String(c.order).padStart(2)}  ${c.title}  (${c.durationSec ?? "?"} วิ)  ← ${c.slug}`);
 if (!APPLY) process.exit(0);
 
 const BASE = (process.env.ADMIN_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
@@ -143,8 +148,8 @@ for (const c of clips) {
   const body = {
     ...(prev ?? { published: false, summary: "", exerciseTopic: "" }),
     title: c.title,
-    subject: "science",
-    grade: 5,
+    subject: c.subject,
+    grade: c.grade,
     term: prev?.term ?? 1,
     unit: c.unit,
     order: c.order,

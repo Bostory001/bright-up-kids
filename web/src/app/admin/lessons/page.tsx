@@ -18,6 +18,9 @@ export default function LessonsAdminPage() {
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const [gradeFilter, setGradeFilter] = useState(0);
+  const [watching, setWatching] = useState<Lesson | null>(null);
+  const [subjectFilter, setSubjectFilter] = useState("");
+  const [search, setSearch] = useState("");
 
   async function run(fn: () => Promise<void>) {
     setFormError("");
@@ -112,7 +115,14 @@ export default function LessonsAdminPage() {
     );
   }
 
-  const shown = (data?.lessons ?? []).filter((l) => !gradeFilter || l.grade === gradeFilter);
+  const q = search.trim().toLowerCase();
+  const all = data?.lessons ?? [];
+  const shown = all.filter(
+    (l) =>
+      (!gradeFilter || l.grade === gradeFilter) &&
+      (!subjectFilter || l.subject === subjectFilter) &&
+      (!q || `${l.title} ${l.unit} ${l.summary ?? ""}`.toLowerCase().includes(q)),
+  );
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -127,8 +137,29 @@ export default function LessonsAdminPage() {
           <Button onClick={() => setEditing(EMPTY)}>เพิ่มคลิป</Button>
         </div>
       </div>
+      <div className="flex flex-wrap gap-2" role="group" aria-label="กรองตามวิชา">
+        {[["", "ทั้งหมด"], ...Object.entries(SUBJECT_TH)].map(([k, v]) => {
+          const n = k ? all.filter((l) => l.subject === k).length : all.length;
+          if (k && n === 0) return null;
+          return (
+            <button key={k} aria-pressed={subjectFilter === k} onClick={() => setSubjectFilter(k)} className={"rounded-full border px-3 py-1 text-sm font-medium " + (subjectFilter === k ? "border-sky-700 bg-sky-100 text-sky-900" : "border-gray-300 bg-white")}>
+              {v} ({n})
+            </button>
+          );
+        })}
+        <Input type="search" placeholder="ค้นหาชื่อคลิป / หน่วย" value={search} onChange={(e) => setSearch(e.target.value)} className="min-w-48 flex-1" aria-label="ค้นหาคลิป" />
+      </div>
       <p className="text-sm text-gray-600">เรียงตาม วิชา → ชั้น → เทอม → หน่วย → ลำดับ · นำเข้าไฟล์ทีละหลายคลิปด้วย <code>npm run import:lessons</code></p>
       <ErrorText>{error || formError}</ErrorText>
+      {watching && (
+        <Card className="grid gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <b>▶ {watching.title}</b>
+            <Button variant="ghost" onClick={() => setWatching(null)}>ปิด</Button>
+          </div>
+          <video key={watching.id} controls autoPlay playsInline src={watching.videoUrl} className="mx-auto max-h-[70vh] w-auto rounded-xl bg-black" />
+        </Card>
+      )}
       <Table head={["วิชา", "ชั้น", "เทอม", "หน่วย", "#", "คลิป", "ยาว", "สถานะ", ""]}>
         {shown.map((l) => (
           <tr key={l.id}>
@@ -141,6 +172,7 @@ export default function LessonsAdminPage() {
             <td>{formatDuration(l.durationSec)}</td>
             <td>{l.published ? <Badge color="green">เผยแพร่</Badge> : <Badge>ร่าง</Badge>}</td>
             <td className="flex gap-1">
+              <Button variant="ghost" onClick={() => { setWatching(l); window.scrollTo({ top: 0, behavior: "smooth" }); }}>▶ ดู</Button>
               <Button variant="ghost" disabled={busy} onClick={() => togglePublish(l)}>{l.published ? "ซ่อน" : "เผยแพร่"}</Button>
               <Button variant="ghost" onClick={() => setEditing(l)}>แก้ไข</Button>
               {me.role === "owner" && (
@@ -161,6 +193,7 @@ export default function LessonsAdminPage() {
           </tr>
         ))}
       </Table>
+      {data && shown.length === 0 && <p className="text-center text-gray-500">ไม่พบคลิปที่ตรงกับตัวกรอง</p>}
     </div>
   );
 }
