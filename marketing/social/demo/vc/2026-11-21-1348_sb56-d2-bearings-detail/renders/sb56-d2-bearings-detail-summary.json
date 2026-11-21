@@ -1,0 +1,62 @@
+{
+  "title": "บอกทิศในแผนที่ 6 แบบ (ละเอียด)",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb56-d2-bearings-detail-final.mp4",
+  "created": "2026-11-21T06:57:07.219Z",
+  "video": {
+    "duration_s": 42.9,
+    "size_mb": 14.8,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 11,
+    "lines": 11,
+    "audio_mean_db": -16.7,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 594,
+    "chars_per_s": 14.3
+  },
+  "sound": {
+    "sfx_cues": 11,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 459.568,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 49.8
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 3.7
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 358.6
+      },
+      {
+        "step": "mix voice + 11 SFX + music → final",
+        "s": 38.6
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

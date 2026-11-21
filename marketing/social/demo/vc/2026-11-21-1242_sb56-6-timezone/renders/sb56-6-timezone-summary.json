@@ -1,0 +1,62 @@
+{
+  "title": "เขตเวลาบนโลก",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb56-6-timezone-final.mp4",
+  "created": "2026-11-21T05:52:31.179Z",
+  "video": {
+    "duration_s": 26.37,
+    "size_mb": 8.9,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 7,
+    "lines": 7,
+    "audio_mean_db": -16.9,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 358,
+    "chars_per_s": 14.4
+  },
+  "sound": {
+    "sfx_cues": 7,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 70.09,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 15.2
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.5
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 45.1
+      },
+      {
+        "step": "mix voice + 7 SFX + music → final",
+        "s": 8
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "title": "หาทิศด้วยเข็มทิศ",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb56-3-compass-final.mp4",
+  "created": "2026-11-21T05:39:51.870Z",
+  "video": {
+    "duration_s": 21.6,
+    "size_mb": 7,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 6,
+    "lines": 6,
+    "audio_mean_db": -16.8,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 290,
+    "chars_per_s": 14.4
+  },
+  "sound": {
+    "sfx_cues": 6,
+    "music": "calm"
+  },
+  "time": {
+    "render_total_s": 63.494,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 11.6
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.2
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 43.2
+      },
+      {
+        "step": "mix voice + 6 SFX + music → final",
+        "s": 6.2
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

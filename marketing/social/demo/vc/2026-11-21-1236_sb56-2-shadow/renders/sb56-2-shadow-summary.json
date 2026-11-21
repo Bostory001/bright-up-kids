@@ -1,0 +1,62 @@
+{
+  "title": "หาทิศด้วยเงา",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb56-2-shadow-final.mp4",
+  "created": "2026-11-21T05:38:25.759Z",
+  "video": {
+    "duration_s": 23.03,
+    "size_mb": 7.6,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 6,
+    "lines": 6,
+    "audio_mean_db": -16.5,
+    "audio_peak_db": -1.4
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 311,
+    "chars_per_s": 14.4
+  },
+  "sound": {
+    "sfx_cues": 6,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 64.908,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 11.9
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.2
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 44.6
+      },
+      {
+        "step": "mix voice + 6 SFX + music → final",
+        "s": 5.8
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

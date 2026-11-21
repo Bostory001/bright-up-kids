@@ -1,0 +1,62 @@
+{
+  "title": "โลกคือนาฬิกาเรือนใหญ่ ปี เดือน วัน",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb56-7-calendar-final.mp4",
+  "created": "2026-11-21T05:54:09.415Z",
+  "video": {
+    "duration_s": 23.2,
+    "size_mb": 7.4,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 6,
+    "lines": 6,
+    "audio_mean_db": -17.1,
+    "audio_peak_db": -1.7
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 313,
+    "chars_per_s": 14.4
+  },
+  "sound": {
+    "sfx_cues": 6,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 75.635,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 14.7
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.5
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 52.3
+      },
+      {
+        "step": "mix voice + 6 SFX + music → final",
+        "s": 6.8
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

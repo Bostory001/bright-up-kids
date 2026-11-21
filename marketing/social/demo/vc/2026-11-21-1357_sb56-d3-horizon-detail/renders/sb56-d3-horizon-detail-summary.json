@@ -1,0 +1,62 @@
+{
+  "title": "พิกัดขอบฟ้า (ละเอียด)",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb56-d3-horizon-detail-final.mp4",
+  "created": "2026-11-21T07:02:58.058Z",
+  "video": {
+    "duration_s": 37.53,
+    "size_mb": 11.2,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 10,
+    "lines": 10,
+    "audio_mean_db": -16.8,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 517,
+    "chars_per_s": 14.4
+  },
+  "sound": {
+    "sfx_cues": 10,
+    "music": "calm"
+  },
+  "time": {
+    "render_total_s": 269.89,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 41.5
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 3.5
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 153.4
+      },
+      {
+        "step": "mix voice + 10 SFX + music → final",
+        "s": 63.2
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}

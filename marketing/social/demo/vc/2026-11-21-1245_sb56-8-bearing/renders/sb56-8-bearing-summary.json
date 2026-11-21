@@ -1,0 +1,62 @@
+{
+  "title": "บอกทิศเป็นองศา",
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพและแคปชันวาดด้วยโค้ด",
+  "file": "renders\\sb56-8-bearing-final.mp4",
+  "created": "2026-11-21T05:55:45.189Z",
+  "video": {
+    "duration_s": 21.37,
+    "size_mb": 7,
+    "resolution": "1080×1920",
+    "fps": 30,
+    "shots": 6,
+    "lines": 6,
+    "audio_mean_db": -17.1,
+    "audio_peak_db": -1.5
+  },
+  "voice": {
+    "engine": "edge-tts",
+    "voice": "th-TH-NiwatNeural",
+    "language": "th",
+    "cast": [],
+    "chars": 286,
+    "chars_per_s": 14.4
+  },
+  "sound": {
+    "sfx_cues": 6,
+    "music": "playful"
+  },
+  "time": {
+    "render_total_s": 74.043,
+    "steps": [
+      {
+        "step": "hyperframes check",
+        "s": 14.1
+      },
+      {
+        "step": "safe area 9:16",
+        "s": 0
+      },
+      {
+        "step": "cover image",
+        "s": 1.6
+      },
+      {
+        "step": "HyperFrames render",
+        "s": 51.7
+      },
+      {
+        "step": "mix voice + 6 SFX + music → final",
+        "s": 6.3
+      }
+    ]
+  },
+  "mode": "narrated",
+  "engine": "variety-captions (captions and stickers painted on one canvas, GSAP clock, Kanit ExtraBold)",
+  "cost_usd": {
+    "voice": 0,
+    "music_sfx": 0,
+    "render": 0,
+    "total_cash": 0,
+    "note": "edge-tts, procedural music/SFX and the local render are free"
+  }
+}
