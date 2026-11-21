@@ -1,0 +1,8 @@
+{
+  "id": "genhaha-chalkboard",
+  "var": "CB",
+  "driver": "chalkboard",
+  "prefix": "CB",
+  "images": false,
+  "imageWhy": "a chalkboard clip is drawn by code (no AI pictures)"
+}

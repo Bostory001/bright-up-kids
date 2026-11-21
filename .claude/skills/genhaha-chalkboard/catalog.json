@@ -1,0 +1,12 @@
+{
+  "_comment": "Catalog row for scripts/publish-skill.mjs (D1 vids-mcp-db → skills). Not shipped in the zip (pack-skills still includes it; harmless). All text Thai + English. mode: local | connector. access: free | paid | sub.",
+  "name": "กระดานดำชอล์ก",
+  "name_en": "Chalkboard lesson",
+  "summary": "ทำคลิปสอนแนวตั้งหรือแนวนอน 16:9 บนกระดานดำ ตัวเลขค่อยๆ เขียนด้วยชอล์กทีละเส้น วงคำตอบ ลบกระดาน ครูตัวไม้ขีดปากขยับตามเสียง เหมาะกับเคล็ดลับเลข วิทย์ ภาษา ในเครื่องคุณ ฟรี",
+  "summary_en": "Make a vertical or 16:9 landscape chalkboard lesson where digits are written stroke by stroke in chalk, answers get circled and the board is wiped, with a chalk stick teacher lip-synced to the voice, free, on your computer",
+  "kind": "skill",
+  "style": "chalkboard",
+  "access": "free",
+  "mode": "local",
+  "sort": 63
+}

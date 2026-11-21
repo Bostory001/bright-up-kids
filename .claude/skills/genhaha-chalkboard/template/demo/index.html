@@ -1,0 +1,110 @@
+<!doctype html>
+<!-- Demo "บวก 1 ถึง 100 ใน 5 วินาที" — Chalkboard: digits written stroke by stroke in chalk, a chalk-drawn teacher at the right edge lip-syncs the narration.
+     data-start / data-duration are rewritten by `voice` (one <section data-shot="id"> per shot in captions.js). -->
+<html lang="{{LANG}}" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>{{TITLE}}</title>
+    <script src="gsap.min.js"></script>
+    <script src="timing.js"></script>
+    <script src="captions.js"></script>
+    <script src="motion.js"></script>
+    <script src="stick2d-kit.js"></script>
+    <script src="chalk-kit.js"></script>
+    <link rel="stylesheet" href="look.css" />
+    <link rel="stylesheet" href="chalk.css" />
+  </head>
+  <body class="theme-chalk">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <div id="stage" class="clip" data-start="0" data-duration="30" data-track-index="0"></div>
+      <section id="sc-hook" class="clip" data-shot="hook" data-start="0" data-duration="4.5" data-track-index="1"></section>
+      <section id="sc-timer" class="clip" data-shot="timer" data-start="4.5" data-duration="4" data-track-index="2"></section>
+      <section id="sc-pair" class="clip" data-shot="pair" data-start="8.5" data-duration="5" data-track-index="3"></section>
+      <section id="sc-sum" class="clip" data-shot="sum" data-start="13.5" data-duration="4.5" data-track-index="4"></section>
+      <section id="sc-count" class="clip" data-shot="count" data-start="18" data-duration="4.5" data-track-index="6"></section>
+      <section id="sc-final" class="clip" data-shot="final" data-start="22.5" data-duration="7.5" data-track-index="7"></section>
+      <audio id="vo" src="assets/voice/voiceover.wav" data-start="0" data-duration="30" data-track-index="8" data-volume="1"></audio>
+      <div id="captions" class="clip" data-start="0" data-duration="30" data-track-index="5"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const M = Motion(tl);
+      const C = Chalk(tl, M);
+      const { at, end, atW, TOTAL } = M, P = C.P;
+
+      // ---- teacher (right edge, chalk-drawn like everything else); keep board text out of x > 780 below y 820 ----
+      const T = C.teacher({ x: 905, y: 1232, s: 0.6 });
+      C.ground(780, 1040, 1236);
+      T.stick(); T.enter(0.12); T.sway(0.5, TOTAL, 1.6, 1.4);
+      const talk = { gestures: ["talk2", "idle", "talk3", "idle"], end: "idle" };
+      T.say("h1", talk); T.say("t1", talk); T.say("p1", talk); T.say("p2", talk);
+      T.say("s1", talk); T.say("s2", talk); T.say("c1", talk); T.say("f1", talk); T.say("f2", talk);
+      T.face(at("h1"), "think"); T.face(at("t1"), "smug"); T.face(at("p1"), "happy"); T.face(at("p2"), "grin");
+      T.face(at("s1"), "grin"); T.face(at("c1"), "surprised"); T.hop(at("c1") + 0.5, 28);
+      T.face(atW("f1", "ได้"), "shock"); T.face(end("f1") - 0.1, "grin"); T.face(at("f2"), "smug");
+      T.pose("fist", atW("f1", "ห้าพัน"), 0.3); T.pose("idle", end("f1") + 0.15, 0.4); T.hop(atW("f1", "ห้าพัน") + 0.3, 34);
+
+      // ---- hook: the problem ----
+      const h = at("h1");
+      C.write("1+2+3+…+100", 520, 430, 100, h + 0.3, 1.8, { anchor: "middle" });
+      C.write("= ?", 520, 600, 100, h + 2.25, 0.6, { color: P.yellow, anchor: "middle" });
+
+      // ---- timer: five seconds ----
+      const tt = at("t1");
+      C.circle(270, 900, 110, 110, tt + 0.1, 0.8, { color: P.yellow, w: 8 });
+      C.line(270, 790, 270, 760, tt + 0.7, 0.15, { color: P.yellow, w: 8 }); C.line(240, 758, 300, 758, tt + 0.8, 0.15, { color: P.yellow, w: 8 });
+      [[270, 808, 270, 826], [270, 974, 270, 992], [164, 900, 182, 900], [358, 900, 376, 900]].forEach((l, i) => C.line(l[0], l[1], l[2], l[3], tt + 0.85 + i * 0.05, 0.1, { color: P.white, w: 6 }));
+      C.line(270, 900, 335, 850, tt + 1.2, 0.3, { color: P.pink, w: 9 });
+      const five = C.write("5", 430, 820, 120, atW("t1", "ห้า"), 0.5, { color: P.yellow });
+      C.write("วินาที", five.x1 + 24, 830, 96, atW("t1", "ห้า") + 0.45, 0.9, { color: P.yellow });
+      C.underline(430, 965, 330, atW("t1", "ก็เสร็จ"), 0.5, { color: P.pink });
+      C.erase(end("t1") + 0.02, 1.0);
+
+      // ---- pair: first and last ----
+      const COL = [160, 340, 520, 690, 850], TOP = 330, BOT = 540, SZ = 72;
+      const topN = ["1", "2", "3", "…", "50"], bot = ["100", "99", "98", "…", "51"];
+      const t0 = at("p1") + 0.25;
+      topN.forEach((s, i) => C.write(s, COL[i], TOP, SZ, t0 + 0.12 + i * 0.28, 0.3, { anchor: "middle", color: P.white }));
+      bot.forEach((s, i) => C.write(s, COL[i], BOT, SZ, t0 + 1.5 + i * 0.3, 0.3, { anchor: "middle", color: P.blue }));
+      const pairUp = (i, t) => {
+        C.write("+", COL[i], 430, 46, t, 0.2, { anchor: "middle", color: P.pink, noDust: true });
+        C.arc(COL[i] + 92, 360, COL[i] + 92, 575, 38, t + 0.1, 0.4, { color: P.pink, w: 6 });
+      };
+      const sumOf = (i, t) => C.write("101", COL[i], 680, 62, t, 0.45, { anchor: "middle", color: P.yellow });
+      C.arrow(COL[0], 285, COL[0], 318, at("p1") + 0.9, 0.2, { color: P.pink, w: 6, head: 14 });   // little pointer onto the first number
+      pairUp(0, atW("p2", "หนึ่งบวก")); sumOf(0, atW("p2", "ได้"));
+
+      // ---- sum: every pair is 101 ----
+      pairUp(1, atW("s1", "สองบวก")); sumOf(1, atW("s1", "ก็หนึ่งร้อย"));
+      pairUp(2, atW("s2", "สามบวก")); sumOf(2, atW("s2", "ร้อยเอ็ดอีก"));
+      pairUp(4, end("s2") - 0.5); sumOf(4, end("s2") - 0.1);
+      C.write("…", COL[3], 680, 62, end("s2") + 0.1, 0.3, { anchor: "middle", color: P.yellow });
+
+      // ---- count: fifty pairs ----
+      C.brace(110, 900, 770, 60, atW("c1", "และ"), 0.7, { color: P.pink, w: 8 });
+      const fifty = C.write("50", 360, 860, 90, atW("c1", "ห้าสิบ"), 0.5, { color: P.yellow });
+      C.write("คู่", fifty.x1 + 20, 860, 90, atW("c1", "ห้าสิบ") + 0.55, 0.4, { color: P.yellow });
+      C.erase(end("c1") + 0.05, 0.9);
+
+      // ---- final: 101 × 50 = 5050 ----
+      const f = at("f1");
+      C.write("101 × 50", 520, 330, 100, f + 0.45, 1.1, { anchor: "middle", color: P.white });
+      const big = atW("f1", "ห้าพัน");
+      const W = C.measure("5050", 220), x0 = 520 - W / 2;
+      C.write("5050", 520, 535, 220, big, 1.0, { anchor: "middle", color: P.yellow, w: 19 });
+      C.box(x0 - 40, 495, W + 80, 275, big + 1.05, 0.7, { color: P.pink, w: 9 });
+      [[x0 - 40, 495], [x0 + W + 40, 495], [x0 - 40, 770], [x0 + W + 40, 770], [520, 470]].forEach((p, i) => C.sparkle(p[0], p[1], big + 1.5 + i * 0.1, 34 + (i % 2) * 14, i % 2 ? P.white : P.yellow));
+      C.dust(520, 640, big + 1.1, 16, 320, { dur: 0.9 });
+      C.write("เกาส์", 440, 850, 80, atW("f2", "เกาส์"), 0.8, { anchor: "middle", color: P.blue });
+      C.underline(370, 960, 150, atW("f2", "ประถม"), 0.4, { color: P.blue });
+
+      window.SUB_GLUE = ["ไม่ต้อง", "เครื่องคิดเลข", "หนึ่งร้อยเอ็ด", "หนึ่งร้อย", "เก้าสิบเก้า", "เก้าสิบแปด", "ห้าวินาที", "ทั้งหมด", "แบบนี้", "ตัวหน้า", "ตัวหลัง", "ห้าสิบ", "ห้าพันห้าสิบ"];   // words the subtitle must never break across rows
+      M.subtitles();
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
+<!-- genhaha:781c07c7ad6b -->

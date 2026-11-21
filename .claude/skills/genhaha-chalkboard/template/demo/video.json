@@ -1,0 +1,26 @@
+{
+  "name": "{{SLUG}}",
+  "title": "{{TITLE}}",
+  "aspect": "{{ASPECT}}",
+  "width": {{W}},
+  "height": {{H}},
+  "series": { "name": "กระดานดำชอล์ก" },
+  "created": "{{DATE}}",
+  "voice": {
+    "provider": "edge",
+    "language": "{{LANG}}",
+    "voice": "{{VOICE}}",
+    "english": "en-US-AriaNeural",
+    "rate": {{RATE}},
+    "edge_rate": "+0%",
+    "edge_pitch": "+0Hz"
+  },
+  "gap_phrase": 0.2,
+  "gap_shot": 0.35,
+  "tail": 1.8,
+  "sfx": { "scene_cut": null },
+  "music": { "mood": "playful", "level": 0.08 },
+  "cover": { "at": 3.2, "top": {{COVER_TOP}}, "size": "{{COVER_SIZE}}", "title": "{{TITLE_COVER}}", "seconds": 0.1 },
+  "sources": ["Arithmetic: 1 + 2 + … + 100 = 101 × 50 = 5050", "Brian Hayes, \"Gauss's Day of Reckoning\", American Scientist 94 (2006) — the school story has many versions (told as 'ว่ากันว่า')"],
+  "ai_disclosure": "เสียงพากย์สร้างด้วย AI · ภาพวาดด้วยโค้ด"
+}

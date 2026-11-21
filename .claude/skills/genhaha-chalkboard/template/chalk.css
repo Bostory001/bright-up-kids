@@ -1,0 +1,17 @@
+/* chalk.css — Chalkboard look (load AFTER look.css). Green board with a wooden frame (drawn by chalk-kit.js in the svg),
+   chalk-white subtitle with a dark-green stroke from y 1262 (under the writing area, above the chalk tray at y 1530), [accent] words chalk yellow.
+   Writing area y 270–1000; the teacher stands at the right edge (x ≈ 900, feet y 1232). Text only in y 250–1520 and left of x 960 below y 900. */
+body.theme-chalk { --accent: #ffe27a; --sub-top: 1262px; background: #27483d; }
+body.theme-chalk #root { background: #27483d; }
+#stage svg { position: absolute; left: 0; top: 0; }
+#captions { z-index: 90; }
+.cap { left: 60px; right: 120px; }
+.cap .line { max-width: 900px; font-size: 66px; font-weight: 800; line-height: 1.2; color: #f4f1e6; -webkit-text-stroke: 14px #10241c; paint-order: stroke fill; text-shadow: 0 6px 0 rgba(0, 0, 0, 0.3); }
+.cap .hl { color: #ffe27a; }
+
+/* ---------- 16:9 (1920x1080): the kit adds class "wide" to <html> when #root is wider than tall ---------- */
+html.wide, html.wide body { width: 1920px; height: 1080px; }
+html.wide body.theme-chalk { --sub-top: 840px; }
+html.wide .cap { left: 260px; right: 260px; }
+html.wide .cap .line { max-width: 1400px; font-size: 60px; -webkit-text-stroke: 12px #10241c; }
+/* genhaha:781c07c7ad6b */
