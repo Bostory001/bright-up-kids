@@ -65,6 +65,35 @@ export interface TimetableCourse {
   active: boolean;
 }
 
+export interface TeacherRow {
+  teacher: string;
+  /** แต่ละ lane คือแถวย่อย — คอร์สของครูคนเดียวกันที่เวลาทับกันจะถูกแยกลง lane ถัดไปแทนที่จะวาดซ้อนกัน */
+  lanes: TimetableCourse[][];
+}
+
+export const NO_TEACHER = "ยังไม่ระบุครู";
+
+/** จัดคอร์สของวันเดียวเป็นแถวตามครู (แกน Y = ครู, แกน X = เวลา) เรียงชื่อครู แถว "ยังไม่ระบุครู" ไว้ท้ายสุด */
+export function teacherRows(dayCourses: TimetableCourse[]): TeacherRow[] {
+  const byTeacher = new Map<string, TimetableCourse[]>();
+  for (const c of dayCourses) {
+    const key = c.teacherName?.trim() || NO_TEACHER;
+    byTeacher.set(key, [...(byTeacher.get(key) ?? []), c]);
+  }
+  const rows: TeacherRow[] = [];
+  for (const [teacher, list] of byTeacher) {
+    const sorted = [...list].sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime));
+    const lanes: TimetableCourse[][] = [];
+    for (const c of sorted) {
+      const lane = lanes.find((l) => !overlaps(l[l.length - 1], c));
+      if (lane) lane.push(c);
+      else lanes.push([c]);
+    }
+    rows.push({ teacher, lanes });
+  }
+  return rows.sort((a, b) => (a.teacher === NO_TEACHER ? 1 : b.teacher === NO_TEACHER ? -1 : a.teacher.localeCompare(b.teacher, "th")));
+}
+
 /** จัดคอร์สลงช่องวันในสัปดาห์ (อาทิตย์ = 0) เรียงตามเวลาเริ่ม */
 export function weeklyGrid(courses: TimetableCourse[]): TimetableCourse[][] {
   const grid: TimetableCourse[][] = WEEKDAYS.map(() => []);
