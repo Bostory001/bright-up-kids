@@ -160,6 +160,7 @@ export function publicUser(u: AppUser) {
     totpEnabled: Boolean(u.totpEnabled),
     mustChangePassword: Boolean(u.mustChangePassword),
     hourlyRate: u.hourlyRate,
+    favoriteNavs: u.favoriteNavs ?? [],
     lineLinked: Boolean(u.lineUserId),
     active: u.active,
     createdAt: u.createdAt,

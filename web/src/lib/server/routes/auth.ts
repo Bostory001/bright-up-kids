@@ -17,6 +17,7 @@ import {
   verifySecret,
   verifyTotp,
 } from "../auth";
+import { ADMIN_NAV } from "../../modules";
 import { OWNER, route, STAFF, staffUser } from "../router";
 import { HttpError, newId, nowIso, num, oneOf, optStr, randomDigits, rateLimit, str } from "../util";
 
@@ -100,6 +101,17 @@ route("GET", "me", "public", async ({ me }) => {
   if (!me) return { me: null };
   if (me.role === "student") return { me: { role: "student", ...publicStudent(me.student) } };
   return { me: publicUser(me.user) };
+});
+
+// หน้าโปรดใน sidebar — ตั้งได้เฉพาะของตัวเอง และรับเฉพาะ href ที่มีอยู่จริงในเมนูหลังบ้าน
+route("POST", "me/favorites", STAFF, async (ctx) => {
+  const user = staffUser(ctx);
+  const hrefs: unknown = ctx.body.hrefs;
+  if (!Array.isArray(hrefs)) throw new HttpError(400, "รูปแบบข้อมูลไม่ถูกต้อง");
+  const allowed = new Set(ADMIN_NAV.filter((m) => m.audience !== "owner" || user.role === "owner").map((m) => m.href));
+  const clean = [...new Set(hrefs.filter((h): h is string => typeof h === "string" && allowed.has(h)))].slice(0, 12);
+  await ctx.store.set("users", { ...user, favoriteNavs: clean });
+  return { favoriteNavs: clean };
 });
 
 // ---------- 2FA ----------

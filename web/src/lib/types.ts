@@ -51,6 +51,8 @@ export interface AppUser {
   lockedUntil?: string;
   /** อัตราค่าสอนต่อชั่วโมง (บาท) — ใช้คิดค่าจ้างครูรายเดือน เฉพาะ role teacher */
   hourlyRate?: number;
+  /** หน้าโปรดใน sidebar หลังบ้าน (href เช่น "/admin/timetable") เรียงตามที่ผู้ใช้จัด — เฉพาะ owner/teacher */
+  favoriteNavs?: string[];
   /** LINE userId ที่ผูกไว้สำหรับรับแจ้งเตือน */
   lineUserId?: string;
   /** รหัส 6 หลักสำหรับผูก LINE (หมดอายุตาม lineLinkExpires) */

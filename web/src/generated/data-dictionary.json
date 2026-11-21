@@ -77,6 +77,12 @@
         "description": "อัตราค่าสอนต่อชั่วโมง (บาท) — ใช้คิดค่าจ้างครูรายเดือน เฉพาะ role teacher"
       },
       {
+        "name": "favoriteNavs",
+        "type": "string[]",
+        "required": false,
+        "description": "หน้าโปรดใน sidebar หลังบ้าน (href เช่น \"/admin/timetable\") เรียงตามที่ผู้ใช้จัด — เฉพาะ owner/teacher"
+      },
+      {
         "name": "lineUserId",
         "type": "string",
         "required": false,
