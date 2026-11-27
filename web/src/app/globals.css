@@ -16,3 +16,17 @@ body {
   color: var(--foreground);
   font-family: var(--font-noto-thai), sans-serif;
 }
+
+/* ตัวครู/มาสคอตหน้าเรียน: หายใจ + เอียงตัวเบาๆ รอบจุดยืน (ห้ามขยับกรอบ ใช้ transform ในรูปเท่านั้น) */
+@keyframes buk-breathe {
+  0%, 100% { transform: translateY(0) rotate(-0.7deg) scale(1); }
+  50% { transform: translateY(-1.5%) rotate(0.7deg) scale(1.012); }
+}
+.buk-alive {
+  transform-origin: 50% 100%;
+  animation: buk-breathe 4.2s ease-in-out infinite;
+  animation-delay: var(--buk-delay, 0s);
+}
+@media (prefers-reduced-motion: reduce) {
+  .buk-alive { animation: none; }
+}

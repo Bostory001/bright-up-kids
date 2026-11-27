@@ -35,7 +35,7 @@ function CharImg({ name, className }: { name: TeacherPose | "mascot"; className:
   const [hidden, setHidden] = useState(false);
   if (hidden) return null;
   // eslint-disable-next-line @next/next/no-img-element -- ไฟล์ของเจ้าของ ขนาดเล็ก ไม่ต้องผ่าน image optimizer
-  return <img src={`/characters/${name}.png`} alt="" aria-hidden="true" onError={() => setHidden(true)} className={className} />;
+  return <img src={`/characters/${name}.png`} alt="" aria-hidden="true" onError={() => setHidden(true)} className={className + " buk-alive"} style={{ ["--buk-delay" as string]: `-${(name.length % 5) * 0.8}s` }} />;
 }
 
 // ให้เบราว์เซอร์อ่านออกเสียง (ไม่ส่งข้อความออกนอกเครื่อง) — ถ้าเครื่องไม่มีเสียงไทยก็แค่ไม่ดัง
