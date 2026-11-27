@@ -10,7 +10,7 @@ import {
   newProfile,
   powerTitle,
 } from "../../gamification";
-import type { Assignment, Attempt, AvatarSlot, Enrollment, Exercise, Grade, PlayerProfile, Question, Redemption, Reward, Student } from "../../types";
+import type { Assignment, Attempt, AvatarSlot, Enrollment, Exercise, Grade, PlayerProfile, Question, Redemption, TeachCard, Reward, Student } from "../../types";
 import { omit } from "../auth";
 import { type Ctx, OWNER, route, STAFF, staffUser, studentOf } from "../router";
 import { getSettings } from "../settings";
@@ -28,7 +28,32 @@ async function getProfile(store: Store, studentId: string): Promise<PlayerProfil
 
 // ---------- คลังแบบฝึกหัด (ครู) ----------
 
-function exerciseFrom(body: Ctx["body"], id: string, createdAt: string): Exercise {
+function teachFrom(raw: unknown): TeachCard[] | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  if (!Array.isArray(raw) || raw.length > 8) throw new HttpError(400, "การ์ดสอนต้องเป็นรายการไม่เกิน 8 ใบ");
+  return raw.map((c, i): TeachCard => {
+    if (!c || typeof c !== "object" || Array.isArray(c)) throw new HttpError(400, `การ์ดสอนใบที่ ${i + 1}: รูปแบบไม่ถูกต้อง`);
+    const item = c as Record<string, unknown>;
+    const example = optStr(item.example, 200);
+    return { title: str(item.title, `หัวข้อการ์ด ${i + 1}`, 60), text: str(item.text, `เนื้อหาการ์ด ${i + 1}`, 400), ...(example ? { example } : {}) };
+  });
+}
+
+// ฟิลด์บทเรียนตามหลักสูตร (term/unit/order/teach) — ถ้า body ไม่ส่งมา ให้คงค่าเดิม ไม่งั้น PATCH จะทำของหาย
+function lessonFields(body: Ctx["body"], prev?: Exercise): Pick<Exercise, "term" | "unit" | "order" | "teach"> {
+  const out: Pick<Exercise, "term" | "unit" | "order" | "teach"> = {};
+  const term = body.term === undefined ? prev?.term : body.term === null ? undefined : (oneOf(Number(body.term), [1, 2], "เทอม") as 1 | 2);
+  const unit = body.unit === undefined ? prev?.unit : optStr(body.unit, 80);
+  const order = body.order === undefined ? prev?.order : body.order === null ? undefined : num(body.order, "ลำดับบท", 1, 999);
+  const teach = body.teach === undefined ? prev?.teach : teachFrom(body.teach);
+  if (term) out.term = term;
+  if (unit) out.unit = unit;
+  if (order !== undefined && Number.isInteger(order)) out.order = order;
+  if (teach?.length) out.teach = teach;
+  return out;
+}
+
+function exerciseFrom(body: Ctx["body"], id: string, createdAt: string, prev?: Exercise): Exercise {
   const raw: unknown[] = Array.isArray(body.questions) ? body.questions : [];
   if (raw.length < 1 || raw.length > 50) throw new HttpError(400, "ต้องมีโจทย์ 1-50 ข้อ");
   const questions = raw.map((q, i): Question => {
@@ -55,6 +80,7 @@ function exerciseFrom(body: Ctx["body"], id: string, createdAt: string): Exercis
     grade: oneOf(Number(body.grade), GRADES, "ชั้น") as Grade,
     topic: str(body.topic, "หัวข้อ", 60),
     questions,
+    ...lessonFields(body, prev),
     published: body.published === true,
     createdAt,
   };
@@ -72,7 +98,7 @@ route("POST", "admin/exercises", STAFF, async ({ store, body }) => {
 route("PATCH", "admin/exercises/:id", STAFF, async ({ store, body, params }) => {
   const prev = await store.get<Exercise>("exercises", params.id);
   if (!prev) throw new HttpError(404, "ไม่พบแบบฝึกหัด");
-  const exercise = exerciseFrom(body, prev.id, prev.createdAt);
+  const exercise = exerciseFrom(body, prev.id, prev.createdAt, prev);
   await store.set("exercises", exercise);
   return { exercise };
 });
@@ -132,6 +158,10 @@ route("GET", "play/home", STUDENT, async (ctx) => {
         subject: e.subject,
         topic: e.topic,
         count: e.questions.length,
+        term: e.term ?? null,
+        unit: e.unit ?? null,
+        order: e.order ?? null,
+        hasTeach: Boolean(e.teach?.length),
         best: mine.length ? Math.max(...mine.map((a) => a.correct)) : null,
       };
     }),
@@ -140,18 +170,35 @@ route("GET", "play/home", STUDENT, async (ctx) => {
   };
 });
 
+const MINI_QUESTIONS = 3;
+
+/** สุ่ม 3 เลขข้อไม่ซ้ำ เรียงตามลำดับในชุด (ให้อ่านต่อเนื่อง) */
+function pickMiniOrder(total: number): number[] {
+  const pool = Array.from({ length: total }, (_, i) => i);
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, MINI_QUESTIONS).sort((a, b) => a - b);
+}
+
 route("POST", "play/start", STUDENT, async (ctx) => {
   const student = studentOf(ctx);
   const exercise = await ctx.store.get<Exercise>("exercises", str(ctx.body.exerciseId, "แบบฝึกหัด", 40));
   if (!exercise || !exercise.published || exercise.grade !== student.grade) throw new HttpError(404, "ไม่พบแบบฝึกหัด");
+  // โหมด "ลอง 3 ข้อ": สุ่ม 3 ข้อจากชุด (ชุดที่มี ≤ 3 ข้อ = ทำครบทั้งชุดเหมือนปกติ)
+  const mini = ctx.body.mini === true && exercise.questions.length > MINI_QUESTIONS;
+  const order = mini ? pickMiniOrder(exercise.questions.length) : null;
+  const picked = order ? order.map((i) => exercise.questions[i]) : exercise.questions;
   const attempt: Attempt = {
     id: newId(),
     studentId: student.id,
     exerciseId: exercise.id,
-    answers: exercise.questions.map(() => null),
+    answers: picked.map(() => null),
+    ...(order ? { questionOrder: order } : {}),
     status: "started",
     correct: 0,
-    total: exercise.questions.length,
+    total: picked.length,
     counted: false,
     xpEarned: 0,
     coinsEarned: 0,
@@ -163,8 +210,9 @@ route("POST", "play/start", STUDENT, async (ctx) => {
   return {
     attemptId: attempt.id,
     title: exercise.title,
+    teach: exercise.teach ?? [],
     // ไม่ส่ง answerIndex ให้เครื่องนักเรียน
-    questions: exercise.questions.map((q) => ({ prompt: q.prompt, choices: q.choices })),
+    questions: picked.map((q) => ({ prompt: q.prompt, choices: q.choices })),
   };
 });
 
@@ -178,7 +226,7 @@ route("POST", "play/answer", STUDENT, async (ctx) => {
   const current = await ctx.store.get<Attempt>("attempts", attemptId);
   if (!current || current.studentId !== student.id || current.status !== "started") throw new HttpError(400, "รอบนี้จบไปแล้ว");
   const exercise = await ctx.store.get<Exercise>("exercises", current.exerciseId);
-  const question = exercise?.questions[index];
+  const question = exercise?.questions[current.questionOrder?.[index] ?? index];
   if (!question) throw new HttpError(400, "ไม่พบโจทย์ข้อนี้");
   if (choice >= question.choices.length) throw new HttpError(400, "ไม่พบตัวเลือกนี้");
 
@@ -210,7 +258,7 @@ route("POST", "play/finish", STUDENT, async (ctx) => {
   });
   if (!closed) throw new HttpError(400, "รอบนี้จบไปแล้ว");
 
-  const correct = closed.answers.filter((ans, i) => ans === exercise.questions[i]?.answerIndex).length;
+  const correct = closed.answers.filter((ans, i) => ans === exercise.questions[closed.questionOrder?.[i] ?? i]?.answerIndex).length;
   const durationSec = Math.min(MAX_RUN_SECONDS, Math.max(0, Math.round((Date.parse(finishedAt) - Date.parse(closed.startedAt)) / 1000)));
   const today = bkkDate();
 

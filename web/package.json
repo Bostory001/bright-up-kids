@@ -12,6 +12,8 @@
         "smoke": "node scripts/smoke.mjs",
         "smoke:isolated": "node scripts/smoke-isolated.mjs",
         "test:server": "node --test scripts/server.test.mjs",
+        "validate:content": "node scripts/validate-content.mjs",
+        "import:content": "node scripts/import-content.mjs",
         "audit:exercises": "node scripts/audit-exercises.mjs",
         "check:firestore": "node scripts/check-firestore.mjs",
         "firebase:key": "node scripts/use-service-account.mjs",

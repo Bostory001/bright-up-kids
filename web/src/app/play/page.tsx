@@ -30,16 +30,20 @@ interface QuestionReview {
 }
 interface Run {
   exerciseId: string;
+  mini: boolean;
   selected: number | null;
   review: QuestionReview[];
   attemptId: string;
   title: string;
+  teach: { title: string; text: string; example?: string }[];
+  teachIndex: number;
   questions: { prompt: string; choices: string[] }[];
   index: number;
   feedback: { picked: number; correct: boolean; answerIndex: number; explain?: string } | null;
 }
 interface Result {
   exerciseId: string;
+  mini: boolean;
   title: string;
   review: QuestionReview[];
   correct: number;
@@ -61,7 +65,12 @@ interface Shop {
 const SUBJECT_EMOJI: Record<string, string> = { math: "🔢", thai: "📖", english: "🔤", science: "🔬", chinese: "🀄" };
 const SUBJECT_NAMES: Record<string, string> = SUBJECT_SHORT;
 const RED = { requested: "รอรับที่สถาบัน", handed_over: "รับแล้ว", rejected: "ไม่อนุมัติ (คืนเหรียญแล้ว)" };
-const BIG = "min-h-16 rounded-3xl p-4 text-xl font-bold shadow-md active:scale-95 disabled:opacity-50 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-sky-600";
+/** ดาว 1-3 ต่อรอบ: ครบ = 3, ถูก ≥ 60% = 2, ที่เหลือ = 1 (ลองแล้วได้ดาวเสมอ ไม่กดดัน) */
+function starsFor(correct: number, total: number): number {
+  if (total > 0 && correct === total) return 3;
+  return total > 0 && correct / total >= 0.6 ? 2 : 1;
+}
+const BIG ="min-h-16 rounded-3xl p-4 text-xl font-bold shadow-md active:scale-95 disabled:opacity-50 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-sky-600";
 // แนะนำการใช้งานครั้งแรก — แสดงจนกว่าจะทำแบบฝึกหัดชุดแรกเสร็จ
 const TUTORIAL = [
   { emoji: "✏️", text: "เลือกแบบฝึกหัด แตะคำตอบ แล้วกดยืนยัน" },
@@ -120,11 +129,11 @@ export default function PlayPage() {
     }
   }
 
-  const start = (exerciseId: string) =>
+  const start = (exerciseId: string, mini = false, skipTeach = false) =>
     act(async () => {
-      const res = await api("play/start", { exerciseId });
+      const res = await api("play/start", { exerciseId, mini });
       setResult(null);
-      setRun({ ...res, exerciseId, index: 0, selected: null, feedback: null, review: [] });
+      setRun({ ...res, exerciseId, mini, teachIndex: skipTeach ? res.teach.length : 0, index: 0, selected: null, feedback: null, review: [] });
     });
 
   const answer = () =>
@@ -147,7 +156,7 @@ export default function PlayPage() {
       if (!run || !run.feedback) return;
       if (run.index + 1 < run.questions.length) return setRun({ ...run, index: run.index + 1, selected: null, feedback: null });
       const outcome = await api("play/finish", { attemptId: run.attemptId });
-      setResult({ ...outcome, exerciseId: run.exerciseId, title: run.title, review: run.review });
+      setResult({ ...outcome, exerciseId: run.exerciseId, mini: run.mini, title: run.title, review: run.review });
       setRun(null);
       home.reload();
     });
@@ -185,6 +194,9 @@ export default function PlayPage() {
         <AvatarSvg equipped={h.profile.equipped} />
         <p className="text-sm font-bold text-gray-600">{result.title}</p>
         <p className="text-5xl" aria-hidden="true">{result.correct === result.total ? "🏆" : "🌟"}</p>
+        <p className="text-5xl" role="img" aria-label={`ได้ ${starsFor(result.correct, result.total)} ดาวจาก 3`}>
+          {[1, 2, 3].map((n) => <span key={n} className={n <= starsFor(result.correct, result.total) ? "" : "opacity-25 grayscale"}>⭐</span>)}
+        </p>
         <h1 className="text-3xl font-bold">
           ถูก {result.correct} / {result.total} ข้อ
         </h1>
@@ -221,8 +233,8 @@ export default function PlayPage() {
           </ol>
         </section>
         {error && <p role="alert" className="text-red-700">{error}</p>}
-        <button disabled={busy} onClick={() => start(result.exerciseId)} className={BIG + " mt-2 w-full bg-amber-500 text-gray-950"}>
-          {busy ? "กำลังเตรียมโจทย์..." : "ลองชุดนี้อีกครั้ง ↻"}
+        <button disabled={busy} onClick={() => start(result.exerciseId, result.mini, true)} className={BIG + " mt-2 w-full bg-amber-500 text-gray-950"}>
+          {busy ? "กำลังเตรียมโจทย์..." : result.mini ? "ลอง 3 ข้อใหม่ ↻" : "ลองชุดนี้อีกครั้ง ↻"}
         </button>
         <button disabled={busy} onClick={() => { setResult(null); setError(""); }} className={BIG + " w-full bg-white"}>
           เลือกแบบฝึกหัดชุดอื่น
@@ -232,6 +244,29 @@ export default function PlayPage() {
   }
 
   // ---------- กำลังทำแบบฝึกหัด ----------
+  if (run && run.teachIndex < run.teach.length) {
+    const card = run.teach[run.teachIndex];
+    const last = run.teachIndex + 1 === run.teach.length;
+    return (
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 p-4 sm:p-6">
+        <div className="flex items-center justify-between gap-3">
+          <button onClick={() => { setRun(null); setError(""); }} className={BIG + " bg-white text-base"}>← เลือกชุดอื่น</button>
+          <span className="rounded-full bg-sky-100 px-4 py-2 text-sm font-bold text-sky-900">📘 เรียนรู้ {run.teachIndex + 1} / {run.teach.length}</span>
+        </div>
+        <p className="font-bold text-gray-700">{run.title}</p>
+        <section aria-label="บทสอน" className="rounded-3xl border border-sky-100 bg-white p-6 shadow-md">
+          <h1 className="text-2xl font-bold text-sky-900">{card.title}</h1>
+          <p className="mt-3 whitespace-pre-line text-xl leading-relaxed">{card.text}</p>
+          {card.example && <p className="mt-4 whitespace-pre-line rounded-2xl bg-amber-50 p-4 text-xl font-bold text-amber-950">{card.example}</p>}
+        </section>
+        <div className="flex gap-3">
+          {run.teachIndex > 0 && <button onClick={() => setRun({ ...run, teachIndex: run.teachIndex - 1 })} className={BIG + " flex-1 bg-white"}>← ก่อนหน้า</button>}
+          <button onClick={() => setRun({ ...run, teachIndex: run.teachIndex + 1 })} className={BIG + " flex-[2] bg-amber-500 text-gray-950"}>{last ? (run.mini ? "ลองแค่ 3 ข้อ ⭐" : "เริ่มทำโจทย์ ✏️") : "ต่อไป →"}</button>
+        </div>
+      </main>
+    );
+  }
+
   if (run) {
     const q = run.questions[run.index];
     const fb = run.feedback;
@@ -254,7 +289,7 @@ export default function PlayPage() {
           <span className="rounded-full bg-amber-100 px-4 py-2 text-sm font-bold text-amber-900">ข้อ {run.index + 1} / {run.questions.length}</span>
         </div>
         <div>
-          <p className="mb-2 font-bold text-gray-700">{run.title}</p>
+          <p className="mb-2 font-bold text-gray-700">{run.title}{run.mini ? " · ลอง 3 ข้อ ⭐" : ""}</p>
           <div role="progressbar" aria-label="ความคืบหน้าแบบฝึกหัด" aria-valuemin={0} aria-valuemax={run.questions.length} aria-valuenow={completed} className="h-3 overflow-hidden rounded-full bg-amber-100">
             <div className="h-full rounded-full bg-amber-500 transition-all motion-reduce:transition-none" style={{ width: completed / run.questions.length * 100 + "%" }} />
           </div>
@@ -389,16 +424,20 @@ export default function PlayPage() {
               <button onClick={() => { setSubject("all"); setFilter("all"); setSearch(""); }} className={BIG + " mt-4 bg-sky-50 text-sky-900"}>ดูทุกชุด</button>
             </div>}
             {shown.map((ex) => (
-              <button key={ex.id} disabled={busy} onClick={() => start(ex.id)} className={"flex min-h-24 items-center gap-3 rounded-3xl border-2 bg-white p-4 text-left shadow-sm active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600 " + (ex.homeworkDue ? "border-pink-300" : "border-transparent")}>
+              <div key={ex.id} className="grid gap-2">
+              <button disabled={busy} onClick={() => start(ex.id)} className={"flex min-h-24 items-center gap-3 rounded-3xl border-2 bg-white p-4 text-left shadow-sm active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600 " + (ex.homeworkDue ? "border-pink-300" : "border-transparent")}>
                 <span className="text-4xl" aria-hidden="true">{SUBJECT_EMOJI[ex.subject]}</span>
                 <span className="min-w-0 flex-1">
                   {ex.homeworkDue && <span className="mb-1 block text-sm font-bold text-pink-800">📌 {ex.homeworkDue < h.today ? "เลยกำหนดแล้ว · " : ex.homeworkDue === h.today ? "ส่งวันนี้ · " : "ส่งภายใน "}{thaiDate(ex.homeworkDue)}</span>}
+                  {ex.unit && <span className="mb-1 block text-xs font-bold text-sky-800">📘 เทอม {ex.term} · {ex.unit}</span>}
                   <span className="block text-lg font-bold">{ex.title}</span>
                   <span className="block text-sm text-gray-600">{ex.topic} · {ex.count} ข้อ</span>
                   <span className="mt-2 block text-sm font-bold text-sky-800">{ex.best === null ? "✨ ยังไม่เคยทำ" : ex.best === ex.count ? "🏆 เคยทำได้เต็มแล้ว" : "คะแนนดีที่สุด " + ex.best + "/" + ex.count}</span>
                 </span>
                 <span aria-hidden="true" className="text-2xl text-gray-500">→</span>
               </button>
+              {ex.count > 3 && <button disabled={busy} onClick={() => start(ex.id, true)} className="min-h-16 rounded-2xl bg-amber-100 px-4 text-lg font-bold text-amber-950 active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600">⭐ ลองแค่ 3 ข้อ · ไม่ถึง 2 นาที</button>}
+              </div>
             ))}
           </section>
           <section className="rounded-3xl bg-white p-4 shadow-sm" aria-label="ประวัติการฝึก">

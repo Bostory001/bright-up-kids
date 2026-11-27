@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button, Card, ErrorText, Field, Input, Select } from "@/components/ui";
 import { api } from "@/lib/client/api";
 import { GRADES, gradeLabel } from "@/lib/grade";
@@ -9,7 +10,16 @@ const EMPTY = { parentName: "", phone: "", childNickname: "", grade: "1", source
 
 // ฟอร์มขอทดลองเรียนฟรี — ลิงก์นี้ใช้ในโพสต์ ใบปลิว และ QR หน้าร้าน
 export default function TrialPage() {
-  const [form, setForm] = useState(EMPTY);
+  return (
+    <Suspense>
+      <TrialForm />
+    </Suspense>
+  );
+}
+
+function TrialForm() {
+  const preset = String(useSearchParams().get("grade") ?? "");
+  const [form, setForm] = useState({ ...EMPTY, grade: GRADES.some((g) => String(g) === preset) ? preset : EMPTY.grade });
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);

@@ -195,6 +195,10 @@ export interface Course {
   weeks?: number;
   capacity: number;
   active: boolean;
+  /** คอร์สนี้เรียนออนไลน์ผ่าน Google Meet — ถ้าเปิดแต่ยังไม่มี meetUrl ระบบจะเตือนแอดมิน */
+  online?: boolean;
+  /** ลิงก์ Google Meet ถาวรของคอร์ส (https://meet.google.com/...) — ส่งให้ผู้ปกครองก่อนคาบ ห้ามส่งให้คนนอกคอร์ส */
+  meetUrl?: string;
 }
 
 /**
@@ -278,9 +282,25 @@ export interface Exercise {
   /** หัวข้อ เช่น "การบวก" ใช้สรุปจุดอ่อนรายคน */
   topic: string;
   questions: Question[];
+  /** เทอม 1 หรือ 2 (เฉพาะชุดที่เป็นบทเรียนตามหลักสูตร) */
+  term?: 1 | 2;
+  /** ชื่อหน่วยการเรียนรู้ ใช้จัดกลุ่มบทเรียน */
+  unit?: string;
+  /** ลำดับบทเรียนตลอดทั้งชั้น-วิชา (เริ่ม 1) */
+  order?: number;
+  /** การ์ดสอนที่นักเรียนอ่านก่อนทำโจทย์ (ไม่มี = ทำโจทย์เลย) */
+  teach?: TeachCard[];
   /** เผยแพร่ให้นักเรียนเห็นแล้ว */
   published: boolean;
   createdAt: string;
+}
+
+/** การ์ดสอน 1 ใบในบทเรียน */
+export interface TeachCard {
+  title: string;
+  text: string;
+  /** ตัวอย่างทำให้ดู (ไม่บังคับ) */
+  example?: string;
 }
 
 /**
@@ -323,6 +343,8 @@ export interface Attempt {
   exerciseId: string;
   /** คำตอบที่เลือกแต่ละข้อ (null = ยังไม่ตอบ) */
   answers: (number | null)[];
+  /** โหมด "ลอง 3 ข้อ": ลำดับข้อในรอบนี้ → เลขข้อจริงในชุดโจทย์ (ไม่มี = ทำครบทั้งชุดตามลำดับ) */
+  questionOrder?: number[];
   status: "started" | "finished";
   correct: number;
   total: number;
@@ -400,10 +422,12 @@ export interface Redemption {
 export interface Notification {
   id: string;
   parentId: string;
-  kind: "attendance" | "invoice" | "payment" | "weekly" | "general";
+  kind: "attendance" | "invoice" | "payment" | "weekly" | "general" | "online";
   text: string;
   status: "sent" | "queued" | "failed";
   error?: string;
+  /** กุญแจกันส่งซ้ำ เช่น meet:<courseId>:<วันที่> — ใช้กับ cron ที่ถูกเรียกหลายรอบต่อวัน */
+  ref?: string;
   createdAt: string;
 }
 

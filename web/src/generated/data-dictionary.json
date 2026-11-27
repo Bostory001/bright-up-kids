@@ -595,6 +595,18 @@
         "type": "boolean",
         "required": true,
         "description": ""
+      },
+      {
+        "name": "online",
+        "type": "boolean",
+        "required": false,
+        "description": "คอร์สนี้เรียนออนไลน์ผ่าน Google Meet — ถ้าเปิดแต่ยังไม่มี meetUrl ระบบจะเตือนแอดมิน"
+      },
+      {
+        "name": "meetUrl",
+        "type": "string",
+        "required": false,
+        "description": "ลิงก์ Google Meet ถาวรของคอร์ส (https://meet.google.com/...) — ส่งให้ผู้ปกครองก่อนคาบ ห้ามส่งให้คนนอกคอร์ส"
       }
     ]
   },
@@ -631,7 +643,7 @@
         "name": "sessionsPaid",
         "type": "number",
         "required": false,
-        "description": "จำนวนคาบที่ผู้ปกครองจ่ายมาในคอร์สนี้ (แพ็กละ 6 ชม. = 4 คาบถ้าคาบละ 1.5 ชม.)\nคาบคงเหลือ = sessionsPaid − คาบที่เข้าเรียนไปแล้ว คิดสดทุกครั้ง ไม่เก็บเป็นตัวเลขนิ่ง\nไม่ตั้ง = ไม่จำกัดคาบ (ยังไม่ได้ขายเป็นแพ็ก)"
+        "description": "จำนวนคาบที่ผู้ปกครองจ่ายมาในคอร์สนี้ (แพ็กละ 6 ชม. = 4 คาบถ้าคาบละ 1.5 ชม.)\r\nคาบคงเหลือ = sessionsPaid − คาบที่เข้าเรียนไปแล้ว คิดสดทุกครั้ง ไม่เก็บเป็นตัวเลขนิ่ง\r\nไม่ตั้ง = ไม่จำกัดคาบ (ยังไม่ได้ขายเป็นแพ็ก)"
       },
       {
         "name": "status",
@@ -824,6 +836,30 @@
         "description": ""
       },
       {
+        "name": "term",
+        "type": "1 | 2",
+        "required": false,
+        "description": "เทอม 1 หรือ 2 (เฉพาะชุดที่เป็นบทเรียนตามหลักสูตร)"
+      },
+      {
+        "name": "unit",
+        "type": "string",
+        "required": false,
+        "description": "ชื่อหน่วยการเรียนรู้ ใช้จัดกลุ่มบทเรียน"
+      },
+      {
+        "name": "order",
+        "type": "number",
+        "required": false,
+        "description": "ลำดับบทเรียนตลอดทั้งชั้น-วิชา (เริ่ม 1)"
+      },
+      {
+        "name": "teach",
+        "type": "TeachCard[]",
+        "required": false,
+        "description": "การ์ดสอนที่นักเรียนอ่านก่อนทำโจทย์ (ไม่มี = ทำโจทย์เลย)"
+      },
+      {
         "name": "published",
         "type": "boolean",
         "required": true,
@@ -840,7 +876,7 @@
   {
     "collection": "lessons",
     "name": "Lesson",
-    "description": "คลิปสอน 1 เรื่อง — จัดลำดับชั้น วิชา → ชั้น → เทอม → หน่วย → ลำดับในหน่วย\nไฟล์วิดีโออยู่นอกฐานข้อมูล (Firebase Storage หรือ /lessons/ ในเครื่อง) เก็บแค่ลิงก์",
+    "description": "คลิปสอน 1 เรื่อง — จัดลำดับชั้น วิชา → ชั้น → เทอม → หน่วย → ลำดับในหน่วย\r\nไฟล์วิดีโออยู่นอกฐานข้อมูล (Firebase Storage หรือ /lessons/ ในเครื่อง) เก็บแค่ลิงก์",
     "fields": [
       {
         "name": "id",
@@ -956,6 +992,12 @@
         "type": "(number | null)[]",
         "required": true,
         "description": "คำตอบที่เลือกแต่ละข้อ (null = ยังไม่ตอบ)"
+      },
+      {
+        "name": "questionOrder",
+        "type": "number[]",
+        "required": false,
+        "description": "โหมด \"ลอง 3 ข้อ\": ลำดับข้อในรอบนี้ → เลขข้อจริงในชุดโจทย์ (ไม่มี = ทำครบทั้งชุดตามลำดับ)"
       },
       {
         "name": "status",
@@ -1233,7 +1275,7 @@
       },
       {
         "name": "kind",
-        "type": "\"attendance\" | \"invoice\" | \"payment\" | \"weekly\" | \"general\"",
+        "type": "\"attendance\" | \"invoice\" | \"payment\" | \"weekly\" | \"general\" | \"online\"",
         "required": true,
         "description": ""
       },
@@ -1254,6 +1296,12 @@
         "type": "string",
         "required": false,
         "description": ""
+      },
+      {
+        "name": "ref",
+        "type": "string",
+        "required": false,
+        "description": "กุญแจกันส่งซ้ำ เช่น meet:<courseId>:<วันที่> — ใช้กับ cron ที่ถูกเรียกหลายรอบต่อวัน"
       },
       {
         "name": "createdAt",
@@ -1315,7 +1363,7 @@
   {
     "collection": "budgets",
     "name": "Budget",
-    "description": "งบประมาณรายจ่ายต่อเดือน แยกตามหมวด\nid = \"YYYY-MM\" (งบของเดือนนั้น) หรือ \"default\" (งบตั้งต้นที่ใช้ทุกเดือนที่ไม่ได้ตั้งเอง)",
+    "description": "งบประมาณรายจ่ายต่อเดือน แยกตามหมวด\r\nid = \"YYYY-MM\" (งบของเดือนนั้น) หรือ \"default\" (งบตั้งต้นที่ใช้ทุกเดือนที่ไม่ได้ตั้งเอง)",
     "fields": [
       {
         "name": "id",
@@ -1505,7 +1553,7 @@
   {
     "collection": "expenses",
     "name": "Expense",
-    "description": "รายจ่ายของสถาบัน — ทั้งค่าใช้จ่ายดำเนินงานและของใช้เบ็ดเตล็ด\nkind แยกสองกลุ่มไม่ให้นับซ้ำกันในรายงาน",
+    "description": "รายจ่ายของสถาบัน — ทั้งค่าใช้จ่ายดำเนินงานและของใช้เบ็ดเตล็ด\r\nkind แยกสองกลุ่มไม่ให้นับซ้ำกันในรายงาน",
     "fields": [
       {
         "name": "id",
@@ -1614,7 +1662,7 @@
   {
     "collection": "receipts",
     "name": "Receipt",
-    "description": "รูปใบเสร็จของรายจ่าย (id = expenseId) เก็บเป็น data URL ที่ย่อแล้ว\nแยก collection เพื่อให้รายการรายจ่ายโหลดเร็ว ไม่ลากรูปมาด้วย",
+    "description": "รูปใบเสร็จของรายจ่าย (id = expenseId) เก็บเป็น data URL ที่ย่อแล้ว\r\nแยก collection เพื่อให้รายการรายจ่ายโหลดเร็ว ไม่ลากรูปมาด้วย",
     "fields": [
       {
         "name": "id",
@@ -1645,7 +1693,7 @@
   {
     "collection": "assessments",
     "name": "Assessment",
-    "description": "คะแนนวัดระดับของนักเรียน — ก่อนเรียน / ระหว่างเรียน / หลังจบคอร์ส\nใช้ดูพัฒนาการจริงเทียบจุดเริ่มต้น และให้ผู้ปกครองเห็นว่าจ่ายค่าเรียนแล้วได้อะไร",
+    "description": "คะแนนวัดระดับของนักเรียน — ก่อนเรียน / ระหว่างเรียน / หลังจบคอร์ส\r\nใช้ดูพัฒนาการจริงเทียบจุดเริ่มต้น และให้ผู้ปกครองเห็นว่าจ่ายค่าเรียนแล้วได้อะไร",
     "fields": [
       {
         "name": "id",
@@ -1718,7 +1766,7 @@
   {
     "collection": "supply_items",
     "name": "SupplyItem",
-    "description": "ของใช้ในคลัง เช่น กระดาษ A4 ทิชชู ปากกาไวท์บอร์ด\nจำนวนคงเหลือไม่ได้เก็บไว้ที่นี่ แต่คิดจากผลรวมของ supply_moves เสมอ (กันตัวเลขเพี้ยนสะสม)",
+    "description": "ของใช้ในคลัง เช่น กระดาษ A4 ทิชชู ปากกาไวท์บอร์ด\r\nจำนวนคงเหลือไม่ได้เก็บไว้ที่นี่ แต่คิดจากผลรวมของ supply_moves เสมอ (กันตัวเลขเพี้ยนสะสม)",
     "fields": [
       {
         "name": "id",
@@ -1767,7 +1815,7 @@
   {
     "collection": "supply_moves",
     "name": "SupplyMove",
-    "description": "การเคลื่อนไหวของของใช้: รับเข้า (ซื้อ) หรือเบิกออก (เอาไปใช้)\nรายการที่มาจากการซื้อ id = \"exp-<expenseId>\" เพื่อให้แก้/ลบรายจ่ายแล้วคลังตามทันเสมอ",
+    "description": "การเคลื่อนไหวของของใช้: รับเข้า (ซื้อ) หรือเบิกออก (เอาไปใช้)\r\nรายการที่มาจากการซื้อ id = \"exp-<expenseId>\" เพื่อให้แก้/ลบรายจ่ายแล้วคลังตามทันเสมอ",
     "fields": [
       {
         "name": "id",

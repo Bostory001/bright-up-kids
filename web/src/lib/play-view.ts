@@ -6,6 +6,10 @@ export interface ExerciseCard {
   count: number;
   best: number | null;
   homeworkDue: string | null;
+  term: number | null;
+  unit: string | null;
+  order: number | null;
+  hasTeach: boolean;
 }
 
 export type ExerciseFilter = "all" | "new" | "homework" | "review";
@@ -21,7 +25,7 @@ export function visibleExercises(exercises: ExerciseCard[], subject: string, fil
   }).sort((a, b) => {
     if (a.homeworkDue && !b.homeworkDue) return -1;
     if (!a.homeworkDue && b.homeworkDue) return 1;
-    return (a.homeworkDue ?? "").localeCompare(b.homeworkDue ?? "") || a.title.localeCompare(b.title, "th") || a.id.localeCompare(b.id);
+    return (a.homeworkDue ?? "").localeCompare(b.homeworkDue ?? "") || (a.order ?? 9999) - (b.order ?? 9999) || a.title.localeCompare(b.title, "th") || a.id.localeCompare(b.id);
   });
 }
 
