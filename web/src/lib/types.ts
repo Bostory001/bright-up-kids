@@ -136,6 +136,8 @@ export interface Student {
   nickname: string;
   fullName: string;
   grade: Grade;
+  /** ชั้นอื่นที่เด็กซื้อแพ็กเพิ่ม — เปิดแบบฝึกหัดของชั้นเหล่านี้ให้ด้วย (นอกจาก grade หลัก) */
+  extraGrades?: Grade[];
   school?: string;
   /** ชื่อ-สกุลภาษาอังกฤษ (ตามใบสมัคร) */
   englishName?: string;

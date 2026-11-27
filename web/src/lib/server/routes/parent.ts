@@ -43,6 +43,9 @@ route("GET", "parent/overview", PARENT, async ({ store, me }) => {
           startTime: c.startTime,
           endTime: c.endTime,
           room: c.room,
+          // ลิงก์ Meet เฉพาะคอร์สที่ลูกลงทะเบียนเอง (กรองมาจาก enrollments ข้างบนแล้ว)
+          online: c.online === true,
+          meetUrl: c.online ? c.meetUrl : undefined,
           ...courseProgress(c, today),
           // วันเรียนครั้งถัด ๆ ไป ไว้ให้ผู้ปกครองวางแผน
           upcoming: sessionDates(c).filter((d) => d >= today).slice(0, 6),

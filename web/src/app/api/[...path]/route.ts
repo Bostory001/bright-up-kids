@@ -9,6 +9,7 @@ import "@/lib/server/routes/extras";
 import "@/lib/server/routes/finance";
 import "@/lib/server/routes/assessments";
 import "@/lib/server/routes/calendar";
+import "@/lib/server/routes/online";
 import "@/lib/server/routes/supplies";
 import "@/lib/server/routes/lessons";
 

@@ -134,12 +134,15 @@ route("DELETE", "admin/exercises/:id", OWNER, async ({ store, params }) => {
 
 // ---------- นักเรียนเล่น ----------
 
+/** เด็กเข้าชั้นนี้ได้ไหม: ชั้นหลัก + ชั้นที่ซื้อแพ็กเพิ่ม */
+const hasGrade = (s: { grade: number; extraGrades?: number[] }, g: number) => s.grade === g || Boolean(s.extraGrades?.includes(g));
+
 route("GET", "play/home", STUDENT, async (ctx) => {
   const student = studentOf(ctx);
   const today = bkkDate();
   const [profile, exercises, attempts, settings, enrollments, assignments] = await Promise.all([
     getProfile(ctx.store, student.id),
-    ctx.store.list<Exercise>("exercises", { grade: student.grade, published: true }),
+    ctx.store.list<Exercise>("exercises", { published: true }).then((all) => all.filter((e) => hasGrade(student, e.grade))),
     ctx.store.list<Attempt>("attempts", { studentId: student.id, status: "finished" }),
     getSettings(ctx.store),
     ctx.store.list<Enrollment>("enrollments", { studentId: student.id, status: "active" }),
@@ -155,7 +158,7 @@ route("GET", "play/home", STUDENT, async (ctx) => {
     if (!done && (!homeworkDue.has(a.exerciseId) || a.dueDate < homeworkDue.get(a.exerciseId)!)) homeworkDue.set(a.exerciseId, a.dueDate);
   }
   return {
-    student: { nickname: student.nickname, code: student.code, grade: student.grade },
+    student: { nickname: student.nickname, code: student.code, grade: student.grade, grades: [student.grade, ...(student.extraGrades ?? [])].sort((a, b) => a - b) },
     profile,
     level: { ...progress, title: powerTitle(progress.level) },
     limitReached: isDailyLimitReached(profile, today, settings),
@@ -180,6 +183,7 @@ route("GET", "play/home", STUDENT, async (ctx) => {
         id: e.id,
         homeworkDue: homeworkDue.get(e.id) ?? null,
         title: e.title,
+        grade: e.grade,
         subject: e.subject,
         topic: e.topic,
         count: e.questions.length,
@@ -210,7 +214,7 @@ function pickMiniOrder(total: number): number[] {
 route("POST", "play/start", STUDENT, async (ctx) => {
   const student = studentOf(ctx);
   const exercise = await ctx.store.get<Exercise>("exercises", str(ctx.body.exerciseId, "แบบฝึกหัด", 40));
-  if (!exercise || !exercise.published || exercise.grade !== student.grade) throw new HttpError(404, "ไม่พบแบบฝึกหัด");
+  if (!exercise || !exercise.published || !hasGrade(student, exercise.grade)) throw new HttpError(404, "ไม่พบแบบฝึกหัด");
   // โหมด "ลอง 3 ข้อ": สุ่ม 3 ข้อจากชุด (ชุดที่มี ≤ 3 ข้อ = ทำครบทั้งชุดเหมือนปกติ)
   const mini = ctx.body.mini === true && exercise.questions.length > MINI_QUESTIONS;
   const order = mini ? pickMiniOrder(exercise.questions.length) : null;

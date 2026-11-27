@@ -1,6 +1,7 @@
 export interface ExerciseCard {
   id: string;
   title: string;
+  grade?: number;
   subject: string;
   topic: string;
   count: number;

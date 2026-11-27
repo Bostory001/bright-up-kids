@@ -135,6 +135,14 @@ export default function CoursesPage() {
             <Input type="number" value={editing.capacity} onChange={(e) => setEditing({ ...editing, capacity: Number(e.target.value) })} />
           </Field>
           <label className="flex items-center gap-2">
+            <input type="checkbox" checked={editing.online === true} onChange={(e) => setEditing({ ...editing, online: e.target.checked })} /> เรียนออนไลน์ (Google Meet)
+          </label>
+          {editing.online && (
+            <Field label="ลิงก์ Google Meet">
+              <Input value={editing.meetUrl ?? ""} onChange={(e) => setEditing({ ...editing, meetUrl: e.target.value })} placeholder="https://meet.google.com/abc-defg-hij" />
+            </Field>
+          )}
+          <label className="flex items-center gap-2">
             <input type="checkbox" checked={editing.active} onChange={(e) => setEditing({ ...editing, active: e.target.checked })} /> เปิดรับสมัคร
           </label>
           <div className="flex gap-2 sm:col-span-2">
@@ -163,6 +171,7 @@ export default function CoursesPage() {
               <tr key={c.id}>
                 <td className="font-medium">
                   {c.name}
+                  {c.online && <Badge color="green">ออนไลน์{c.meetUrl ? "" : " · ไม่มีลิงก์"}</Badge>}
                   {c.teacherName && <div className="text-xs font-normal text-gray-500">{c.teacherName}</div>}
                 </td>
                 <td>{gradeRange(c.grades)}</td>

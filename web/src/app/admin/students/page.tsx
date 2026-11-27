@@ -13,6 +13,7 @@ interface Row {
   nickname: string;
   fullName: string;
   grade: number;
+  extraGrades?: number[];
   school?: string;
   active: boolean;
   courseIds: string[];
@@ -25,13 +26,13 @@ type Extras = {
   lineId: string; facebook: string; source: string; formNo: string; note: string;
   parentName: string; parentPhone: string;
 };
-type Editing = { id?: string; nickname: string; fullName: string; grade: number; school: string; active: boolean; courseIds: string[]; pdpaConsent: boolean } & Extras;
+type Editing = { id?: string; nickname: string; fullName: string; grade: number; extraGrades: number[]; school: string; active: boolean; courseIds: string[]; pdpaConsent: boolean } & Extras;
 const EMPTY_EXTRAS: Extras = {
   englishName: "", birthDate: "", program: "", targetSchool: "",
   addressLine: "", subdistrict: "", district: "", province: "", postcode: "",
   lineId: "", facebook: "", source: "", formNo: "", note: "", parentName: "", parentPhone: "",
 };
-const EMPTY: Editing = { nickname: "", fullName: "", grade: 1, school: "", active: true, courseIds: [], pdpaConsent: false, ...EMPTY_EXTRAS };
+const EMPTY: Editing = { nickname: "", fullName: "", grade: 1, extraGrades: [], school: "", active: true, courseIds: [], pdpaConsent: false, ...EMPTY_EXTRAS };
 
 export default function StudentsPage() {
   const { data, error, reload } = useLoad<{ students: Row[] }>("admin/students");
@@ -136,6 +137,16 @@ export default function StudentsPage() {
                 </option>
               ))}
             </Select>
+          </Field>
+          <Field label="ชั้นอื่นที่ซื้อแพ็กเพิ่ม (เปิดแบบฝึกหัดให้)">
+            <div className="flex flex-wrap gap-3">
+              {GRADES.filter((g) => g !== editing.grade).map((g) => (
+                <label key={g} className="flex items-center gap-1 text-sm">
+                  <input type="checkbox" checked={editing.extraGrades.includes(g)} onChange={(e) => setEditing({ ...editing, extraGrades: e.target.checked ? [...editing.extraGrades, g] : editing.extraGrades.filter((x) => x !== g) })} />
+                  {gradeLabel(g)}
+                </label>
+              ))}
+            </div>
           </Field>
           <Field label="โรงเรียน">
             <Input value={editing.school} onChange={(e) => setEditing({ ...editing, school: e.target.value })} />
@@ -248,7 +259,7 @@ export default function StudentsPage() {
               </td>
               <td>{s.active ? <Badge color="green">เรียนอยู่</Badge> : <Badge>พัก/ออก</Badge>}</td>
               <td className="flex gap-1">
-                <Button variant="ghost" onClick={() => setEditing({ ...EMPTY, ...s, school: s.school ?? "", parentName: s.parentName ?? "", parentPhone: s.parentPhone ?? "" })}>
+                <Button variant="ghost" onClick={() => setEditing({ ...EMPTY, ...s, extraGrades: s.extraGrades ?? [], school: s.school ?? "", parentName: s.parentName ?? "", parentPhone: s.parentPhone ?? "" })}>
                   แก้ไข
                 </Button>
                 <Button variant="ghost" onClick={() => showCard(s)}>

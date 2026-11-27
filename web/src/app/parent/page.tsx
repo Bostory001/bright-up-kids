@@ -27,6 +27,8 @@ interface Child {
     startTime: string;
     endTime: string;
     room?: string;
+    online?: boolean;
+    meetUrl?: string;
     planned: boolean;
     total: number;
     done: number;
@@ -202,6 +204,17 @@ export default function ParentPage() {
                     {s.course} · ทุกวัน{s.weekdayName} {s.startTime}–{s.endTime}
                     {s.room ? ` · ${s.room}` : ""}
                   </div>
+                  {s.online && (
+                    <div className="text-sm">
+                      {s.meetUrl ? (
+                        <a href={s.meetUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-sky-700 underline">
+                          เรียนออนไลน์ — กดเข้าห้อง Google Meet
+                        </a>
+                      ) : (
+                        <span className="text-gray-500">เรียนออนไลน์ — สถาบันจะส่งลิงก์ให้ก่อนเรียน</span>
+                      )}
+                    </div>
+                  )}
                   {s.quota?.left !== null && s.quota !== undefined && (
                     <div className={`text-sm ${s.quota.finished ? "font-medium text-red-600" : s.quota.low ? "font-medium text-amber-600" : "text-gray-700"}`}>
                       คาบคงเหลือ {s.quota.left} จาก {s.quota.paid} คาบ

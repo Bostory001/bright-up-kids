@@ -113,6 +113,8 @@ route("GET", "admin/teacher-sheet", STAFF, async ({ store, query, me }) => {
           startTime: c.startTime,
           endTime: c.endTime,
           room: c.room,
+          online: c.online === true,
+          meetUrl: c.online ? c.meetUrl : undefined,
           ...progress,
           upcoming: sessionDates(c).filter((d) => d >= today).slice(0, 4),
           students: ids

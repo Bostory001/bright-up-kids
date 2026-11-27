@@ -9,7 +9,7 @@ import type { AvatarSlot, PlayerProfile, Redemption, TeachCard, Visual } from "@
 import { SUBJECT_SHORT, gradeLabel } from "@/lib/grade";
 
 interface Home {
-  student: { nickname: string; code: string; grade: number };
+  student: { nickname: string; code: string; grade: number; grades?: number[] };
   profile: PlayerProfile;
   level: { level: number; current: number; needed: number; percent: number; title: string };
   limitReached: boolean;
@@ -240,6 +240,7 @@ export default function PlayPage() {
   const [filter, setFilter] = useState<ExerciseFilter>("all");
   const [search, setSearch] = useState("");
   const [exitRequested, setExitRequested] = useState(false);
+  const [pickGrade, setPickGrade] = useState<number | null>(null);
   const [listMode, setListMode] = useState(false); // false = เลือกจากหน่วยบทเรียน, true = ค้นหา/ดูทุกชุด
   const exitCancel = useRef<HTMLButtonElement>(null);
   const actionPending = useRef(false);
@@ -331,7 +332,10 @@ export default function PlayPage() {
     <p role="status">{me.error ?? home.error ?? "กำลังโหลด..."}</p>
     {(me.error || home.error) && <button className={BIG + " mt-4 bg-white"} onClick={() => { me.reload(); home.reload(); }}>ลองโหลดใหม่</button>}
   </main>;
-  const h = home.data;
+  // เด็กที่ซื้อแพ็กหลายชั้น: เลือกชั้นที่จะเรียน (ค่าเริ่มต้น = ชั้นหลัก) · ชั้นเดียว = ไม่แสดงตัวเลือก
+  const gradesOwned = home.data.student.grades?.length ? home.data.student.grades : [home.data.student.grade];
+  const gradeNow = pickGrade && gradesOwned.includes(pickGrade) ? pickGrade : home.data.student.grade;
+  const h = gradesOwned.length > 1 ? { ...home.data, exercises: home.data.exercises.filter((e) => (e.grade ?? gradeNow) === gradeNow) } : home.data;
   const shown = visibleExercises(h.exercises, subject, filter, search);
 
   // ---------- สรุปผล ----------
@@ -588,14 +592,19 @@ export default function PlayPage() {
               วันนี้ทำไปแล้ว {h.todayQuestions}/{h.dailyLimitQuestions} ข้อ
             </p>
           )}
+          {gradesOwned.length > 1 && (
+            <div className="flex flex-wrap justify-center gap-2" role="group" aria-label="เลือกชั้น">
+              {gradesOwned.map((g) => <button key={g} aria-pressed={g === gradeNow} onClick={() => { setPickGrade(g); setListMode(false); }} className={"min-h-12 rounded-full border-2 px-5 font-bold active:scale-95 " + (g === gradeNow ? "border-sky-700 bg-sky-600 text-white" : "border-sky-200 bg-white text-sky-900")}>{gradeLabel(g)}</button>)}
+            </div>
+          )}
           {!listMode && h.exercises.some((e) => e.unit) ? (
-            <PathView exercises={h.exercises} gradeText={gradeLabel(h.student.grade)} today={h.today} busy={busy} onStart={(id, mini) => start(id, mini)} onSearch={() => setListMode(true)} />
+            <PathView exercises={h.exercises} gradeText={gradeLabel(gradeNow)} today={h.today} busy={busy} onStart={(id, mini) => start(id, mini)} onSearch={() => setListMode(true)} />
           ) : (
           <>
           {h.exercises.some((e) => e.unit) && <button onClick={() => { setListMode(false); setSubject("all"); setFilter("all"); setSearch(""); }} className="min-h-12 self-start rounded-full bg-amber-100 px-4 font-bold text-amber-950 active:scale-95">← เลือกจากบทเรียน</button>}
           <section className="rounded-3xl bg-white p-4 shadow-sm" aria-label="ค้นหาแบบฝึกหัด">
             <h1 className="text-2xl font-bold">วันนี้อยากฝึกอะไร?</h1>
-            <p className="mt-1 text-sm text-gray-600">แบบฝึกหัด {gradeLabel(h.student.grade)} · เลือกฝึกทีละชุดได้เลย</p>
+            <p className="mt-1 text-sm text-gray-600">แบบฝึกหัด {gradeLabel(gradeNow)} · เลือกฝึกทีละชุดได้เลย</p>
             <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5" role="group" aria-label="เลือกวิชา">
               {["all", ...Object.keys(SUBJECT_NAMES)].map((key) => <button key={key} aria-pressed={subject === key} onClick={() => setSubject(key)} className={"min-h-16 rounded-2xl border-2 px-2 py-3 text-sm font-bold focus-visible:outline-4 focus-visible:outline-sky-600 " + (subject === key ? "border-sky-700 bg-sky-50 text-sky-900" : "border-gray-100 bg-white")}>
                 {key === "all" ? "📚 ทั้งหมด" : SUBJECT_EMOJI[key] + " " + SUBJECT_NAMES[key]}

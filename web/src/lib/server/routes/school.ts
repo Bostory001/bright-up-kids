@@ -1,6 +1,7 @@
 import "server-only";
 import { budgetStatus, summarizeMonth } from "../../finance";
 import { GRADES, SUBJECT_KEYS } from "../../grade";
+import { meetUrlFrom } from "../../online";
 import { paidFromRemaining, quotaOf } from "../../quota";
 import { WEEKDAY_TH, weekdayOf } from "../../schedule";
 import { getSettings } from "../settings";
@@ -131,6 +132,8 @@ function courseFrom(body: Ctx["body"], id: string): Course {
     room: optStr(body.room, 40),
     capacity,
     active: body.active !== false,
+    online: body.online === true,
+    meetUrl: meetUrlFrom(body.meetUrl),
   };
 }
 
@@ -348,6 +351,9 @@ route("PATCH", "admin/students/:id", STAFF, async ({ store, body, params }) => {
     nickname: str(body.nickname, "ชื่อเล่น", 30),
     fullName: str(body.fullName, "ชื่อ-นามสกุล", 100),
     grade: oneOf(Number(body.grade), GRADES, "ชั้น") as Grade,
+    extraGrades: Array.isArray(body.extraGrades)
+      ? [...new Set<Grade>(body.extraGrades.map((g: unknown) => oneOf(Number(g), GRADES, "ชั้น") as Grade))].filter((g) => g !== Number(body.grade))
+      : student.extraGrades,
     school: optStr(body.school, 100),
     parentId: linked.parentId ?? student.parentId,
     active: body.active !== false,

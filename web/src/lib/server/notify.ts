@@ -5,9 +5,9 @@ import { newId, nowIso } from "./util";
 
 // ส่งข้อความถึงผู้ปกครองทาง LINE OA (Messaging API push)
 // ถ้ายังไม่ตั้ง LINE_CHANNEL_ACCESS_TOKEN หรือผู้ปกครองยังไม่ผูก LINE → บันทึกเป็น queued ให้ครูเห็นในหน้า "แจ้งเตือน"
-export async function notifyParent(store: Store, parentId: string | undefined, kind: Notification["kind"], text: string) {
+export async function notifyParent(store: Store, parentId: string | undefined, kind: Notification["kind"], text: string, ref?: string) {
   if (!parentId) return;
-  const note: Notification = { id: newId(), parentId, kind, text, status: "queued", createdAt: nowIso() };
+  const note: Notification = { id: newId(), parentId, kind, text, status: "queued", ref, createdAt: nowIso() };
   const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
   const parent = await store.get<AppUser>("users", parentId);
 
