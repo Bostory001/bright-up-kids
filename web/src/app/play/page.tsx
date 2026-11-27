@@ -38,6 +38,22 @@ function CharImg({ name, className }: { name: TeacherPose | "mascot"; className:
   return <img src={`/characters/${name}.png`} alt="" aria-hidden="true" onError={() => setHidden(true)} className={className} />;
 }
 
+// ให้เบราว์เซอร์อ่านออกเสียง (ไม่ส่งข้อความออกนอกเครื่อง) — ถ้าเครื่องไม่มีเสียงไทยก็แค่ไม่ดัง
+function speak(text: string) {
+  try {
+    const s = window.speechSynthesis;
+    if (!s) return;
+    s.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "th-TH";
+    u.rate = 0.9;
+    s.speak(u);
+  } catch { /* ไม่รองรับก็ข้าม */ }
+}
+function stopSpeak() {
+  try { window.speechSynthesis?.cancel(); } catch { /* ข้าม */ }
+}
+
 function VisualBox({ s }: { s: { text: string; label?: string } }) {
   return (
     <div className="flex flex-col items-center gap-1">
@@ -169,8 +185,9 @@ function PathView({ exercises, gradeText, today, busy, onStart, onSearch }: { ex
     );
   }
   return (
-    <section aria-label="เลือกบทเรียน" className="grid gap-4">
-      <div className="text-center">
+    <section aria-label="เลือกบทเรียน" className="relative grid gap-4 overflow-hidden rounded-3xl bg-gradient-to-b from-sky-200 via-sky-100 to-lime-200 p-4">
+      <span aria-hidden="true" className="absolute right-4 top-3 text-6xl opacity-80">☀️</span>
+      <div className="relative text-center">
         <h1 className="text-3xl font-bold text-orange-700">เลือกบทเรียน</h1>
         <span className="mt-2 inline-block rounded-full bg-amber-200 px-4 py-1 text-sm font-bold text-amber-950">⭐ {gradeText} · {units.length} บท ⭐</span>
       </div>
@@ -383,11 +400,19 @@ export default function PlayPage() {
           <h1 className="flex-1 text-xl font-bold">{run.title}</h1>
         </header>
         <div className="flex flex-col gap-4 p-4">
-          <section className="relative flex items-center gap-3 rounded-3xl bg-white p-4 shadow-md">
-            <CharImg name="teacher-teach" className="size-20 shrink-0 rounded-2xl object-cover" />
-            <p className="flex-1 text-lg font-bold text-amber-900">มาเรียนไปด้วยกัน อ่านทีละขั้นแล้วลองทำโจทย์ได้เลย</p>
-            <CharImg name="mascot" className="size-16 shrink-0 object-contain" />
+          <section className="flex items-center gap-4 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 p-5 shadow-md">
+            <div className="flex-1 rounded-3xl border-2 border-amber-200 bg-white p-4">
+              <p className="text-2xl font-bold text-amber-600">วันนี้เรียนเรื่อง</p>
+              <p className="mt-1 text-2xl font-bold text-amber-950">{run.title}</p>
+              <p className="mt-1 text-gray-700">อ่านทีละขั้น แล้วกดทำแบบฝึกหัดได้เลย</p>
+            </div>
+            <CharImg name="mascot" className="hidden size-24 shrink-0 object-contain sm:block" />
           </section>
+          <section className="flex items-center gap-3 rounded-3xl bg-white p-3 shadow-md">
+            <CharImg name="teacher-teach" className="size-20 shrink-0 rounded-2xl object-cover" />
+            <p className="flex-1 text-lg font-bold text-amber-900">มาเรียนไปด้วยกันนะ ตั้งใจอ่านทีละขั้น</p>
+          </section>
+          <button onClick={() => speak(run.teach.map((c) => `${c.title}. ${c.text}${c.example ? " " + c.example : ""}`).join(" "))} className="flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-amber-200 px-4 text-lg font-bold text-amber-950 shadow-sm active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600">🔊 ฟังครูสอนเนื้อหาหน้านี้</button>
           {run.teach.map((card, i) => (
             <section key={i} aria-label={`ขั้นที่ ${i + 1}`} className="overflow-hidden rounded-3xl border-2 border-amber-200 bg-white shadow-md">
               <h2 className="flex items-center gap-3 bg-amber-100 px-5 py-3 text-xl font-bold text-amber-950"><span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-500 text-lg text-white">{i + 1}</span>{card.title}</h2>
@@ -400,7 +425,7 @@ export default function PlayPage() {
           ))}
         </div>
         <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-amber-50 p-4">
-          <button onClick={() => setRun({ ...run, teachIndex: run.teach.length })} className={BIG + " mx-auto block w-full max-w-2xl bg-amber-500 text-gray-950"}>{run.mini ? "ลองแค่ 3 ข้อ ⭐" : "ทำแบบฝึกหัด ✏️"}</button>
+          <button onClick={() => { stopSpeak(); setRun({ ...run, teachIndex: run.teach.length }); }} className={BIG + " mx-auto block w-full max-w-2xl bg-amber-500 text-gray-950"}>{run.mini ? "ลองแค่ 3 ข้อ ⭐" : "ทำแบบฝึกหัด ✏️"}</button>
         </div>
       </main>
     );
@@ -440,7 +465,10 @@ export default function PlayPage() {
               {/* โจทย์ + ตัวเลือกอยู่ในการ์ดเดียว ครูยืนข้างการ์ดทางขวา */}
               <div className="flex items-stretch gap-4">
                 <section className="flex-[3] rounded-3xl border-2 border-amber-200 bg-white p-4 shadow-md sm:p-5">
-                  <p className="text-sm font-bold text-amber-700">ครูถาม</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-bold text-amber-700">ครูถาม</p>
+                    <button onClick={() => speak(`${q.prompt}. ${q.choices.map((c, i) => ["ก", "ข", "ค", "ง"][i] + " " + c).join(", ")}`)} className="min-h-10 rounded-full bg-amber-500 px-4 text-sm font-bold text-gray-950 active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600">🔊 ฟังครูอ่าน</button>
+                  </div>
                   <h1 ref={questionHeading} tabIndex={-1} className="mt-1 text-2xl font-bold outline-none sm:text-3xl">{q.prompt}</h1>
                   {q.visual && <div className="mt-3"><VisualView v={q.visual} /></div>}
                   <p id="choice-help" className="sr-only">แตะคำตอบที่เลือก แล้วกด ยืนยันคำตอบ</p>
@@ -460,7 +488,7 @@ export default function PlayPage() {
                 <CharImg name="teacher-ask" className="hidden w-44 shrink-0 self-stretch rounded-3xl object-cover object-top shadow-md sm:block" />
               </div>
               <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-amber-50 p-4">
-                <button onClick={answer} disabled={busy || run.selected === null} className={BIG + " mx-auto block w-full max-w-3xl bg-amber-500 text-gray-950 disabled:opacity-50"}>{busy ? "กำลังตรวจคำตอบ..." : "ยืนยันคำตอบ ✓"}</button>
+                <button onClick={() => { stopSpeak(); answer(); }} disabled={busy || run.selected === null} className={BIG + " mx-auto block w-full max-w-3xl bg-amber-500 text-gray-950 disabled:opacity-50"}>{busy ? "กำลังตรวจคำตอบ..." : "ยืนยันคำตอบ ✓"}</button>
               </div>
             </>
           ) : (
@@ -476,7 +504,7 @@ export default function PlayPage() {
                 <CharImg name={fb.correct ? "teacher-correct" : "teacher-wrong"} className="hidden w-40 shrink-0 self-end object-contain object-bottom sm:block" />
               </section>
               <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-amber-50 p-4">
-                <button onClick={next} disabled={busy} className={BIG + " mx-auto block w-full max-w-3xl bg-amber-500 text-gray-950"}>{busy ? "กำลังบันทึก..." : run.index + 1 < run.questions.length ? "ข้อต่อไป →" : "ดูผล 🎉"}</button>
+                <button onClick={() => { stopSpeak(); next(); }} disabled={busy} className={BIG + " mx-auto block w-full max-w-3xl bg-amber-500 text-gray-950"}>{busy ? "กำลังบันทึก..." : run.index + 1 < run.questions.length ? "ข้อต่อไป →" : "ดูผล 🎉"}</button>
               </div>
             </>
           )}
