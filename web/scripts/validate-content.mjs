@@ -19,6 +19,25 @@ export function listFiles(args) {
   return out;
 }
 
+// ภาพประกอบ (ไม่บังคับ) ต้องตรงกับที่ server รับ: play.ts visualFrom
+function checkVisual(v, where, e) {
+  if (v === undefined) return;
+  const bad = (m) => e(`${where}: visual ${m}`);
+  if (!v || typeof v !== "object" || Array.isArray(v)) return bad("รูปแบบไม่ถูกต้อง");
+  if (v.type === "groups") {
+    if (!Number.isInteger(v.groups) || v.groups < 1 || v.groups > 6) bad("groups ต้องจำนวนเต็ม 1-6");
+    if (!Number.isInteger(v.each) || v.each < 1 || v.each > 10) bad("each ต้องจำนวนเต็ม 1-10");
+    if (typeof v.emoji !== "string" || !v.emoji || v.emoji.length > 8) bad("emoji ว่างหรือยาวเกิน 8");
+    if (v.label !== undefined && (typeof v.label !== "string" || v.label.length > 40)) bad("label ยาวเกิน 40");
+  } else if (v.type === "equation") {
+    for (const side of ["left", "right"]) {
+      const s = v[side];
+      if (!s || typeof s.text !== "string" || !s.text || s.text.length > 20) bad(`${side}.text ว่างหรือยาวเกิน 20`);
+      else if (s.label !== undefined && (typeof s.label !== "string" || s.label.length > 30)) bad(`${side}.label ยาวเกิน 30`);
+    }
+  } else bad("type ต้องเป็น groups หรือ equation");
+}
+
 export function validateFile(file) {
   const errs = [];
   const warn = [];
@@ -52,6 +71,7 @@ export function validateFile(file) {
       if (!c.title || c.title.length > 60) e(`teach ${i + 1}: title ว่างหรือยาวเกิน 60`);
       if (!c.text || c.text.length > 400) e(`teach ${i + 1}: text ว่างหรือยาวเกิน 400`);
       if (c.example !== undefined && (typeof c.example !== "string" || c.example.length > 200)) e(`teach ${i + 1}: example ยาวเกิน 200`);
+      checkVisual(c.visual, `teach ${i + 1}`, e);
     });
     const qs = Array.isArray(l.questions) ? l.questions : [];
     if (qs.length < 8 || qs.length > 12) e(`questions ต้อง 8-12 ข้อ (มี ${qs.length})`);
@@ -69,6 +89,7 @@ export function validateFile(file) {
       if (!Number.isInteger(q.answerIndex) || q.answerIndex < 0 || q.answerIndex > 3) qe("answerIndex ต้อง 0-3");
       else spread.add(q.answerIndex);
       if (!q.explain || q.explain.length > 500) qe("explain ว่างหรือยาวเกิน 500");
+      checkVisual(q.visual, `ข้อ ${i + 1}`, e);
     });
     if (qs.length >= 8 && spread.size < 3) e(`คำตอบที่ถูกกระจุกอยู่ที่ตำแหน่ง ${[...spread]} (ต้องกระจายอย่างน้อย 3 ตำแหน่ง)`);
   });
