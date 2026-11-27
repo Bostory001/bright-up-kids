@@ -9,12 +9,27 @@ export default function StudentLoginPage() {
   const [code, setCode] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
+  const [noPin, setNoPin] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/status").then((r) => r.json()).then((s) => setNoPin(Boolean(s.noPin))).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const fromQr = new URLSearchParams(window.location.search).get("code");
     // eslint-disable-next-line react-hooks/set-state-in-effect -- อ่านค่าจาก URL หลัง hydrate
     if (fromQr) setCode(fromQr.toUpperCase());
   }, []);
+
+  async function enterWithoutPin() {
+    setError("");
+    try {
+      await api("auth/student", { code });
+      go("/play");
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
 
   async function press(digit: string) {
     if (pin.length >= 4) return;
@@ -41,6 +56,14 @@ export default function StudentLoginPage() {
         autoCapitalize="characters"
         className="rounded-2xl border-2 border-amber-300 bg-white p-4 text-center font-mono text-2xl outline-none"
       />
+      {noPin ? (
+        <>
+          <p className="text-sm text-gray-600">โหมดทดลองในเครื่อง: ไม่ต้องใส่ PIN</p>
+          <button onClick={enterWithoutPin} disabled={!code} className="h-20 rounded-3xl bg-amber-500 text-2xl font-bold text-gray-950 shadow-md active:scale-95 disabled:opacity-40">เข้าเลย →</button>
+          <ErrorText>{error}</ErrorText>
+        </>
+      ) : (
+      <>
       <div className="text-lg">ใส่ PIN 4 หลัก</div>
       <div className="flex justify-center gap-3">
         {[0, 1, 2, 3].map((i) => (
@@ -62,6 +85,8 @@ export default function StudentLoginPage() {
         </button>
       </div>
       <ErrorText>{error}</ErrorText>
+      </>
+      )}
     </main>
   );
 }

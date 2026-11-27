@@ -24,9 +24,13 @@ import { HttpError, newId, nowIso, num, oneOf, optStr, randomDigits, rateLimit, 
 const ANY_USER = ["owner", "teacher", "parent"] as const;
 const normalize = (username: string) => username.trim().toLowerCase();
 
+// โหมดทดลองในเครื่อง: เข้าด้วยรหัสนักเรียนอย่างเดียว ใช้ได้เฉพาะฐานข้อมูลแบบไฟล์ + ตั้ง BUK_LOCAL_NO_PIN=1 + ไม่ได้รันบน Cloud Run
+// (ระบบจริงใช้ Firestore จึงไม่มีทางเปิดโหมดนี้ได้ แม้ตั้งตัวแปรผิด)
+const noPinMode = (kind: string) => process.env.BUK_LOCAL_NO_PIN === "1" && kind === "file" && !process.env.K_SERVICE && !process.env.VERCEL;
+
 route("GET", "status", "public", async ({ store }) => {
   const users = await store.list<AppUser>("users");
-  return { needsSetup: users.length === 0, store: store.kind };
+  return { needsSetup: users.length === 0, store: store.kind, ...(noPinMode(store.kind) ? { noPin: true } : {}) };
 });
 
 // ตั้งค่าครั้งแรก: สร้างบัญชีเจ้าของ ทำได้เฉพาะตอนยังไม่มีผู้ใช้เลย
@@ -77,11 +81,12 @@ route("POST", "auth/login", "public", async ({ store, body, setSession, req }) =
 route("POST", "auth/student", "public", async ({ store, body, setSession, req }) => {
   rateLimit(req, "student-login", 60, 10 * 60_000);
   const code = str(body.code, "รหัสนักเรียน", 20).toUpperCase();
-  const pin = str(body.pin, "PIN", 10);
+  const skipPin = noPinMode(store.kind);
+  const pin = skipPin ? "" : str(body.pin, "PIN", 10);
   const [student] = await store.list<Student>("students", { code });
   if (!student || !student.active) throw new HttpError(401, "รหัสนักเรียนหรือ PIN ไม่ถูกต้อง");
   assertNotLocked(student);
-  if (!verifySecret(pin, student.pinHash)) {
+  if (!skipPin && !verifySecret(pin, student.pinHash)) {
     await store.set("students", registerFailure(student));
     throw new HttpError(401, "รหัสนักเรียนหรือ PIN ไม่ถูกต้อง");
   }

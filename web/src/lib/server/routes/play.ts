@@ -10,7 +10,7 @@ import {
   newProfile,
   powerTitle,
 } from "../../gamification";
-import type { Assignment, Attempt, AvatarSlot, Enrollment, Exercise, Grade, PlayerProfile, Question, Redemption, TeachCard, Reward, Student } from "../../types";
+import type { Assignment, Attempt, AvatarSlot, Enrollment, Exercise, Grade, PlayerProfile, Question, Redemption, TeachCard, Reward, Student, Visual } from "../../types";
 import { omit } from "../auth";
 import { type Ctx, OWNER, route, STAFF, staffUser, studentOf } from "../router";
 import { getSettings } from "../settings";
@@ -28,6 +28,29 @@ async function getProfile(store: Store, studentId: string): Promise<PlayerProfil
 
 // ---------- คลังแบบฝึกหัด (ครู) ----------
 
+function visualFrom(raw: unknown, where: string): Visual | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  if (typeof raw !== "object" || Array.isArray(raw)) throw new HttpError(400, `${where}: ภาพประกอบรูปแบบไม่ถูกต้อง`);
+  const v = raw as Record<string, unknown>;
+  if (v.type === "groups") {
+    const groups = num(v.groups, `${where}: จำนวนกลุ่ม`, 1, 6);
+    const each = num(v.each, `${where}: จำนวนต่อกลุ่ม`, 1, 10);
+    if (!Number.isInteger(groups) || !Number.isInteger(each)) throw new HttpError(400, `${where}: จำนวนกลุ่มต้องเป็นจำนวนเต็ม`);
+    const label = optStr(v.label, 40);
+    return { type: "groups", groups, each, emoji: str(v.emoji, `${where}: emoji`, 8), ...(label ? { label } : {}) };
+  }
+  if (v.type === "equation") {
+    const side = (s: unknown, name: string) => {
+      if (!s || typeof s !== "object" || Array.isArray(s)) throw new HttpError(400, `${where}: ${name} ไม่ถูกต้อง`);
+      const o = s as Record<string, unknown>;
+      const label = optStr(o.label, 30);
+      return { text: str(o.text, `${where}: ${name}`, 20), ...(label ? { label } : {}) };
+    };
+    return { type: "equation", left: side(v.left, "ซ้าย"), right: side(v.right, "ขวา") };
+  }
+  throw new HttpError(400, `${where}: ชนิดภาพประกอบไม่รู้จัก`);
+}
+
 function teachFrom(raw: unknown): TeachCard[] | undefined {
   if (raw === undefined || raw === null) return undefined;
   if (!Array.isArray(raw) || raw.length > 8) throw new HttpError(400, "การ์ดสอนต้องเป็นรายการไม่เกิน 8 ใบ");
@@ -35,7 +58,8 @@ function teachFrom(raw: unknown): TeachCard[] | undefined {
     if (!c || typeof c !== "object" || Array.isArray(c)) throw new HttpError(400, `การ์ดสอนใบที่ ${i + 1}: รูปแบบไม่ถูกต้อง`);
     const item = c as Record<string, unknown>;
     const example = optStr(item.example, 200);
-    return { title: str(item.title, `หัวข้อการ์ด ${i + 1}`, 60), text: str(item.text, `เนื้อหาการ์ด ${i + 1}`, 400), ...(example ? { example } : {}) };
+    const visual = visualFrom(item.visual, `การ์ดสอนใบที่ ${i + 1}`);
+    return { title: str(item.title, `หัวข้อการ์ด ${i + 1}`, 60), text: str(item.text, `เนื้อหาการ์ด ${i + 1}`, 400), ...(example ? { example } : {}), ...(visual ? { visual } : {}) };
   });
 }
 
@@ -71,6 +95,7 @@ function exerciseFrom(body: Ctx["body"], id: string, createdAt: string, prev?: E
       choices: choices.map((c) => c.slice(0, 200)),
       answerIndex,
       explain: optStr(item.explain, 500),
+      visual: visualFrom(item.visual, `ข้อ ${i + 1}`),
     };
   });
   return {
@@ -212,7 +237,7 @@ route("POST", "play/start", STUDENT, async (ctx) => {
     title: exercise.title,
     teach: exercise.teach ?? [],
     // ไม่ส่ง answerIndex ให้เครื่องนักเรียน
-    questions: picked.map((q) => ({ prompt: q.prompt, choices: q.choices })),
+    questions: picked.map((q) => ({ prompt: q.prompt, choices: q.choices, ...(q.visual ? { visual: q.visual } : {}) })),
   };
 });
 

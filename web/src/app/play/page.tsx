@@ -5,7 +5,7 @@ import { thaiDate, visibleExercises, type ExerciseCard, type ExerciseFilter } fr
 import { AvatarSvg } from "@/components/AvatarSvg";
 import { LessonsView } from "@/components/LessonsView";
 import { api, go, useLoad } from "@/lib/client/api";
-import type { AvatarSlot, PlayerProfile, Redemption } from "@/lib/types";
+import type { AvatarSlot, PlayerProfile, Redemption, TeachCard, Visual } from "@/lib/types";
 import { SUBJECT_SHORT, gradeLabel } from "@/lib/grade";
 
 interface Home {
@@ -28,6 +28,51 @@ interface QuestionReview {
   correct: boolean;
   explain?: string;
 }
+type TeacherPose = "teacher-wave" | "teacher-teach" | "teacher-ask" | "teacher-correct" | "teacher-wrong" | "teacher-think" | "teacher-celebrate" | "teacher-point";
+
+// รูปตัวละครที่เจ้าของใส่เอง: วางไฟล์ที่ web/public/characters/<name>.png — ถ้าไม่มีไฟล์ จะซ่อนช่องนี้
+function CharImg({ name, className }: { name: TeacherPose | "mascot"; className: string }) {
+  const [hidden, setHidden] = useState(false);
+  if (hidden) return null;
+  // eslint-disable-next-line @next/next/no-img-element -- ไฟล์ของเจ้าของ ขนาดเล็ก ไม่ต้องผ่าน image optimizer
+  return <img src={`/characters/${name}.png`} alt="" aria-hidden="true" onError={() => setHidden(true)} className={className} />;
+}
+
+function VisualBox({ s }: { s: { text: string; label?: string } }) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div className="rounded-2xl border-2 border-amber-300 bg-white px-4 py-2 text-3xl font-bold text-amber-950">{s.text}</div>
+      {s.label && <span className="text-sm font-bold text-gray-600">{s.label}</span>}
+    </div>
+  );
+}
+
+// ภาพประกอบที่วาดด้วยโค้ด: กลุ่มของสิ่งของ และสมการเป็นกล่อง
+function VisualView({ v }: { v: Visual }) {
+  if (v.type === "groups") {
+    return (
+      <div role="img" aria-label={v.label ?? `${v.groups} กลุ่ม กลุ่มละ ${v.each}`} className="flex flex-wrap items-center justify-center gap-2 rounded-2xl bg-amber-50 p-4">
+        {Array.from({ length: v.groups }, (_, g) => (
+          <div key={g} className="flex items-center gap-2">
+            {g > 0 && <span aria-hidden="true" className="text-2xl font-bold text-amber-700">+</span>}
+            <div className="flex flex-col items-center gap-1">
+              <div aria-hidden="true" className="rounded-2xl border-2 border-amber-300 bg-white px-3 py-2 text-2xl leading-snug">{v.emoji.repeat(v.each)}</div>
+              <span aria-hidden="true" className="text-lg font-bold text-amber-900">{v.each}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center justify-center gap-3 rounded-2xl bg-amber-50 p-4">
+      <VisualBox s={v.left} />
+      <span aria-hidden="true" className="text-2xl font-bold text-amber-700">→</span>
+      <VisualBox s={v.right} />
+    </div>
+  );
+}
+
 interface Run {
   exerciseId: string;
   mini: boolean;
@@ -35,9 +80,9 @@ interface Run {
   review: QuestionReview[];
   attemptId: string;
   title: string;
-  teach: { title: string; text: string; example?: string }[];
+  teach: TeachCard[];
   teachIndex: number;
-  questions: { prompt: string; choices: string[] }[];
+  questions: { prompt: string; choices: string[]; visual?: Visual }[];
   index: number;
   feedback: { picked: number; correct: boolean; answerIndex: number; explain?: string } | null;
 }
@@ -245,23 +290,32 @@ export default function PlayPage() {
 
   // ---------- กำลังทำแบบฝึกหัด ----------
   if (run && run.teachIndex < run.teach.length) {
-    const card = run.teach[run.teachIndex];
-    const last = run.teachIndex + 1 === run.teach.length;
+    // หน้าเรียนรู้หน้าเดียว: ทุกขั้นเรียงลงมาให้เลื่อนอ่าน แล้วกดปุ่มล่างเพื่อเริ่มโจทย์
     return (
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 p-4 sm:p-6">
-        <div className="flex items-center justify-between gap-3">
-          <button onClick={() => { setRun(null); setError(""); }} className={BIG + " bg-white text-base"}>← เลือกชุดอื่น</button>
-          <span className="rounded-full bg-sky-100 px-4 py-2 text-sm font-bold text-sky-900">📘 เรียนรู้ {run.teachIndex + 1} / {run.teach.length}</span>
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col pb-28">
+        <header className="sticky top-0 z-10 flex items-center gap-3 bg-amber-500 px-4 py-4 text-white shadow">
+          <button aria-label="เลือกชุดอื่น" onClick={() => { setRun(null); setError(""); }} className="min-h-12 min-w-12 rounded-full text-2xl font-bold">←</button>
+          <h1 className="flex-1 text-xl font-bold">{run.title}</h1>
+        </header>
+        <div className="flex flex-col gap-4 p-4">
+          <section className="relative flex items-center gap-3 rounded-3xl bg-white p-4 shadow-md">
+            <CharImg name="teacher-teach" className="size-20 shrink-0 rounded-2xl object-cover" />
+            <p className="flex-1 text-lg font-bold text-amber-900">มาเรียนไปด้วยกัน อ่านทีละขั้นแล้วลองทำโจทย์ได้เลย</p>
+            <CharImg name="mascot" className="size-16 shrink-0 object-contain" />
+          </section>
+          {run.teach.map((card, i) => (
+            <section key={i} aria-label={`ขั้นที่ ${i + 1}`} className="overflow-hidden rounded-3xl border-2 border-amber-200 bg-white shadow-md">
+              <h2 className="flex items-center gap-3 bg-amber-100 px-5 py-3 text-xl font-bold text-amber-950"><span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-500 text-lg text-white">{i + 1}</span>{card.title}</h2>
+              <div className="p-5">
+                <p className="whitespace-pre-line text-xl leading-relaxed">{card.text}</p>
+                {card.visual && <div className="mt-4"><VisualView v={card.visual} /></div>}
+                {card.example && <p className="mt-4 whitespace-pre-line rounded-2xl bg-amber-50 p-4 text-xl font-bold text-amber-950">{card.example}</p>}
+              </div>
+            </section>
+          ))}
         </div>
-        <p className="font-bold text-gray-700">{run.title}</p>
-        <section aria-label="บทสอน" className="rounded-3xl border border-sky-100 bg-white p-6 shadow-md">
-          <h1 className="text-2xl font-bold text-sky-900">{card.title}</h1>
-          <p className="mt-3 whitespace-pre-line text-xl leading-relaxed">{card.text}</p>
-          {card.example && <p className="mt-4 whitespace-pre-line rounded-2xl bg-amber-50 p-4 text-xl font-bold text-amber-950">{card.example}</p>}
-        </section>
-        <div className="flex gap-3">
-          {run.teachIndex > 0 && <button onClick={() => setRun({ ...run, teachIndex: run.teachIndex - 1 })} className={BIG + " flex-1 bg-white"}>← ก่อนหน้า</button>}
-          <button onClick={() => setRun({ ...run, teachIndex: run.teachIndex + 1 })} className={BIG + " flex-[2] bg-amber-500 text-gray-950"}>{last ? (run.mini ? "ลองแค่ 3 ข้อ ⭐" : "เริ่มทำโจทย์ ✏️") : "ต่อไป →"}</button>
+        <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-amber-50 p-4">
+          <button onClick={() => setRun({ ...run, teachIndex: run.teach.length })} className={BIG + " mx-auto block w-full max-w-2xl bg-amber-500 text-gray-950"}>{run.mini ? "ลองแค่ 3 ข้อ ⭐" : "ทำแบบฝึกหัด ✏️"}</button>
         </div>
       </main>
     );
@@ -283,47 +337,66 @@ export default function PlayPage() {
       </main>
     );
     return (
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 p-4 sm:p-6">
-        <div className="flex items-center justify-between gap-3">
-          <button onClick={leaveExercise} disabled={busy} className={BIG + " bg-white text-base"}>← เลือกชุดอื่น</button>
-          <span className="rounded-full bg-amber-100 px-4 py-2 text-sm font-bold text-amber-900">ข้อ {run.index + 1} / {run.questions.length}</span>
-        </div>
-        <div>
-          <p className="mb-2 font-bold text-gray-700">{run.title}{run.mini ? " · ลอง 3 ข้อ ⭐" : ""}</p>
-          <div role="progressbar" aria-label="ความคืบหน้าแบบฝึกหัด" aria-valuemin={0} aria-valuemax={run.questions.length} aria-valuenow={completed} className="h-3 overflow-hidden rounded-full bg-amber-100">
-            <div className="h-full rounded-full bg-amber-500 transition-all motion-reduce:transition-none" style={{ width: completed / run.questions.length * 100 + "%" }} />
-          </div>
-          <p className="mt-2 text-sm text-gray-600">ตอบแล้ว {completed} ข้อ · ค่อย ๆ คิด ไม่ต้องรีบ</p>
-        </div>
-        <h1 ref={questionHeading} tabIndex={-1} className="rounded-3xl border border-amber-100 bg-white px-5 py-8 text-center text-2xl font-bold shadow-md outline-none sm:text-3xl">{q.prompt}</h1>
-        <p id="choice-help" className="text-center text-sm text-gray-600">{fb ? "อ่านเฉลย แล้วไปข้อต่อไปได้เลย" : "แตะคำตอบที่เลือก แล้วกด ยืนยันคำตอบ"}</p>
-        <div className="grid grid-cols-2 gap-3" role="group" aria-label="ตัวเลือกคำตอบ" aria-describedby="choice-help">
-          {q.choices.map((choice, i) => {
-            const selected = run.selected === i;
-            const color = fb ? (i === fb.answerIndex ? "border-emerald-600 bg-emerald-50" : i === fb.picked ? "border-amber-600 bg-amber-50" : "border-gray-100 bg-white text-gray-500") : selected ? "border-sky-600 bg-sky-50 text-sky-950" : "border-white bg-white";
-            return (
-              <button key={i} aria-pressed={selected} disabled={Boolean(fb) || busy} onClick={() => setRun({ ...run, selected: i })} className={"min-h-24 break-words rounded-2xl border-4 p-4 text-xl font-bold shadow-sm focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-sky-600 sm:text-2xl " + color}>
-                <span className="mb-1 block text-xs font-medium text-gray-600">{["ก", "ข", "ค", "ง"][i]}</span>
-                {choice}
-                {fb && i === fb.answerIndex && <span className="mt-2 block text-sm text-emerald-800">✓ คำตอบที่ถูก</span>}
-                {fb && i === fb.picked && i !== fb.answerIndex && <span className="mt-2 block text-sm text-amber-900">คำตอบของเรา</span>}
-                {!fb && selected && <span className="mt-2 block text-sm">✓ เลือกแล้ว</span>}
-              </button>
-            );
-          })}
-        </div>
-        {!fb && <button onClick={answer} disabled={busy || run.selected === null} className={BIG + " bg-sky-700 text-white"}>{busy ? "กำลังตรวจคำตอบ..." : "ยืนยันคำตอบ ✓"}</button>}
-        {fb && (
-          <>
-            <div role="status" aria-live="polite" className={"rounded-2xl p-4 text-center text-xl font-bold " + (fb.correct ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950")}>
-              <p>{fb.correct ? "ถูกต้อง! 🎉" : "อีกนิดเดียว มาดูเฉลยกัน"}</p>
-              {!fb.correct && <p className="mt-2">คำตอบที่ถูกคือ {q.choices[fb.answerIndex]}</p>}
-              {fb.explain && <p className="mt-2 text-base font-normal text-gray-800">{fb.explain}</p>}
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col pb-28">
+        <header className="flex items-center gap-3 bg-amber-500 px-4 py-4 text-white shadow">
+          <button aria-label="เลือกชุดอื่น" onClick={leaveExercise} disabled={busy} className="min-h-12 min-w-12 rounded-full text-2xl font-bold">←</button>
+          <h2 className="flex-1 text-xl font-bold">{run.title}{run.mini ? " · ลอง 3 ข้อ ⭐" : ""}</h2>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
+          <div className="flex items-center gap-3">
+            <CharImg name="mascot" className="size-10 shrink-0 object-contain" />
+            <span className="text-sm font-bold text-gray-700">ข้อ {run.index + 1} / {run.questions.length}</span>
+            <div role="progressbar" aria-label="ความคืบหน้าแบบฝึกหัด" aria-valuemin={0} aria-valuemax={run.questions.length} aria-valuenow={completed} className="h-3 flex-1 overflow-hidden rounded-full bg-amber-100">
+              <div className="h-full rounded-full bg-amber-500 transition-all motion-reduce:transition-none" style={{ width: completed / run.questions.length * 100 + "%" }} />
             </div>
-            <button onClick={next} disabled={busy} className={BIG + " bg-amber-500 text-gray-950"}>{busy ? "กำลังบันทึก..." : run.index + 1 < run.questions.length ? "ข้อต่อไป →" : "ดูผล 🎉"}</button>
-          </>
-        )}
-        {error && <p role="alert" className="rounded-2xl bg-red-50 p-3 text-center text-red-700">{error}</p>}
+          </div>
+          {!fb ? (
+            <>
+              {/* โจทย์ + ตัวเลือกอยู่ในการ์ดเดียว ครูยืนข้างการ์ดทางขวา */}
+              <div className="flex items-stretch gap-4">
+                <section className="flex-[3] rounded-3xl border-2 border-amber-200 bg-white p-4 shadow-md sm:p-5">
+                  <p className="text-sm font-bold text-amber-700">ครูถาม</p>
+                  <h1 ref={questionHeading} tabIndex={-1} className="mt-1 text-2xl font-bold outline-none sm:text-3xl">{q.prompt}</h1>
+                  {q.visual && <div className="mt-3"><VisualView v={q.visual} /></div>}
+                  <p id="choice-help" className="sr-only">แตะคำตอบที่เลือก แล้วกด ยืนยันคำตอบ</p>
+                  <div className="mt-4 grid grid-cols-2 gap-3" role="group" aria-label="ตัวเลือกคำตอบ" aria-describedby="choice-help">
+                    {q.choices.map((choice, i) => {
+                      const selected = run.selected === i;
+                      const color = selected ? "border-amber-500 bg-amber-50 text-amber-950" : "border-amber-200 bg-amber-50/40";
+                      return (
+                        <button key={i} aria-pressed={selected} disabled={busy} onClick={() => setRun({ ...run, selected: i })} className={"flex min-h-16 items-center gap-3 break-words rounded-2xl border-2 p-3 text-left text-xl font-bold focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-sky-600 sm:text-2xl " + color}>
+                          <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-200 text-sm text-amber-950">{["ก", "ข", "ค", "ง"][i]}</span>
+                          <span>{choice}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+                <CharImg name="teacher-ask" className="hidden w-44 shrink-0 self-stretch rounded-3xl object-cover object-top shadow-md sm:block" />
+              </div>
+              <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-amber-50 p-4">
+                <button onClick={answer} disabled={busy || run.selected === null} className={BIG + " mx-auto block w-full max-w-3xl bg-amber-500 text-gray-950 disabled:opacity-50"}>{busy ? "กำลังตรวจคำตอบ..." : "ยืนยันคำตอบ ✓"}</button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* จอเฉลย: แบนเนอร์สีพีช การ์ดเฉลยซ้าย ครูยืนขวา ปุ่มข้อต่อไปติดล่าง */}
+              <section role="status" aria-live="polite" className="relative flex min-h-80 items-stretch gap-2 overflow-hidden rounded-3xl bg-gradient-to-br from-orange-50 to-rose-100 p-4 shadow-md">
+                <div className="flex-[3] self-center rounded-3xl border-2 border-rose-200 bg-white/95 p-5">
+                  <h1 ref={questionHeading} tabIndex={-1} className={"text-3xl font-bold outline-none " + (fb.correct ? "text-emerald-700" : "text-rose-600")}>{fb.correct ? "ถูกต้อง! 🎉" : "เฉลย"}</h1>
+                  <p className="mt-2 text-lg font-bold">{q.prompt}</p>
+                  {q.visual && <div className="mt-3"><VisualView v={q.visual} /></div>}
+                  <p className="mt-3 text-xl text-gray-800">{fb.correct ? (fb.explain ?? "") : <>คำตอบที่ถูกคือ <b className="text-emerald-700">{q.choices[fb.answerIndex]}</b>{fb.explain ? ` · ${fb.explain}` : ""}</>}</p>
+                </div>
+                <CharImg name={fb.correct ? "teacher-correct" : "teacher-wrong"} className="hidden w-40 shrink-0 self-end object-contain object-bottom sm:block" />
+              </section>
+              <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-amber-50 p-4">
+                <button onClick={next} disabled={busy} className={BIG + " mx-auto block w-full max-w-3xl bg-amber-500 text-gray-950"}>{busy ? "กำลังบันทึก..." : run.index + 1 < run.questions.length ? "ข้อต่อไป →" : "ดูผล 🎉"}</button>
+              </div>
+            </>
+          )}
+          {error && <p role="alert" className="rounded-2xl bg-red-50 p-3 text-center text-red-700">{error}</p>}
+        </div>
       </main>
     );
   }

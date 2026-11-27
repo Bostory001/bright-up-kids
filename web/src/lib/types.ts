@@ -268,6 +268,8 @@ export interface Question {
   /** ลำดับตัวเลือกที่ถูก เริ่มจาก 0 — ไม่ส่งให้เครื่องนักเรียน */
   answerIndex: number;
   explain?: string;
+  /** ภาพประกอบโจทย์ (ไม่บังคับ) */
+  visual?: Visual;
 }
 
 /**
@@ -296,9 +298,16 @@ export interface Exercise {
 }
 
 /** การ์ดสอน 1 ใบในบทเรียน */
+/** ภาพประกอบบทสอน/โจทย์ ที่วาดเองด้วยโค้ด (ไม่ใช้ไฟล์รูป) */
+export type Visual =
+  | { type: "groups"; groups: number; each: number; emoji: string; label?: string }
+  | { type: "equation"; left: { text: string; label?: string }; right: { text: string; label?: string } };
+
 export interface TeachCard {
   title: string;
   text: string;
+  /** ภาพประกอบ (ไม่บังคับ) */
+  visual?: Visual;
   /** ตัวอย่างทำให้ดู (ไม่บังคับ) */
   example?: string;
 }
