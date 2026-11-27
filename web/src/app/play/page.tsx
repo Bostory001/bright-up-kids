@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { thaiDate, visibleExercises, type ExerciseCard, type ExerciseFilter } from "@/lib/play-view";
+import { groupUnits, thaiDate, unitEmoji, visibleExercises, type ExerciseCard, type ExerciseFilter } from "@/lib/play-view";
 import { AvatarSvg } from "@/components/AvatarSvg";
 import { LessonsView } from "@/components/LessonsView";
 import { api, go, useLoad } from "@/lib/client/api";
@@ -124,6 +124,90 @@ const TUTORIAL = [
   { emoji: "🎁", text: "เก็บเหรียญ 🪙 ไว้แลกของรางวัลจริงที่สถาบัน" },
 ];
 
+const UNIT_COLORS = [
+  "border-orange-200 bg-orange-50", "border-emerald-200 bg-emerald-50", "border-violet-200 bg-violet-50", "border-sky-200 bg-sky-50",
+  "border-rose-200 bg-rose-50", "border-teal-200 bg-teal-50", "border-amber-200 bg-amber-50", "border-indigo-200 bg-indigo-50",
+];
+
+// ทางเข้าเนื้อหา: เลือกหน่วย (กริดสีสันมีเลขบท) → เลือกบทเรียนในหน่วย (ดาว + ปุ่มเล่น)
+function PathView({ exercises, gradeText, today, busy, onStart, onSearch }: { exercises: ExerciseCard[]; gradeText: string; today: string; busy: boolean; onStart: (id: string, mini?: boolean) => void; onSearch: () => void }) {
+  const [sel, setSel] = useState<string | null>(null);
+  const { units, others } = groupUnits(exercises);
+  const homework = exercises.filter((e) => e.homeworkDue).length;
+  const stars = (e: ExerciseCard) => (e.best === null ? 0 : starsFor(e.best, e.count));
+  const lessonRows = (list: ExerciseCard[]) => (
+    <ul className="grid gap-3">
+      {list.map((ex) => (
+        <li key={ex.id} className="grid gap-2">
+          <button disabled={busy} onClick={() => onStart(ex.id)} aria-label={`เริ่มเรียน ${ex.title}`} className="flex min-h-20 items-center gap-3 rounded-2xl bg-amber-50 p-3 text-left active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600">
+            <span aria-hidden="true" className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-3xl">{unitEmoji(ex.title + " " + (ex.unit ?? ""))}</span>
+            <span className="min-w-0 flex-1">
+              {ex.homeworkDue && <span className="block text-xs font-bold text-pink-800">📌 การบ้านส่ง {ex.homeworkDue === today ? "วันนี้" : thaiDate(ex.homeworkDue)}</span>}
+              <span className="block text-lg font-bold leading-snug">{ex.title}</span>
+              <span className="block text-sm text-gray-600">{gradeText} · {ex.count} ข้อ</span>
+            </span>
+            <span role="img" aria-label={`ได้ ${stars(ex)} ดาวจาก 3`} className="flex shrink-0 gap-0.5 text-xl">
+              {[1, 2, 3].map((n) => <span key={n} className={n <= stars(ex) ? "" : "opacity-25 grayscale"}>⭐</span>)}
+            </span>
+            <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-500 text-white">▶</span>
+          </button>
+          {ex.count > 3 && <button disabled={busy} onClick={() => onStart(ex.id, true)} className="min-h-12 rounded-xl bg-amber-100 px-4 text-base font-bold text-amber-950 active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600">⭐ ลองแค่ 3 ข้อ · ไม่ถึง 2 นาที</button>}
+        </li>
+      ))}
+    </ul>
+  );
+
+  if (sel !== null) {
+    const unit = units.find((u) => u.key === sel);
+    const list = unit ? unit.lessons : others;
+    return (
+      <section aria-label="รายการบทเรียน" className="rounded-3xl bg-white p-4 shadow-md">
+        <button onClick={() => setSel(null)} className="mb-3 min-h-12 rounded-full bg-amber-100 px-4 font-bold text-amber-950 active:scale-95">← เลือกบทเรียน</button>
+        <h2 className="mb-3 flex items-center gap-2 border-b border-amber-100 pb-3 text-2xl font-bold text-amber-700"><span aria-hidden="true" className="h-7 w-2 rounded bg-amber-500" />{unit ? `บท ${unit.number} · ${unit.unit}` : "ชุดฝึกอื่น ๆ"}</h2>
+        {lessonRows(list)}
+      </section>
+    );
+  }
+  return (
+    <section aria-label="เลือกบทเรียน" className="grid gap-4">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-orange-700">เลือกบทเรียน</h1>
+        <span className="mt-2 inline-block rounded-full bg-amber-200 px-4 py-1 text-sm font-bold text-amber-950">⭐ {gradeText} · {units.length} บท ⭐</span>
+      </div>
+      {homework > 0 && <button onClick={onSearch} className="rounded-2xl bg-pink-50 p-3 text-center font-bold text-pink-900">📌 มีการบ้าน {homework} ชุด · แตะเพื่อดู</button>}
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {units.map((u) => {
+          const done = u.lessons.every((l) => l.best !== null);
+          return (
+            <li key={u.key}>
+              <button onClick={() => setSel(u.key)} aria-label={`บท ${u.number} ${u.unit} ${u.lessons.length} บทเรียน${done ? " เรียนครบแล้ว" : ""}`} className={"relative flex min-h-36 w-full flex-col justify-between rounded-3xl border-2 p-3 text-left shadow-sm active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600 " + UNIT_COLORS[(u.number - 1) % UNIT_COLORS.length]}>
+                {done && <span aria-hidden="true" className="absolute -right-1 -top-1 flex size-8 items-center justify-center rounded-full bg-emerald-600 text-white">✓</span>}
+                <span className="flex items-start gap-2">
+                  <span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-lg font-bold">{u.number}</span>
+                  <span className="text-lg font-bold leading-tight">{u.unit}</span>
+                </span>
+                <span className="flex items-end justify-between">
+                  <span aria-hidden="true" className="text-4xl">{unitEmoji(u.unit)}</span>
+                  <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold">{u.lessons.length} บทเรียน</span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
+        {others.length > 0 && (
+          <li>
+            <button onClick={() => setSel("other")} className="flex min-h-36 w-full flex-col justify-between rounded-3xl border-2 border-gray-200 bg-white p-3 text-left shadow-sm active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600">
+              <span className="text-lg font-bold">ชุดฝึกอื่น ๆ</span>
+              <span className="flex items-end justify-between"><span aria-hidden="true" className="text-4xl">🎯</span><span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold">{others.length} ชุด</span></span>
+            </button>
+          </li>
+        )}
+      </ul>
+      <button onClick={onSearch} className="min-h-14 rounded-2xl bg-white p-3 font-bold text-sky-900 shadow-sm active:scale-95">🔎 ค้นหา / ดูทุกชุด</button>
+    </section>
+  );
+}
+
 export default function PlayPage() {
   const me = useLoad<{ me: { role: string } | null }>("me");
   const isStudent = me.data?.me?.role === "student";
@@ -139,6 +223,7 @@ export default function PlayPage() {
   const [filter, setFilter] = useState<ExerciseFilter>("all");
   const [search, setSearch] = useState("");
   const [exitRequested, setExitRequested] = useState(false);
+  const [listMode, setListMode] = useState(false); // false = เลือกจากหน่วยบทเรียน, true = ค้นหา/ดูทุกชุด
   const exitCancel = useRef<HTMLButtonElement>(null);
   const actionPending = useRef(false);
   const questionHeading = useRef<HTMLHeadingElement>(null);
@@ -460,6 +545,7 @@ export default function PlayPage() {
             setSubject("all");
             setFilter("all");
             setSearch(topic);
+            setListMode(true);
             setTab("learn");
           }}
         />
@@ -474,6 +560,11 @@ export default function PlayPage() {
               วันนี้ทำไปแล้ว {h.todayQuestions}/{h.dailyLimitQuestions} ข้อ
             </p>
           )}
+          {!listMode && h.exercises.some((e) => e.unit) ? (
+            <PathView exercises={h.exercises} gradeText={gradeLabel(h.student.grade)} today={h.today} busy={busy} onStart={(id, mini) => start(id, mini)} onSearch={() => setListMode(true)} />
+          ) : (
+          <>
+          {h.exercises.some((e) => e.unit) && <button onClick={() => { setListMode(false); setSubject("all"); setFilter("all"); setSearch(""); }} className="min-h-12 self-start rounded-full bg-amber-100 px-4 font-bold text-amber-950 active:scale-95">← เลือกจากบทเรียน</button>}
           <section className="rounded-3xl bg-white p-4 shadow-sm" aria-label="ค้นหาแบบฝึกหัด">
             <h1 className="text-2xl font-bold">วันนี้อยากฝึกอะไร?</h1>
             <p className="mt-1 text-sm text-gray-600">แบบฝึกหัด {gradeLabel(h.student.grade)} · เลือกฝึกทีละชุดได้เลย</p>
@@ -513,6 +604,8 @@ export default function PlayPage() {
               </div>
             ))}
           </section>
+          </>
+          )}
           <section className="rounded-3xl bg-white p-4 shadow-sm" aria-label="ประวัติการฝึก">
             <h2 className="text-xl font-bold">ฝึกล่าสุดของเรา</h2>
             {h.recentAttempts.length === 0 ? <p className="mt-3 text-sm text-gray-600">ทำจบชุดแรกเมื่อไร ผลจะมาอยู่ตรงนี้นะ</p> : <ol className="mt-3 divide-y divide-gray-100">
