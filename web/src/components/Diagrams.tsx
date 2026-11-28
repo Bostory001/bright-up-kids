@@ -2,7 +2,9 @@
 // ชนิด: compass skydome timezone earth solar stars angle clock numline bars
 // ข้อมูลมาจากเซิร์ฟเวอร์ที่ผ่านการกรองแล้ว (lib/server/routes/play.ts cleanParams) แต่ที่นี่ยังอ่านแบบป้องกันค่าผิดรูปเสมอ
 
-export const DIAGRAM_KINDS = ["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars", "states", "tree", "table"] as const;
+import { Apparatus, Objects } from "./Apparatus";
+
+export const DIAGRAM_KINDS = ["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars", "states", "tree", "table", "apparatus", "objects"] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 type P = Record<string, unknown>;
 
@@ -516,6 +518,8 @@ export function Diagram({ kind, params }: { kind: string; params: Record<string,
     case "states": return <States p={params} />;
     case "tree": return <Tree p={params} />;
     case "table": return <DataTable p={params} />;
+    case "apparatus": return <Apparatus p={params} />;
+    case "objects": return <Objects p={params} />;
     default: return null;
   }
 }

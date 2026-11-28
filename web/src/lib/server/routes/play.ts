@@ -28,7 +28,7 @@ async function getProfile(store: Store, studentId: string): Promise<PlayerProfil
 
 // ---------- คลังแบบฝึกหัด (ครู) ----------
 
-const DIAGRAM_KINDS = ["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars", "states", "tree", "table"];
+const DIAGRAM_KINDS = ["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars", "states", "tree", "table", "apparatus", "objects"];
 
 /** กรองพารามิเตอร์แผนภาพ: ยอมรับเฉพาะ ตัวเลข ข้อความสั้น จริง/เท็จ และรายการซ้อนไม่เกิน 3 ชั้น — ไม่รับ HTML/สคริปต์ */
 function cleanParams(raw: unknown, depth = 0): unknown {
