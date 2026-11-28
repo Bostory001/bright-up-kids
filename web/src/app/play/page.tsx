@@ -339,6 +339,7 @@ export default function PlayPage() {
   const h = gradesOwned.length > 1 ? { ...home.data, exercises: home.data.exercises.filter((e) => (e.grade ?? gradeNow) === gradeNow) } : home.data;
   // หน้าเลือกบทเรียนตามหน่วย: แยกตามวิชา (ค่าเริ่มต้น = คณิต ถ้าชั้นนี้มี)
   const unitSubjects = Object.keys(SUBJECT_NAMES).filter((k) => h.exercises.some((e) => e.subject === k && e.unit));
+  const subjectsAll = Object.keys(SUBJECT_NAMES).filter((k) => h.exercises.some((e) => e.subject === k));
   const subjectNow = pickSubject && unitSubjects.includes(pickSubject) ? pickSubject : unitSubjects.includes("math") ? "math" : (unitSubjects[0] ?? "math");
   const shown = visibleExercises(h.exercises, subject, filter, search);
 
@@ -601,13 +602,13 @@ export default function PlayPage() {
               {gradesOwned.map((g) => <button key={g} aria-pressed={g === gradeNow} onClick={() => { setPickGrade(g); setListMode(false); }} className={"min-h-12 rounded-full border-2 px-5 font-bold active:scale-95 " + (g === gradeNow ? "border-sky-700 bg-sky-600 text-white" : "border-sky-200 bg-white text-sky-900")}>{gradeLabel(g)}</button>)}
             </div>
           )}
-          {!listMode && unitSubjects.length > 1 && (
+          {!listMode && subjectsAll.length > 1 && (
             <div className="flex flex-wrap justify-center gap-2" role="group" aria-label="เลือกวิชา">
-              {unitSubjects.map((k) => <button key={k} aria-pressed={k === subjectNow} onClick={() => setPickSubject(k)} className={"min-h-12 rounded-full border-2 px-5 font-bold active:scale-95 " + (k === subjectNow ? "border-amber-600 bg-amber-500 text-gray-950" : "border-amber-200 bg-white text-amber-950")}>{SUBJECT_EMOJI[k]} {SUBJECT_NAMES[k]}</button>)}
+              {subjectsAll.map((k) => <button key={k} aria-pressed={k === subjectNow} onClick={() => { setPickSubject(k); if (unitSubjects.includes(k)) setListMode(false); else { setSubject(k); setFilter("all"); setSearch(""); setListMode(true); } }} className={"min-h-12 rounded-full border-2 px-5 font-bold active:scale-95 " + (k === subjectNow ? "border-amber-600 bg-amber-500 text-gray-950" : "border-amber-200 bg-white text-amber-950")}>{SUBJECT_EMOJI[k]} {SUBJECT_NAMES[k]}</button>)}
             </div>
           )}
           {!listMode && h.exercises.some((e) => e.unit) ? (
-            <PathView exercises={unitSubjects.length > 1 ? h.exercises.filter((e) => e.subject === subjectNow) : h.exercises} gradeText={gradeLabel(gradeNow)} today={h.today} busy={busy} onStart={(id, mini) => start(id, mini)} onSearch={() => setListMode(true)} />
+            <PathView exercises={subjectsAll.length > 1 ? h.exercises.filter((e) => e.subject === subjectNow) : h.exercises} gradeText={gradeLabel(gradeNow)} today={h.today} busy={busy} onStart={(id, mini) => start(id, mini)} onSearch={() => setListMode(true)} />
           ) : (
           <>
           {h.exercises.some((e) => e.unit) && <button onClick={() => { setListMode(false); setSubject("all"); setFilter("all"); setSearch(""); }} className="min-h-12 self-start rounded-full bg-amber-100 px-4 font-bold text-amber-950 active:scale-95">← เลือกจากบทเรียน</button>}
