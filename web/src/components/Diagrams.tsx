@@ -2,7 +2,7 @@
 // ชนิด: compass skydome timezone earth solar stars angle clock numline bars
 // ข้อมูลมาจากเซิร์ฟเวอร์ที่ผ่านการกรองแล้ว (lib/server/routes/play.ts cleanParams) แต่ที่นี่ยังอ่านแบบป้องกันค่าผิดรูปเสมอ
 
-export const DIAGRAM_KINDS = ["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars"] as const;
+export const DIAGRAM_KINDS = ["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars", "states", "tree", "table"] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 type P = Record<string, unknown>;
 
@@ -383,6 +383,124 @@ function Bars({ p }: { p: P }) {
   );
 }
 
+
+// ---------- สถานะของสาร (อนุภาค 3 สถานะ + ลูกศรการเปลี่ยนสถานะ) ----------
+const CHANGES: Record<string, { th: string; from: number; to: number; side: "top" | "bottom" | "arc-top" | "arc-bottom" }> = {
+  melting: { th: "การหลอมเหลว", from: 0, to: 1, side: "top" },
+  freezing: { th: "การแข็งตัว", from: 1, to: 0, side: "bottom" },
+  evaporation: { th: "การกลายเป็นไอ", from: 1, to: 2, side: "top" },
+  condensation: { th: "การควบแน่น", from: 2, to: 1, side: "bottom" },
+  sublimation: { th: "การระเหิด", from: 0, to: 2, side: "arc-top" },
+  deposition: { th: "การระเหิดกลับ", from: 2, to: 0, side: "arc-bottom" },
+};
+function States({ p }: { p: P }) {
+  const xs = [100, 260, 420];
+  const showChanges = s(p, "mode") === "changes";
+  const hi = s(p, "highlight");
+  const solid = Array.from({ length: 16 }, (_, i) => [xs[0] - 36 + (i % 4) * 24, 205 - Math.floor(i / 4) * 24]);
+  const liquid = [[-30, 208], [-6, 210], [20, 207], [42, 209], [-38, 186], [-14, 188], [10, 185], [34, 187], [-24, 164], [0, 166], [24, 163]].map(([dx, y]) => [xs[1] + dx, y]);
+  const gas = [[-30, 120], [10, 112], [34, 140], [-14, 150], [26, 182], [-34, 190], [0, 214], [-6, 98]].map(([dx, y]) => [xs[2] + dx, y]);
+  const sets = [solid, liquid, gas];
+  const names = ["ของแข็ง", "ของเหลว", "แก๊ส"];
+  const arrow = (key: string) => {
+    const c = CHANGES[key];
+    const on = hi === key || hi === "all";
+    const col = on ? ORANGE : "#94a3b8";
+    const x1 = xs[c.from] + (c.to > c.from ? 62 : -62), x2 = xs[c.to] + (c.to > c.from ? -62 : 62);
+    if (c.side === "arc-top" || c.side === "arc-bottom") {
+      const up = c.side === "arc-top";
+      const y0 = up ? 78 : 262, yc = up ? 24 : 318;
+      const a = xs[c.from], b = xs[c.to];
+      return (
+        <g key={key}>
+          <path d={`M ${a} ${y0} Q ${(a + b) / 2} ${yc} ${b} ${y0}`} fill="none" stroke={col} strokeWidth={on ? 4 : 2.5} markerEnd={`url(#${on ? "stA" : "stG"})`} />
+          <text x={(a + b) / 2} y={up ? 32 : 316} fontSize="13" fontWeight="800" fill={col} textAnchor="middle">{c.th}</text>
+        </g>
+      );
+    }
+    const y = c.side === "top" ? 150 : 190;
+    return (
+      <g key={key}>
+        <line x1={x1} y1={y} x2={x2} y2={y} stroke={col} strokeWidth={on ? 4 : 2.5} markerEnd={`url(#${on ? "stA" : "stG"})`} />
+        <text x={(x1 + x2) / 2} y={y + (c.side === "top" ? -8 : 20)} fontSize="12" fontWeight="800" fill={col} textAnchor="middle">{c.th}</text>
+      </g>
+    );
+  };
+  return (
+    <Frame vb="0 0 520 340" label={s(p, "caption", "อนุภาคของสารในสถานะของแข็ง ของเหลว และแก๊ส")}>
+      <defs>
+        <marker id="stA" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill={ORANGE} /></marker>
+        <marker id="stG" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#94a3b8" /></marker>
+      </defs>
+      {xs.map((x, i) => (
+        <g key={i}>
+          <rect x={x - 52} y="92" width="104" height="140" rx="10" fill="#f8fafc" stroke="#94a3b8" strokeWidth="2.5" />
+          {sets[i].map((c, k) => <circle key={k} cx={c[0]} cy={c[1]} r="11" fill="#475569" stroke="#fff" strokeWidth="1.5" />)}
+          <text x={x} y="258" fontSize="16" fontWeight="800" fill={INK} textAnchor="middle">{names[i]}</text>
+        </g>
+      ))}
+      {showChanges && Object.keys(CHANGES).map(arrow)}
+      {showChanges && <text x="260" y="336" fontSize="12" fontWeight="700" fill="#475569" textAnchor="middle">ซ้าย → ขวา: ดูดความร้อน (อุณหภูมิสูงขึ้น) · ขวา → ซ้าย: คายความร้อน</text>}
+    </Frame>
+  );
+}
+
+// ---------- แผนผังต้นไม้ (จำแนกสาร) ----------
+function Tree({ p }: { p: P }) {
+  const raw = arr(p, "nodes").filter(Array.isArray).map((q) => q as unknown[]).filter((q) => typeof q[0] === "string" && typeof q[1] === "string").slice(0, 16) as [string, string, string?][];
+  const ids = new Set(raw.map((r) => r[0]));
+  const kids = (id: string) => raw.filter((r) => r[2] === id);
+  const roots = raw.filter((r) => !r[2] || !ids.has(r[2]));
+  const pos = new Map<string, { x: number; y: number }>();
+  let leaf = 0;
+  const place = (id: string, depth: number): number => {
+    const ch = kids(id);
+    let x: number;
+    if (ch.length === 0) x = 70 + 130 * leaf++;
+    else { const xs = ch.map((c) => place(c[0], depth + 1)); x = (Math.min(...xs) + Math.max(...xs)) / 2; }
+    pos.set(id, { x, y: 40 + depth * 78 });
+    return x;
+  };
+  roots.forEach((r) => place(r[0], 0));
+  const W = Math.max(leaf, 1) * 130 + 10;
+  const maxY = Math.max(...[...pos.values()].map((v) => v.y), 40) + 50;
+  const hi = strs(arr(p, "highlight"));
+  return (
+    <Frame vb={`0 0 ${W} ${maxY}`} label={s(p, "caption", "แผนผังจำแนกสาร")}>
+      {raw.map((r) => {
+        const a = pos.get(r[0]), b = r[2] ? pos.get(r[2]) : undefined;
+        return a && b ? <path key={"l" + r[0]} d={`M ${b.x} ${b.y + 18} C ${b.x} ${b.y + 40} ${a.x} ${a.y - 40} ${a.x} ${a.y - 18}`} fill="none" stroke="#94a3b8" strokeWidth="2.5" /> : null;
+      })}
+      {raw.map((r) => {
+        const a = pos.get(r[0]);
+        if (!a) return null;
+        const on = hi.includes(r[0]);
+        return (
+          <g key={r[0]}>
+            <rect x={a.x - 58} y={a.y - 18} width="116" height="36" rx="10" fill={on ? "#fed7aa" : "#fff"} stroke={on ? ORANGE : BLUE} strokeWidth="2.5" />
+            <text x={a.x} y={a.y + 5} fontSize={r[1].length > 12 ? 11.5 : 14} fontWeight="800" fill={INK} textAnchor="middle">{r[1]}</text>
+          </g>
+        );
+      })}
+    </Frame>
+  );
+}
+
+// ---------- ตารางเปรียบเทียบ ----------
+function DataTable({ p }: { p: P }) {
+  const head = strs(arr(p, "headers")).slice(0, 5);
+  const rows = arr(p, "rows").filter(Array.isArray).map((r) => strs(r as unknown[]).slice(0, 5)).slice(0, 10);
+  return (
+    <div className="overflow-x-auto rounded-2xl bg-sky-50 p-2">
+      <table className="mx-auto w-full max-w-xl border-collapse text-sm" aria-label={s(p, "caption", "ตารางเปรียบเทียบ")}>
+        {head.length > 0 && <thead><tr>{head.map((h, i) => <th key={i} className="border border-sky-200 bg-sky-100 px-2 py-1.5 text-center font-extrabold text-sky-900">{h}</th>)}</tr></thead>}
+        <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={"border border-sky-200 bg-white px-2 py-1.5 align-top " + (j === 0 ? "font-bold text-amber-950" : "text-gray-800")}>{c}</td>)}</tr>)}</tbody>
+      </table>
+      {s(p, "caption") && <p className="mt-1 text-center text-xs font-bold text-gray-600">{s(p, "caption")}</p>}
+    </div>
+  );
+}
+
 export function Diagram({ kind, params }: { kind: string; params: Record<string, unknown> }) {
   switch (kind as DiagramKind) {
     case "compass": return <Compass p={params} />;
@@ -395,6 +513,9 @@ export function Diagram({ kind, params }: { kind: string; params: Record<string,
     case "clock": return <Clock p={params} />;
     case "numline": return <NumLine p={params} />;
     case "bars": return <Bars p={params} />;
+    case "states": return <States p={params} />;
+    case "tree": return <Tree p={params} />;
+    case "table": return <DataTable p={params} />;
     default: return null;
   }
 }
