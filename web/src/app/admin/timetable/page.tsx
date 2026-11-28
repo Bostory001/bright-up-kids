@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Badge, Card, ErrorText } from "@/components/ui";
+import { ClassRoster } from "@/components/ClassRoster";
 import { useLoad } from "@/lib/client/api";
 import { SUBJECT_SHORT, gradeRange } from "@/lib/grade";
 import type { Subject } from "@/lib/types";
@@ -28,7 +29,7 @@ const LANE_PX = 64;
 const NAME_PX = 112;
 
 /** ตารางตามครู: แกน Y = ครู, แกน X = เวลา — แยกการ์ดเสาร์/อาทิตย์ */
-function TeacherView({ courses }: { courses: TimetableCourse[] }) {
+function TeacherView({ courses, onPick }: { courses: TimetableCourse[]; onPick: (c: TimetableCourse) => void }) {
   const weekend = [6, 0].map((weekday) => ({ weekday, list: courses.filter((c) => c.weekday === weekday) }));
   const all = weekend.flatMap((d) => d.list);
   if (all.length === 0) return <p className="text-gray-500">ยังไม่มีคอร์สวันเสาร์-อาทิตย์</p>;
@@ -73,10 +74,12 @@ function TeacherView({ courses }: { courses: TimetableCourse[] }) {
                       ))}
                       {row.lanes.map((lane, li) =>
                         lane.map((c) => (
-                          <div
+                          <button
                             key={c.id}
-                            title={`${c.name} ${c.startTime}–${c.endTime}`}
-                            className={`absolute overflow-hidden rounded-lg border-l-4 px-1.5 py-1 text-xs leading-tight ${SUBJECT_COLOR[c.subject]}`}
+                            type="button"
+                            onClick={() => onPick(c)}
+                            title={`${c.name} ${c.startTime}–${c.endTime} · กดเพื่อดูรายชื่อและเช็กชื่อ`}
+                            className={`absolute overflow-hidden rounded-lg border-l-4 px-1.5 py-1 text-left text-xs leading-tight transition hover:brightness-95 active:scale-[0.98] ${SUBJECT_COLOR[c.subject]}`}
                             style={{ left: x(c.startTime) + 1, width: x(c.endTime) - x(c.startTime) - 2, top: li * LANE_PX + 2, height: LANE_PX - 4 }}
                           >
                             <div className="font-semibold">
@@ -87,7 +90,7 @@ function TeacherView({ courses }: { courses: TimetableCourse[] }) {
                               {c.startTime}–{c.endTime}
                               {c.room ? ` · ${c.room}` : ""} · {c.enrolled}/{c.capacity}
                             </div>
-                          </div>
+                          </button>
                         )),
                       )}
                     </div>
@@ -106,6 +109,7 @@ function TeacherView({ courses }: { courses: TimetableCourse[] }) {
 export default function TimetablePage() {
   const { data, error } = useLoad<Data>("admin/timetable");
   const [view, setView] = useState<"day" | "teacher">("day");
+  const [picked, setPicked] = useState<TimetableCourse | null>(null);
   const open = (data?.courses ?? []).filter((c) => c.active);
   const grid = weeklyGrid(open);
   // วันที่ไม่มีคอร์สเลยไม่ต้องกินที่บนจอ — แต่เสาร์อาทิตย์แสดงเสมอเพราะเป็นวันหลักของสถาบัน
@@ -155,7 +159,7 @@ export default function TimetablePage() {
 
       {open.length === 0 && <p className="text-gray-500">ยังไม่มีคอร์สที่เปิดรับ</p>}
 
-      {view === "teacher" && <TeacherView courses={open} />}
+      {view === "teacher" && <TeacherView courses={open} onPick={setPicked} />}
 
       <div className={`grid gap-3 sm:grid-cols-2 xl:grid-cols-3 ${view === "teacher" ? "hidden" : ""}`}>
         {days.map((day) => (
@@ -167,7 +171,7 @@ export default function TimetablePage() {
             {day.courses.length === 0 && <p className="text-sm text-gray-400">ไม่มีคาบเรียน</p>}
             <div className="grid gap-2">
               {day.courses.map((c) => (
-                <div key={c.id} className={`rounded-xl border-l-4 p-2 ${SUBJECT_COLOR[c.subject]}`}>
+                <button key={c.id} type="button" onClick={() => setPicked(c)} title="กดเพื่อดูรายชื่อและเช็กชื่อ" className={`rounded-xl border-l-4 p-2 text-left transition hover:brightness-95 active:scale-[0.99] ${SUBJECT_COLOR[c.subject]}`}>
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="font-semibold">
                       {c.startTime}–{c.endTime}
@@ -183,12 +187,14 @@ export default function TimetablePage() {
                   <div className={`text-xs ${c.enrolled >= c.capacity ? "font-medium text-red-600" : "text-gray-500"}`}>
                     {c.enrolled}/{c.capacity} คน{c.enrolled >= c.capacity ? " · เต็มแล้ว" : ""}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </Card>
         ))}
       </div>
+
+      {picked && <ClassRoster course={picked} onClose={() => setPicked(null)} />}
 
       {closed.length > 0 && <p className="text-xs text-gray-500 print:hidden">คอร์สที่ปิดรับแล้วไม่แสดงในตาราง: {closed.map((c) => c.name).join(" · ")}</p>}
     </div>
