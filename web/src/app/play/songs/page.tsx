@@ -41,16 +41,19 @@ export default function SongsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-xl p-4">
+    <main className="mx-auto max-w-4xl p-4">
       <Link href="/play" className="text-sm text-amber-700">← กลับ</Link>
       <h1 className="mt-2 text-xl font-bold">🎵 เรียนจีนจากเพลง</h1>
       <p className="text-sm text-gray-600">{song.title}</p>
       <p className="mb-2 text-xs text-gray-400">{song.artist}</p>
-      <video ref={vref} src={song.video} controls playsInline onTimeUpdate={onTime} className="w-full rounded-2xl bg-black" style={{ maxHeight: "55vh" }} />
-      <div className="my-3 flex gap-2">
-        <button onClick={() => setSlow((s) => !s)} className={`rounded-full border px-3 py-1 text-sm ${slow ? "bg-amber-500 text-white" : "bg-white"}`}>🐢 ช้า 0.75x</button>
-        <button onClick={() => setLoop((s) => !s)} className={`rounded-full border px-3 py-1 text-sm ${loop ? "bg-amber-500 text-white" : "bg-white"}`}>🔁 วนบรรทัดนี้</button>
-      </div>
+      <div className="lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-6">
+        <div className="sticky top-0 z-10 -mx-4 bg-amber-50/95 px-4 pb-1 pt-2 backdrop-blur lg:top-4 lg:mx-0 lg:rounded-2xl lg:px-0">
+        <video ref={vref} src={song.video} controls playsInline onTimeUpdate={onTime} className="max-h-[28vh] w-full rounded-2xl bg-black lg:max-h-[60vh]" />
+        <div className="my-3 flex gap-2">
+          <button onClick={() => setSlow((s) => !s)} className={`rounded-full border px-3 py-1 text-sm ${slow ? "bg-amber-500 text-white" : "bg-white"}`}>🐢 ช้า 0.75x</button>
+          <button onClick={() => setLoop((s) => !s)} className={`rounded-full border px-3 py-1 text-sm ${loop ? "bg-amber-500 text-white" : "bg-white"}`}>🔁 วนบรรทัดนี้</button>
+        </div>
+        </div>
       <ul className="space-y-2">
         {song.lines.map((l, i) => (
           <li key={i}>
@@ -63,6 +66,7 @@ export default function SongsPage() {
           </li>
         ))}
       </ul>
+      </div>
       <p className="mt-4 text-xs text-gray-400">ขีดเส้นใต้ = คำศัพท์ HSK1 · เนื้อ/คำแปลเป็นร่าง รอครูตรวจ</p>
     </main>
   );
