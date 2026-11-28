@@ -653,6 +653,7 @@ export default function PlayPage() {
         ))}
       </nav>
       <Link href="/play/flashcards" className="min-h-16 rounded-2xl bg-red-50 p-3 text-center text-lg font-bold leading-10 text-red-900 shadow-sm">🀄 Flashcard ท่องศัพท์จีน HSK1</Link>
+      <Link href="/play/songs" className="min-h-16 rounded-2xl bg-purple-50 p-3 text-center text-lg font-bold leading-10 text-purple-900 shadow-sm">🎵 เรียนจีนจากเพลง</Link>
       {error && <p className="rounded-2xl bg-red-50 p-3 text-center text-red-700">{error}</p>}
 
       {tab === "lessons" && (
