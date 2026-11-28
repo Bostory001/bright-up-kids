@@ -22,7 +22,7 @@ interface PlayLesson {
   exerciseTopic: string | null;
 }
 
-const SUBJECT_EMOJI: Record<string, string> = { math: "🔢", thai: "📖", english: "🔤", science: "🔬", chinese: "🀄" };
+const SUBJECT_EMOJI: Record<string, string> = { math: "🔢", thai: "📖", english: "🔤", science: "🔬", chinese: "🀄", coding: "💻" };
 const BIG = "min-h-16 rounded-2xl p-3 text-lg font-bold focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-sky-600";
 
 export function LessonsView({ onPractice }: { onPractice: (topic: string) => void }) {

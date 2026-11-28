@@ -24,6 +24,7 @@ export const SUBJECT_TH: Record<Subject, string> = {
   science: "วิทยาศาสตร์",
   thai: "ภาษาไทย",
   chinese: "ภาษาจีน",
+  coding: "โค้ดดิ้ง",
 };
 
 /** ชื่อสั้นไว้ใช้ในตาราง/ป้าย */
@@ -33,6 +34,7 @@ export const SUBJECT_SHORT: Record<Subject, string> = {
   science: "วิทย์",
   thai: "ไทย",
   chinese: "จีน",
+  coding: "โค้ด",
 };
 
 export const SUBJECT_KEYS = Object.keys(SUBJECT_TH) as Subject[];
@@ -57,6 +59,7 @@ export const SUBJECT_EN: Record<Subject, string> = {
   science: "Science",
   thai: "Thai",
   chinese: "Chinese",
+  coding: "Coding",
 };
 
 export const WEEKDAY_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];

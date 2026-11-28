@@ -4,7 +4,7 @@
 
 /** ชั้นเรียน: 1-6 = ป.1-6 · 7-9 = ม.1-3 (ใช้ gradeLabel() ใน lib/grade.ts แปลงเป็นข้อความ) */
 export type Grade = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-export type Subject = "math" | "thai" | "english" | "science" | "chinese";
+export type Subject = "math" | "thai" | "english" | "science" | "chinese" | "coding";
 export type Role = "owner" | "teacher" | "parent" | "student";
 export type AssessmentKind = "pre" | "progress" | "post";
 /** หลักสูตรที่นักเรียนเรียนอยู่ที่โรงเรียน: สามัญ(ไทย) / English Program / Inter */

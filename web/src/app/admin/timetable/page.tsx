@@ -22,6 +22,7 @@ const SUBJECT_COLOR: Record<Subject, string> = {
   english: "border-sky-400 bg-sky-50",
   science: "border-emerald-400 bg-emerald-50",
   chinese: "border-violet-400 bg-violet-50",
+  coding: "border-teal-400 bg-teal-50",
 };
 
 const HOUR_PX = 110; // ความกว้างต่อ 1 ชั่วโมงบนแกนเวลา

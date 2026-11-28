@@ -146,7 +146,7 @@ interface Shop {
   redemptions: Pick<Redemption, "id" | "rewardName" | "status" | "costCoins" | "requestedAt">[];
 }
 
-const SUBJECT_EMOJI: Record<string, string> = { math: "🔢", thai: "📖", english: "🔤", science: "🔬", chinese: "🀄" };
+const SUBJECT_EMOJI: Record<string, string> = { math: "🔢", thai: "📖", english: "🔤", science: "🔬", chinese: "🀄", coding: "💻" };
 const SUBJECT_NAMES: Record<string, string> = SUBJECT_SHORT;
 const RED = { requested: "รอรับที่สถาบัน", handed_over: "รับแล้ว", rejected: "ไม่อนุมัติ (คืนเหรียญแล้ว)" };
 /** ดาว 1-3 ต่อรอบ: ครบ = 3, ถูก ≥ 60% = 2, ที่เหลือ = 1 (ลองแล้วได้ดาวเสมอ ไม่กดดัน) */

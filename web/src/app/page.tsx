@@ -70,6 +70,9 @@ export default function Home() {
         <Link href="/enroll" className="underline">
           สมัครเรียนออนไลน์
         </Link>
+        <Link href="/coding" className="underline">
+          💻 วิชาโค้ดดิ้ง
+        </Link>
       </div>
     </main>
   );

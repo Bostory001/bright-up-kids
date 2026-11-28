@@ -6,7 +6,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "../content");
-const SUBJECTS = ["math", "thai", "english", "science", "chinese"];
+const SUBJECTS = ["math", "thai", "english", "science", "chinese", "coding"];
 
 export function listFiles(args) {
   if (args.length) return args.map((a) => path.resolve(a));

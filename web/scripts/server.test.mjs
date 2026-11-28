@@ -430,7 +430,8 @@ test("grade labels cover primary and lower secondary", () => {
   assert.equal(gradeRange([9, 7, 8]), "ม.1-ม.3", "เรียงให้เองก่อนย่อ");
   assert.equal(gradeRange([]), "-");
   assert.ok(SUBJECT_KEYS.includes("chinese"), "ต้องมีภาษาจีนในรายการวิชา");
-  assert.equal(SUBJECT_KEYS.length, 5);
+  assert.ok(SUBJECT_KEYS.includes("coding"), "ต้องมีโค้ดดิ้งในรายการวิชา");
+  assert.equal(SUBJECT_KEYS.length, 6);
 
   // ฉบับภาษาอังกฤษสำหรับใบตารางสอนของครูต่างชาติ
   assert.equal(gradeLabelEn(3), "P.3");
