@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { groupUnits, thaiDate, unitEmoji, visibleExercises, type ExerciseCard, type ExerciseFilter } from "@/lib/play-view";
 import { AvatarSvg } from "@/components/AvatarSvg";
@@ -641,6 +642,7 @@ export default function PlayPage() {
           </button>
         ))}
       </nav>
+      <Link href="/play/flashcards" className="min-h-16 rounded-2xl bg-red-50 p-3 text-center text-lg font-bold leading-10 text-red-900 shadow-sm">🀄 Flashcard ท่องศัพท์จีน HSK1</Link>
       {error && <p className="rounded-2xl bg-red-50 p-3 text-center text-red-700">{error}</p>}
 
       {tab === "lessons" && (

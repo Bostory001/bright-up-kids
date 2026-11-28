@@ -1,5 +1,6 @@
 import "server-only";
 import type { Exercise, Grade, Question, Subject } from "../types";
+import { hsk1Exercises } from "./seed-hsk1";
 
 // ชุดโจทย์เริ่มต้น — แต่งขึ้นเองทั้งหมด ไม่ได้คัดลอกจากหนังสือหรือเอกสารของ HQ
 // คณิต: สุ่มตัวเลขด้วย seed คงที่ (ได้ชุดเดิมทุกครั้ง) คำตอบคำนวณจากสูตร จึงถูกโดยโครงสร้าง
@@ -462,5 +463,5 @@ function writtenSets(): Draft[] {
 }
 
 export function starterExercises(): Draft[] {
-  return [...mathSets(), ...pairSets(), ...scienceSets(), ...writtenSets()];
+  return [...mathSets(), ...pairSets(), ...scienceSets(), ...writtenSets(), ...hsk1Exercises()];
 }
