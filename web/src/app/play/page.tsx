@@ -561,7 +561,7 @@ export default function PlayPage() {
                   {q.visual && <div className="mt-3"><VisualView v={q.visual} /></div>}
                   <p className="mt-3 text-xl text-gray-800">{fb.correct ? (fb.explain ?? "") : <>คำตอบที่ถูกคือ <b className="text-emerald-700">{q.choices[fb.answerIndex]}</b>{fb.explain ? ` · ${fb.explain}` : ""}</>}</p>
                 </div>
-                <CharImg name={fb.correct ? "teacher-correct" : "teacher-wrong"} subject={runSubject} className="hidden w-40 shrink-0 self-end object-contain object-bottom sm:block" />
+                <CharImg name={fb.correct ? "teacher-correct" : "teacher-wrong"} subject={runSubject} className="hidden aspect-[3/4] w-40 shrink-0 self-end rounded-3xl object-cover object-top shadow-md sm:block" />
               </section>
               <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-amber-50 p-4">
                 <button onClick={() => { stopSpeak(); next(); }} disabled={busy} className={BIG + " mx-auto block w-full max-w-3xl bg-amber-500 text-gray-950"}>{busy ? "กำลังบันทึก..." : run.index + 1 < run.questions.length ? "ข้อต่อไป →" : "ดูผล 🎉"}</button>
