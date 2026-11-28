@@ -35,7 +35,10 @@ function checkVisual(v, where, e) {
       if (!s || typeof s.text !== "string" || !s.text || s.text.length > 20) bad(`${side}.text ว่างหรือยาวเกิน 20`);
       else if (s.label !== undefined && (typeof s.label !== "string" || s.label.length > 30)) bad(`${side}.label ยาวเกิน 30`);
     }
-  } else bad("type ต้องเป็น groups หรือ equation");
+  } else if (v.type === "diagram") {
+    if (!["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars"].includes(v.kind)) bad("diagram kind ไม่รู้จัก");
+    if (!v.params || typeof v.params !== "object" || Array.isArray(v.params)) bad("diagram ต้องมี params เป็น object");
+  } else bad("type ต้องเป็น groups, equation หรือ diagram");
 }
 
 export function validateFile(file) {

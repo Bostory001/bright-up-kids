@@ -305,7 +305,9 @@ export interface Exercise {
 /** ภาพประกอบบทสอน/โจทย์ ที่วาดเองด้วยโค้ด (ไม่ใช้ไฟล์รูป) */
 export type Visual =
   | { type: "groups"; groups: number; each: number; emoji: string; label?: string }
-  | { type: "equation"; left: { text: string; label?: string }; right: { text: string; label?: string } };
+  | { type: "equation"; left: { text: string; label?: string }; right: { text: string; label?: string } }
+  /** แผนภาพ SVG วาดด้วยโค้ด (เข็มทิศ เขตเวลา ทรงกลมฟ้า ระบบสุริยะ กลุ่มดาว มุม นาฬิกา เส้นจำนวน แผนภูมิแท่ง ฯลฯ) ดู components/Diagrams.tsx */
+  | { type: "diagram"; kind: string; params: Record<string, unknown> };
 
 export interface TeachCard {
   title: string;

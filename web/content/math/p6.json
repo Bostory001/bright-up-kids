@@ -7115,15 +7115,36 @@
       "teach": [
         {
           "title": "ชนิดของมุม",
-          "text": "แหลม ฉาก ป้าน ตรง"
+          "text": "แหลม ฉาก ป้าน ตรง",
+          "visual": {
+            "type": "diagram",
+            "kind": "angle",
+            "params": {
+              "deg": 40
+            }
+          }
         },
         {
           "title": "วัดมุม",
-          "text": "ใช้โพรแทรกเตอร์"
+          "text": "ใช้โพรแทรกเตอร์",
+          "visual": {
+            "type": "diagram",
+            "kind": "angle",
+            "params": {
+              "deg": 90
+            }
+          }
         },
         {
           "title": "สร้างมุม",
-          "text": "ตามองศาที่กำหนด"
+          "text": "ตามองศาที่กำหนด",
+          "visual": {
+            "type": "diagram",
+            "kind": "angle",
+            "params": {
+              "deg": 140
+            }
+          }
         }
       ],
       "questions": [
@@ -7647,15 +7668,36 @@
       "teach": [
         {
           "title": "รวม 180°",
-          "text": "มุมภายในสามเหลี่ยม"
+          "text": "มุมภายในสามเหลี่ยม",
+          "visual": {
+            "type": "diagram",
+            "kind": "angle",
+            "params": {
+              "deg": 60
+            }
+          }
         },
         {
           "title": "หามุมที่เหลือ",
-          "text": "180 − มุมที่รู้"
+          "text": "180 − มุมที่รู้",
+          "visual": {
+            "type": "diagram",
+            "kind": "angle",
+            "params": {
+              "deg": 70
+            }
+          }
         },
         {
           "title": "สามเหลี่ยมหน้าจั่ว",
-          "text": "มุมฐานเท่ากัน"
+          "text": "มุมฐานเท่ากัน",
+          "visual": {
+            "type": "diagram",
+            "kind": "angle",
+            "params": {
+              "deg": 50
+            }
+          }
         }
       ],
       "questions": [

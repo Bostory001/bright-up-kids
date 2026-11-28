@@ -28,6 +28,20 @@ async function getProfile(store: Store, studentId: string): Promise<PlayerProfil
 
 // ---------- คลังแบบฝึกหัด (ครู) ----------
 
+const DIAGRAM_KINDS = ["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars"];
+
+/** กรองพารามิเตอร์แผนภาพ: ยอมรับเฉพาะ ตัวเลข ข้อความสั้น จริง/เท็จ และรายการซ้อนไม่เกิน 3 ชั้น — ไม่รับ HTML/สคริปต์ */
+function cleanParams(raw: unknown, depth = 0): unknown {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : 0;
+  if (typeof raw === "boolean") return raw;
+  if (typeof raw === "string") return raw.slice(0, 60);
+  if (Array.isArray(raw) && depth < 3) return raw.slice(0, 40).map((x) => cleanParams(x, depth + 1));
+  if (raw && typeof raw === "object" && !Array.isArray(raw) && depth < 1) {
+    return Object.fromEntries(Object.entries(raw as Record<string, unknown>).slice(0, 20).filter(([k]) => /^[a-zA-Z]{1,20}$/.test(k)).map(([k, v]) => [k, cleanParams(v, depth + 1)]));
+  }
+  return null;
+}
+
 function visualFrom(raw: unknown, where: string): Visual | undefined {
   if (raw === undefined || raw === null) return undefined;
   if (typeof raw !== "object" || Array.isArray(raw)) throw new HttpError(400, `${where}: ภาพประกอบรูปแบบไม่ถูกต้อง`);
@@ -47,6 +61,12 @@ function visualFrom(raw: unknown, where: string): Visual | undefined {
       return { text: str(o.text, `${where}: ${name}`, 20), ...(label ? { label } : {}) };
     };
     return { type: "equation", left: side(v.left, "ซ้าย"), right: side(v.right, "ขวา") };
+  }
+  if (v.type === "diagram") {
+    if (typeof v.kind !== "string" || !DIAGRAM_KINDS.includes(v.kind)) throw new HttpError(400, `${where}: ชนิดแผนภาพไม่รู้จัก`);
+    const params = cleanParams(v.params ?? {});
+    if (!params || typeof params !== "object" || Array.isArray(params)) throw new HttpError(400, `${where}: พารามิเตอร์แผนภาพไม่ถูกต้อง`);
+    return { type: "diagram", kind: v.kind, params: params as Record<string, unknown> };
   }
   throw new HttpError(400, `${where}: ชนิดภาพประกอบไม่รู้จัก`);
 }

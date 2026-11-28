@@ -5,6 +5,7 @@ import { groupUnits, thaiDate, unitEmoji, visibleExercises, type ExerciseCard, t
 import { AvatarSvg } from "@/components/AvatarSvg";
 import { LessonsView } from "@/components/LessonsView";
 import { api, go, useLoad } from "@/lib/client/api";
+import { Diagram } from "@/components/Diagrams";
 import type { AvatarSlot, PlayerProfile, Redemption, TeachCard, Visual } from "@/lib/types";
 import { SUBJECT_SHORT, gradeLabel } from "@/lib/grade";
 
@@ -72,6 +73,7 @@ function VisualBox({ s }: { s: { text: string; label?: string } }) {
 
 // ภาพประกอบที่วาดด้วยโค้ด: กลุ่มของสิ่งของ และสมการเป็นกล่อง
 function VisualView({ v }: { v: Visual }) {
+  if (v.type === "diagram") return <Diagram kind={v.kind} params={v.params} />;
   if (v.type === "groups") {
     return (
       <div role="img" aria-label={v.label ?? `${v.groups} กลุ่ม กลุ่มละ ${v.each}`} className="flex flex-wrap items-center justify-center gap-2 rounded-2xl bg-amber-50 p-4">

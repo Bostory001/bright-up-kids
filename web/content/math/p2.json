@@ -3816,28 +3816,44 @@
         {
           "title": "ครึ่งชั่วโมง",
           "text": "เข็มยาวชี้เลข 6 คือครึ่งชั่วโมง เช่น 3 นาฬิกา 30 นาที",
-          "example": "เข็มสั้นผ่าน 3 เข็มยาวชี้ 6 → 3:30"
+          "example": "เข็มสั้นผ่าน 3 เข็มยาวชี้ 6 → 3:30",
+          "visual": {
+            "type": "diagram",
+            "kind": "clock",
+            "params": {
+              "h": 5,
+              "m": 30,
+              "digital": true
+            }
+          }
         },
         {
           "title": "1 ชั่วโมง กับนาที",
           "text": "1 ชั่วโมงเท่ากับ 60 นาที",
           "example": "1 ชม. = 60 นาที",
           "visual": {
-            "type": "equation",
-            "left": {
-              "text": "1 ชั่วโมง",
-              "label": "หน่วยใหญ่"
-            },
-            "right": {
-              "text": "60 นาที",
-              "label": "เท่ากัน"
+            "type": "diagram",
+            "kind": "clock",
+            "params": {
+              "h": 9,
+              "m": 0,
+              "digital": true
             }
           }
         },
         {
           "title": "ปฏิทิน",
           "text": "1 สัปดาห์มี 7 วัน 1 ปีมี 12 เดือน",
-          "example": "7 วัน = 1 สัปดาห์"
+          "example": "7 วัน = 1 สัปดาห์",
+          "visual": {
+            "type": "diagram",
+            "kind": "clock",
+            "params": {
+              "h": 2,
+              "m": 15,
+              "digital": true
+            }
+          }
         }
       ],
       "questions": [
