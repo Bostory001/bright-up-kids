@@ -3,9 +3,9 @@
 // ข้อมูลมาจากเซิร์ฟเวอร์ที่ผ่านการกรองแล้ว (lib/server/routes/play.ts cleanParams) แต่ที่นี่ยังอ่านแบบป้องกันค่าผิดรูปเสมอ
 
 import { Apparatus, Objects } from "./Apparatus";
-import { AddSub, ArrayDots, Blocks, FracBar, Money, PGrid, Ruler, Shape } from "./MathDiagrams";
+import { AddSub, ArrayDots, Blocks, CmpBars, Column, Divide, EmojiSeq, FracBar, GroupBars, LineChart, Pie, Money, PGrid, Ruler, Shape } from "./MathDiagrams";
 
-export const DIAGRAM_KINDS = ["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars", "states", "tree", "table", "apparatus", "objects", "blocks", "fracbar", "array", "pgrid", "money", "ruler", "shape", "addsub"] as const;
+export const DIAGRAM_KINDS = ["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars", "states", "tree", "table", "apparatus", "objects", "blocks", "fracbar", "array", "pgrid", "money", "ruler", "shape", "addsub", "column", "divide", "cmpbars", "eseq", "linechart", "pie", "groupbars"] as const;
 export type DiagramKind = (typeof DIAGRAM_KINDS)[number];
 type P = Record<string, unknown>;
 
@@ -529,6 +529,13 @@ export function Diagram({ kind, params }: { kind: string; params: Record<string,
     case "ruler": return <Ruler p={params} />;
     case "shape": return <Shape p={params} />;
     case "addsub": return <AddSub p={params} />;
+    case "column": return <Column p={params} />;
+    case "divide": return <Divide p={params} />;
+    case "cmpbars": return <CmpBars p={params} />;
+    case "eseq": return <EmojiSeq p={params} />;
+    case "linechart": return <LineChart p={params} />;
+    case "pie": return <Pie p={params} />;
+    case "groupbars": return <GroupBars p={params} />;
     default: return null;
   }
 }
