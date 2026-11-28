@@ -48,7 +48,12 @@ function speak(text: string) {
     s.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "th-TH";
+    // เสียงผู้หญิงไทยทั่วไป: เลือกเสียงหญิงที่เครื่องมี (Premwadee/Kanya/Narisa/Google) เลี่ยงเสียงชาย (Niwat) · ไม่มี = ใช้เสียงไทยเริ่มต้น
+    const th = s.getVoices().filter((v) => v.lang.toLowerCase().replace("_", "-").startsWith("th"));
+    const voice = th.find((v) => /premwadee|kanya|narisa|female|หญิง/i.test(v.name)) ?? th.find((v) => /google/i.test(v.name)) ?? th.find((v) => !/niwat|male|ชาย/i.test(v.name)) ?? th[0];
+    if (voice) u.voice = voice;
     u.rate = 0.9;
+    u.pitch = 1.1;
     s.speak(u);
   } catch { /* ไม่รองรับก็ข้าม */ }
 }
