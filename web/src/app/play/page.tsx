@@ -469,7 +469,7 @@ export default function PlayPage() {
             <CharImg name="mascot" className="hidden size-24 shrink-0 object-contain sm:block" />
           </section>
           <section className="flex items-center gap-3 rounded-3xl bg-white p-3 shadow-md">
-            <CharImg name="teacher-teach" subject={runSubject} className="size-20 shrink-0 rounded-2xl object-cover" />
+            <CharImg name="teacher-teach" subject={runSubject} className="size-20 shrink-0 rounded-2xl object-cover object-top" />
             <p className="flex-1 text-lg font-bold text-amber-900">มาเรียนไปด้วยกันนะ ตั้งใจอ่านทีละขั้น</p>
           </section>
           <button onClick={() => speak(run.teach.map((c) => `${c.title}. ${c.text}${c.example ? " " + c.example : ""}`).join(" "))} className="flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-amber-200 px-4 text-lg font-bold text-amber-950 shadow-sm active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600">🔊 ฟังครูสอนเนื้อหาหน้านี้</button>
