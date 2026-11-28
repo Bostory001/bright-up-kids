@@ -107,6 +107,7 @@ function exerciseFrom(body: Ctx["body"], id: string, createdAt: string, prev?: E
     questions,
     ...lessonFields(body, prev),
     published: body.published === true,
+    openToAll: body.openToAll === undefined ? prev?.openToAll === true : body.openToAll === true,
     createdAt,
   };
 }
@@ -114,6 +115,18 @@ function exerciseFrom(body: Ctx["body"], id: string, createdAt: string, prev?: E
 route("GET", "admin/exercises", STAFF, async ({ store }) => {
   const exercises = await store.list<Exercise>("exercises");
   return { exercises: exercises.sort((a, b) => a.grade - b.grade || a.title.localeCompare(b.title)) };
+});
+// เปิด/ปิดคอลัมน์ "เปิดดูทุกชั้น" ให้ทุกชุดพร้อมกัน (เจ้าของ) ไว้ตรวจเนื้อหาบนหน้าเด็กก่อนเผยแพร่
+route("POST", "admin/exercises/open-all", OWNER, async ({ store, body }) => {
+  const open = body.open === true;
+  const all = await store.list<Exercise>("exercises");
+  let changed = 0;
+  for (const e of all) {
+    if ((e.openToAll === true) === open) continue;
+    await store.set("exercises", { ...e, openToAll: open });
+    changed++;
+  }
+  return { changed, open };
 });
 route("POST", "admin/exercises", STAFF, async ({ store, body }) => {
   const exercise = exerciseFrom(body, newId(), nowIso());
@@ -136,13 +149,15 @@ route("DELETE", "admin/exercises/:id", OWNER, async ({ store, params }) => {
 
 /** เด็กเข้าชั้นนี้ได้ไหม: ชั้นหลัก + ชั้นที่ซื้อแพ็กเพิ่ม */
 const hasGrade = (s: { grade: number; extraGrades?: number[] }, g: number) => s.grade === g || Boolean(s.extraGrades?.includes(g));
+/** เห็นชุดนี้ได้ไหม: เผยแพร่แล้วและตรงชั้น หรือเจ้าของตั้งคอลัมน์ "เปิดดูทุกชั้น" (openToAll) ไว้ */
+const canSee = (s: { grade: number; extraGrades?: number[] }, e: Exercise) => e.openToAll === true || (e.published && hasGrade(s, e.grade));
 
 route("GET", "play/home", STUDENT, async (ctx) => {
   const student = studentOf(ctx);
   const today = bkkDate();
   const [profile, exercises, attempts, settings, enrollments, assignments] = await Promise.all([
     getProfile(ctx.store, student.id),
-    ctx.store.list<Exercise>("exercises", { published: true }).then((all) => all.filter((e) => hasGrade(student, e.grade))),
+    ctx.store.list<Exercise>("exercises").then((all) => all.filter((e) => canSee(student, e))),
     ctx.store.list<Attempt>("attempts", { studentId: student.id, status: "finished" }),
     getSettings(ctx.store),
     ctx.store.list<Enrollment>("enrollments", { studentId: student.id, status: "active" }),
@@ -158,7 +173,7 @@ route("GET", "play/home", STUDENT, async (ctx) => {
     if (!done && (!homeworkDue.has(a.exerciseId) || a.dueDate < homeworkDue.get(a.exerciseId)!)) homeworkDue.set(a.exerciseId, a.dueDate);
   }
   return {
-    student: { nickname: student.nickname, code: student.code, grade: student.grade, grades: [student.grade, ...(student.extraGrades ?? [])].sort((a, b) => a - b) },
+    student: { nickname: student.nickname, code: student.code, grade: student.grade, grades: [...new Set([student.grade, ...(student.extraGrades ?? []), ...exercises.map((e) => e.grade)])].sort((a, b) => a - b) },
     profile,
     level: { ...progress, title: powerTitle(progress.level) },
     limitReached: isDailyLimitReached(profile, today, settings),
@@ -184,6 +199,7 @@ route("GET", "play/home", STUDENT, async (ctx) => {
         homeworkDue: homeworkDue.get(e.id) ?? null,
         title: e.title,
         grade: e.grade,
+        draft: !e.published,
         subject: e.subject,
         topic: e.topic,
         count: e.questions.length,
@@ -214,7 +230,7 @@ function pickMiniOrder(total: number): number[] {
 route("POST", "play/start", STUDENT, async (ctx) => {
   const student = studentOf(ctx);
   const exercise = await ctx.store.get<Exercise>("exercises", str(ctx.body.exerciseId, "แบบฝึกหัด", 40));
-  if (!exercise || !exercise.published || !hasGrade(student, exercise.grade)) throw new HttpError(404, "ไม่พบแบบฝึกหัด");
+  if (!exercise || !canSee(student, exercise)) throw new HttpError(404, "ไม่พบแบบฝึกหัด");
   // โหมด "ลอง 3 ข้อ": สุ่ม 3 ข้อจากชุด (ชุดที่มี ≤ 3 ข้อ = ทำครบทั้งชุดเหมือนปกติ)
   const mini = ctx.body.mini === true && exercise.questions.length > MINI_QUESTIONS;
   const order = mini ? pickMiniOrder(exercise.questions.length) : null;

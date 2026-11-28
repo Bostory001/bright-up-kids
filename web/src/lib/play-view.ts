@@ -2,6 +2,7 @@ export interface ExerciseCard {
   id: string;
   title: string;
   grade?: number;
+  draft?: boolean;
   subject: string;
   topic: string;
   count: number;

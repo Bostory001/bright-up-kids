@@ -296,6 +296,8 @@ export interface Exercise {
   teach?: TeachCard[];
   /** เผยแพร่ให้นักเรียนเห็นแล้ว */
   published: boolean;
+  /** เปิดให้นักเรียนทุกคนเห็นชุดนี้ ไม่สนชั้น/สถานะเผยแพร่ (คอลัมน์แยกไว้ตรวจเนื้อหา — ปิดก่อนเปิดใช้จริง) */
+  openToAll?: boolean;
   createdAt: string;
 }
 

@@ -159,7 +159,7 @@ function PathView({ exercises, gradeText, today, busy, onStart, onSearch }: { ex
             <span aria-hidden="true" className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-3xl">{unitEmoji(ex.title + " " + (ex.unit ?? ""))}</span>
             <span className="min-w-0 flex-1">
               {ex.homeworkDue && <span className="block text-xs font-bold text-pink-800">📌 การบ้านส่ง {ex.homeworkDue === today ? "วันนี้" : thaiDate(ex.homeworkDue)}</span>}
-              <span className="block text-lg font-bold leading-snug">{ex.title}</span>
+              <span className="block text-lg font-bold leading-snug">{ex.draft && <span className="mr-2 rounded-full bg-pink-100 px-2 py-0.5 text-xs font-bold text-pink-800">ร่าง</span>}{ex.title}</span>
               <span className="block text-sm text-gray-600">{gradeText} · {ex.count} ข้อ</span>
             </span>
             <span role="img" aria-label={`ได้ ${stars(ex)} ดาวจาก 3`} className="flex shrink-0 gap-0.5 text-xl">

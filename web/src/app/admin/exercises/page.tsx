@@ -157,6 +157,10 @@ export default function ExercisesPage() {
           <input type="checkbox" className="h-5 w-5" checked={editing.published} onChange={(e) => setEditing({ ...editing, published: e.target.checked })} />
           เผยแพร่ให้นักเรียน {gradeLabel(editing.grade)} เห็น (ตรวจโจทย์และเฉลยครบทุกข้อแล้ว)
         </label>
+        <label className="flex items-center gap-2 rounded-2xl bg-white p-4 shadow-sm">
+          <input type="checkbox" className="h-5 w-5" checked={editing.openToAll === true} onChange={(e) => setEditing({ ...editing, openToAll: e.target.checked })} />
+          เปิดดูทุกชั้น: นักเรียนทุกคนเห็นชุดนี้ ไม่สนชั้นและสถานะเผยแพร่ (ไว้ตรวจเนื้อหา — ปิดก่อนเปิดใช้จริง)
+        </label>
         <ErrorText>{formError}</ErrorText>
         <div className="flex gap-2">
           <Button onClick={save} disabled={busy}>
@@ -190,6 +194,16 @@ export default function ExercisesPage() {
               นำเข้าชุดโจทย์เริ่มต้น
             </Button>
           )}
+          {me.role === "owner" && (
+            <>
+              <Button variant="ghost" disabled={busy} onClick={() => run(async () => { const r = await api("admin/exercises/open-all", { open: true }); setNotice(`เปิดดูทุกชั้นให้ ${r.changed} ชุด — เด็กทุกคนเห็นทุกชุดแล้ว (ตรวจเสร็จอย่าลืมปิด)`); reload(); })}>
+                เปิดดูทุกชุด
+              </Button>
+              <Button variant="ghost" disabled={busy} onClick={() => run(async () => { const r = await api("admin/exercises/open-all", { open: false }); setNotice(`ปิดการเปิดดูทุกชั้นแล้ว ${r.changed} ชุด`); reload(); })}>
+                ปิดดูทุกชุด
+              </Button>
+            </>
+          )}
           <Button onClick={() => setEditing(EMPTY)}>สร้างชุดใหม่</Button>
         </div>
       </div>
@@ -203,7 +217,7 @@ export default function ExercisesPage() {
             <td>{gradeLabel(e.grade)}</td>
             <td>{e.topic}</td>
             <td>{e.questions.length}</td>
-            <td>{e.published ? <Badge color="green">เผยแพร่</Badge> : <Badge>ร่าง</Badge>}</td>
+            <td>{e.published ? <Badge color="green">เผยแพร่</Badge> : <Badge>ร่าง</Badge>}{e.openToAll && <Badge color="green">เปิดดูทุกชั้น</Badge>}</td>
             <td className="flex gap-1">
               <Button variant="ghost" onClick={() => setEditing(e)}>
                 แก้ไข
