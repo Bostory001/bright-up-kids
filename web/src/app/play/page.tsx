@@ -31,11 +31,13 @@ interface QuestionReview {
 type TeacherPose = "teacher-wave" | "teacher-teach" | "teacher-ask" | "teacher-correct" | "teacher-wrong" | "teacher-think" | "teacher-celebrate" | "teacher-point";
 
 // รูปตัวละครที่เจ้าของใส่เอง: วางไฟล์ที่ web/public/characters/<name>.png — ถ้าไม่มีไฟล์ จะซ่อนช่องนี้
-function CharImg({ name, className }: { name: TeacherPose | "mascot"; className: string }) {
+// ครูหลัก (โฟลเดอร์ characters/) = ครูคณิต · วิชาอื่นใช้โฟลเดอร์ของวิชานั้น เช่น characters/english/teacher-teach.png (ไม่มีไฟล์ = ซ่อน)
+function CharImg({ name, className, subject }: { name: TeacherPose | "mascot"; className: string; subject?: string }) {
   const [hidden, setHidden] = useState(false);
   if (hidden) return null;
+  const dir = name === "mascot" || !subject || subject === "math" ? "" : subject + "/";
   // eslint-disable-next-line @next/next/no-img-element -- ไฟล์ของเจ้าของ ขนาดเล็ก ไม่ต้องผ่าน image optimizer
-  return <img src={`/characters/${name}.png`} alt="" aria-hidden="true" onError={() => setHidden(true)} className={className + " buk-alive"} style={{ ["--buk-delay" as string]: `-${(name.length % 5) * 0.8}s` }} />;
+  return <img src={`/characters/${dir}${name}.png`} alt="" aria-hidden="true" onError={() => setHidden(true)} className={className + " buk-alive"} style={{ ["--buk-delay" as string]: `-${(name.length % 5) * 0.8}s` }} />;
 }
 
 // ให้เบราว์เซอร์อ่านออกเสียง (ไม่ส่งข้อความออกนอกเครื่อง) — ถ้าเครื่องไม่มีเสียงไทยก็แค่ไม่ดัง
@@ -336,6 +338,8 @@ export default function PlayPage() {
   // เด็กที่ซื้อแพ็กหลายชั้น: เลือกชั้นที่จะเรียน (ค่าเริ่มต้น = ชั้นหลัก) · ชั้นเดียว = ไม่แสดงตัวเลือก
   const gradesOwned = home.data.student.grades?.length ? home.data.student.grades : [home.data.student.grade];
   const gradeNow = pickGrade && gradesOwned.includes(pickGrade) ? pickGrade : home.data.student.grade;
+  // วิชาของชุดที่กำลังเรียน (ไว้เลือกรูปครูของวิชานั้น)
+  const runSubject = run ? home.data.exercises.find((e) => e.id === run.exerciseId)?.subject : undefined;
   const h = gradesOwned.length > 1 ? { ...home.data, exercises: home.data.exercises.filter((e) => (e.grade ?? gradeNow) === gradeNow) } : home.data;
   // หน้าเลือกบทเรียนตามหน่วย: แยกตามวิชา (ค่าเริ่มต้น = คณิต ถ้าชั้นนี้มี)
   const unitSubjects = Object.keys(SUBJECT_NAMES).filter((k) => h.exercises.some((e) => e.subject === k && e.unit));
@@ -418,7 +422,7 @@ export default function PlayPage() {
             <CharImg name="mascot" className="hidden size-24 shrink-0 object-contain sm:block" />
           </section>
           <section className="flex items-center gap-3 rounded-3xl bg-white p-3 shadow-md">
-            <CharImg name="teacher-teach" className="size-20 shrink-0 rounded-2xl object-cover" />
+            <CharImg name="teacher-teach" subject={runSubject} className="size-20 shrink-0 rounded-2xl object-cover" />
             <p className="flex-1 text-lg font-bold text-amber-900">มาเรียนไปด้วยกันนะ ตั้งใจอ่านทีละขั้น</p>
           </section>
           <button onClick={() => speak(run.teach.map((c) => `${c.title}. ${c.text}${c.example ? " " + c.example : ""}`).join(" "))} className="flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-amber-200 px-4 text-lg font-bold text-amber-950 shadow-sm active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600">🔊 ฟังครูสอนเนื้อหาหน้านี้</button>
@@ -494,7 +498,7 @@ export default function PlayPage() {
                     })}
                   </div>
                 </section>
-                <CharImg name="teacher-ask" className="hidden w-44 shrink-0 self-stretch rounded-3xl object-cover object-top shadow-md sm:block" />
+                <CharImg name="teacher-ask" subject={runSubject} className="hidden w-44 shrink-0 self-stretch rounded-3xl object-cover object-top shadow-md sm:block" />
               </div>
               <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-amber-50 p-4">
                 <button onClick={() => { stopSpeak(); answer(); }} disabled={busy || run.selected === null} className={BIG + " mx-auto block w-full max-w-3xl bg-amber-500 text-gray-950 disabled:opacity-50"}>{busy ? "กำลังตรวจคำตอบ..." : "ยืนยันคำตอบ ✓"}</button>
@@ -510,7 +514,7 @@ export default function PlayPage() {
                   {q.visual && <div className="mt-3"><VisualView v={q.visual} /></div>}
                   <p className="mt-3 text-xl text-gray-800">{fb.correct ? (fb.explain ?? "") : <>คำตอบที่ถูกคือ <b className="text-emerald-700">{q.choices[fb.answerIndex]}</b>{fb.explain ? ` · ${fb.explain}` : ""}</>}</p>
                 </div>
-                <CharImg name={fb.correct ? "teacher-correct" : "teacher-wrong"} className="hidden w-40 shrink-0 self-end object-contain object-bottom sm:block" />
+                <CharImg name={fb.correct ? "teacher-correct" : "teacher-wrong"} subject={runSubject} className="hidden w-40 shrink-0 self-end object-contain object-bottom sm:block" />
               </section>
               <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-amber-50 p-4">
                 <button onClick={() => { stopSpeak(); next(); }} disabled={busy} className={BIG + " mx-auto block w-full max-w-3xl bg-amber-500 text-gray-950"}>{busy ? "กำลังบันทึก..." : run.index + 1 < run.questions.length ? "ข้อต่อไป →" : "ดูผล 🎉"}</button>
