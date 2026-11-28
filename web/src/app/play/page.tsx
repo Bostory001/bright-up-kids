@@ -153,8 +153,7 @@ const UNIT_COLORS = [
 ];
 
 // ทางเข้าเนื้อหา: เลือกหน่วย (กริดสีสันมีเลขบท) → เลือกบทเรียนในหน่วย (ดาว + ปุ่มเล่น)
-function PathView({ exercises, gradeText, today, busy, onStart, onSearch }: { exercises: ExerciseCard[]; gradeText: string; today: string; busy: boolean; onStart: (id: string, mini?: boolean) => void; onSearch: () => void }) {
-  const [sel, setSel] = useState<string | null>(null);
+function PathView({ exercises, gradeText, today, busy, onStart, onSearch, sel, setSel }: { exercises: ExerciseCard[]; gradeText: string; today: string; busy: boolean; onStart: (id: string, mini?: boolean) => void; onSearch: () => void; sel: string | null; setSel: (v: string | null) => void }) {
   const { units, others } = groupUnits(exercises);
   const homework = exercises.filter((e) => e.homeworkDue).length;
   const stars = (e: ExerciseCard) => (e.best === null ? 0 : starsFor(e.best, e.count));
@@ -248,11 +247,52 @@ export default function PlayPage() {
   const [search, setSearch] = useState("");
   const [exitRequested, setExitRequested] = useState(false);
   const [pickGrade, setPickGrade] = useState<number | null>(null);
+  const [unitSel, setUnitSel] = useState<string | null>(null); // หน่วยที่เปิดอยู่ (อยู่ที่ตัวแม่ เพื่อกลับมาหน้ารายการหลังทำบทเสร็จ)
   const [pickSubject, setPickSubject] = useState<string | null>(null);
   const [listMode, setListMode] = useState(false); // false = เลือกจากหน่วยบทเรียน, true = ค้นหา/ดูทุกชุด
   const exitCancel = useRef<HTMLButtonElement>(null);
   const actionPending = useRef(false);
   const questionHeading = useRef<HTMLHeadingElement>(null);
+
+  // ปุ่มย้อนกลับของเบราว์เซอร์/มือถือ: ย้อนทีละชั้นในแอป (ทำบท → รายการบทของหน่วย → เลือกหน่วย) ไม่หลุดออกไปหน้าเลือกชั้น
+  // ระหว่างทำโจทย์ ปุ่มย้อนจะถามยืนยันก่อน (ใช้กล่องออกกลางคันเดิม) ไม่ทิ้งความคืบหน้าเงียบๆ
+  const uiDepth = (unitSel !== null ? 1 : 0) + (run || result ? 1 : 0);
+  const live = useRef({ uiDepth, midRun: Boolean(run && !result && run.teachIndex >= run.teach.length), hasRun: Boolean(run || result) });
+  live.current = { uiDepth, midRun: Boolean(run && !result && run.teachIndex >= run.teach.length), hasRun: Boolean(run || result) };
+  const histDepth = useRef(0);
+  useEffect(() => {
+    try { if (history.state?.buk) history.replaceState({ buk: 0 }, ""); } catch { /* ข้าม */ }
+    const onPop = (e: PopStateEvent) => {
+      const d = typeof e.state?.buk === "number" ? e.state.buk : 0;
+      histDepth.current = d;
+      const cur = live.current;
+      if (cur.uiDepth <= d) return;
+      if (cur.midRun) {
+        history.pushState({ buk: d + 1 }, "");
+        histDepth.current = d + 1;
+        stopSpeak();
+        setExitRequested(true);
+        return;
+      }
+      stopSpeak();
+      if (cur.hasRun) { setRun(null); setResult(null); } else setUnitSel(null);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    try {
+      if (uiDepth > histDepth.current) {
+        for (let i = histDepth.current + 1; i <= uiDepth; i++) history.pushState({ buk: i }, "");
+        histDepth.current = uiDepth;
+      } else if (uiDepth < histDepth.current) {
+        const back = histDepth.current - uiDepth;
+        histDepth.current = uiDepth;
+        history.go(-back);
+      }
+    } catch { /* ข้าม */ }
+  }, [uiDepth]);
 
   useEffect(() => {
     if (!run) return;
@@ -617,7 +657,7 @@ export default function PlayPage() {
             </div>
           )}
           {!listMode && h.exercises.some((e) => e.unit) ? (
-            <PathView exercises={subjectsAll.length > 1 ? h.exercises.filter((e) => e.subject === subjectNow) : h.exercises} gradeText={gradeLabel(gradeNow)} today={h.today} busy={busy} onStart={(id, mini) => start(id, mini)} onSearch={() => setListMode(true)} />
+            <PathView sel={unitSel} setSel={setUnitSel} exercises={subjectsAll.length > 1 ? h.exercises.filter((e) => e.subject === subjectNow) : h.exercises} gradeText={gradeLabel(gradeNow)} today={h.today} busy={busy} onStart={(id, mini) => start(id, mini)} onSearch={() => setListMode(true)} />
           ) : (
           <>
           {h.exercises.some((e) => e.unit) && <button onClick={() => { setListMode(false); setSubject("all"); setFilter("all"); setSearch(""); }} className="min-h-12 self-start rounded-full bg-amber-100 px-4 font-bold text-amber-950 active:scale-95">← เลือกจากบทเรียน</button>}
