@@ -21,11 +21,13 @@ function Marked({ zh }: { zh: string }) {
 }
 
 export default function SongsPage() {
-  const song = SONGS[0];
+  const [songId, setSongId] = useState(SONGS[0].id);
+  const song = SONGS.find((x) => x.id === songId) ?? SONGS[0];
   const vref = useRef<HTMLVideoElement>(null);
   const [now, setNow] = useState(0);
   const [slow, setSlow] = useState(false);
   const [loop, setLoop] = useState(false);
+  function pick(id: string) { setSongId(id); setNow(0); setLoop(false); window.scrollTo({ top: 0 }); }
   const active = useMemo(() => song.lines.findIndex((l) => now >= l.start && now < l.end), [now, song]);
 
   useEffect(() => { if (vref.current) vref.current.playbackRate = slow ? 0.75 : 1; }, [slow]);
@@ -44,11 +46,16 @@ export default function SongsPage() {
     <main className="mx-auto max-w-4xl p-4">
       <Link href="/play" className="text-sm text-amber-700">← กลับ</Link>
       <h1 className="mt-2 text-xl font-bold">🎵 เรียนจีนจากเพลง</h1>
+      <div className="my-2 flex gap-2 overflow-x-auto pb-2">
+        {SONGS.map((x, i) => (
+          <button key={x.id} onClick={() => pick(x.id)} className={`shrink-0 rounded-full border px-3 py-1 text-sm ${x.id === song.id ? "bg-amber-500 text-white" : "bg-white"}`}>{i + 1}. {x.title.split(" (")[0]}</button>
+        ))}
+      </div>
       <p className="text-sm text-gray-600">{song.title}</p>
       <p className="mb-2 text-xs text-gray-400">{song.artist}</p>
       <div className="lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-6">
         <div className="sticky top-0 z-10 -mx-4 bg-amber-50/95 px-4 pb-1 pt-2 backdrop-blur lg:top-4 lg:mx-0 lg:rounded-2xl lg:px-0">
-        <video ref={vref} src={song.video} controls playsInline onTimeUpdate={onTime} className="max-h-[28vh] w-full rounded-2xl bg-black lg:max-h-[60vh]" />
+        <video key={song.id} ref={vref} src={song.video} controls playsInline onTimeUpdate={onTime} className="max-h-[28vh] w-full rounded-2xl bg-black lg:max-h-[60vh]" />
         <div className="my-3 flex gap-2">
           <button onClick={() => setSlow((s) => !s)} className={`rounded-full border px-3 py-1 text-sm ${slow ? "bg-amber-500 text-white" : "bg-white"}`}>🐢 ช้า 0.75x</button>
           <button onClick={() => setLoop((s) => !s)} className={`rounded-full border px-3 py-1 text-sm ${loop ? "bg-amber-500 text-white" : "bg-white"}`}>🔁 วนบรรทัดนี้</button>
