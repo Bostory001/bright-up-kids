@@ -70,7 +70,13 @@ export function validateFile(file) {
     if (!l.topic || l.topic.length > 60) e("topic ว่างหรือยาวเกิน 60");
     const teach = Array.isArray(l.teach) ? l.teach : [];
     if (teach.length < 3 || teach.length > 6) e(`teach ต้อง 3-6 การ์ด (มี ${teach.length})`);
+    const checkImage = (im, where) => {
+      if (im === undefined) return;
+      if (!im || typeof im.src !== "string" || !new RegExp("^/img/[a-zA-Z0-9_\-/]+\.(png|jpe?g|webp)$").test(im.src) || im.src.includes("..")) e(`${where}: image.src ต้องเป็น /img/....png|jpg|webp`);
+      if (!im?.alt || String(im.alt).length > 120) e(`${where}: image.alt ว่างหรือยาวเกิน 120`);
+    };
     teach.forEach((c, i) => {
+      checkImage(c.image, `teach ${i + 1}`);
       if (!c.title || c.title.length > 60) e(`teach ${i + 1}: title ว่างหรือยาวเกิน 60`);
       if (!c.text || c.text.length > 400) e(`teach ${i + 1}: text ว่างหรือยาวเกิน 400`);
       if (c.example !== undefined && (typeof c.example !== "string" || c.example.length > 200)) e(`teach ${i + 1}: example ยาวเกิน 200`);
@@ -93,6 +99,7 @@ export function validateFile(file) {
       else spread.add(q.answerIndex);
       if (!q.explain || q.explain.length > 500) qe("explain ว่างหรือยาวเกิน 500");
       checkVisual(q.visual, `ข้อ ${i + 1}`, e);
+      checkImage(q.image, `ข้อ ${i + 1}`);
     });
     if (qs.length >= 8 && spread.size < 3) e(`คำตอบที่ถูกกระจุกอยู่ที่ตำแหน่ง ${[...spread]} (ต้องกระจายอย่างน้อย 3 ตำแหน่ง)`);
   });

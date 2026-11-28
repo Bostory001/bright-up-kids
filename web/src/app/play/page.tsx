@@ -62,6 +62,19 @@ function stopSpeak() {
   try { window.speechSynthesis?.cancel(); } catch { /* ข้าม */ }
 }
 
+// รูปที่ gen มาวางใน public/img — ไฟล์ไม่มีก็ซ่อนทั้งกรอบ ไม่ให้เห็นรูปแตก
+function LessonImageView({ img }: { img: { src: string; alt: string; caption?: string } }) {
+  const [hidden, setHidden] = useState(false);
+  if (hidden) return null;
+  return (
+    <figure className="mt-3 overflow-hidden rounded-2xl bg-white shadow-sm">
+      {/* eslint-disable-next-line @next/next/no-img-element -- ไฟล์ของเจ้าของ */}
+      <img src={img.src} alt={img.alt} onError={() => setHidden(true)} className="mx-auto block h-auto max-h-96 w-full object-contain" />
+      {img.caption && <figcaption className="px-3 py-2 text-center text-sm font-bold text-gray-700">{img.caption}</figcaption>}
+    </figure>
+  );
+}
+
 function VisualBox({ s }: { s: { text: string; label?: string } }) {
   return (
     <div className="flex flex-col items-center gap-1">
@@ -107,7 +120,7 @@ interface Run {
   title: string;
   teach: TeachCard[];
   teachIndex: number;
-  questions: { prompt: string; choices: string[]; visual?: Visual }[];
+  questions: { prompt: string; choices: string[]; visual?: Visual; image?: { src: string; alt: string; caption?: string } }[];
   index: number;
   feedback: { picked: number; correct: boolean; answerIndex: number; explain?: string } | null;
 }
@@ -478,6 +491,7 @@ export default function PlayPage() {
               <h2 className="flex items-center gap-3 bg-amber-100 px-5 py-3 text-xl font-bold text-amber-950"><span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-500 text-lg text-white">{i + 1}</span>{card.title}</h2>
               <div className="p-5">
                 <p className="whitespace-pre-line text-xl leading-relaxed">{card.text}</p>
+                {card.image && <LessonImageView img={card.image} />}
                 {card.visual && <div className="mt-4"><VisualView v={card.visual} /></div>}
                 {card.example && <p className="mt-4 whitespace-pre-line rounded-2xl bg-amber-50 p-4 text-xl font-bold text-amber-950">{card.example}</p>}
               </div>
@@ -530,6 +544,7 @@ export default function PlayPage() {
                     <button onClick={() => speak(`${q.prompt}. ${q.choices.map((c, i) => ["ก", "ข", "ค", "ง"][i] + " " + c).join(", ")}`)} className="min-h-10 rounded-full bg-amber-500 px-4 text-sm font-bold text-gray-950 active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600">🔊 ฟังครูอ่าน</button>
                   </div>
                   <h1 ref={questionHeading} tabIndex={-1} className="mt-1 text-2xl font-bold outline-none sm:text-3xl">{q.prompt}</h1>
+                  {q.image && <LessonImageView img={q.image} />}
                   {q.visual && <div className="mt-3"><VisualView v={q.visual} /></div>}
                   <p id="choice-help" className="sr-only">แตะคำตอบที่เลือก แล้วกด ยืนยันคำตอบ</p>
                   <div className="mt-4 grid grid-cols-2 gap-3" role="group" aria-label="ตัวเลือกคำตอบ" aria-describedby="choice-help">
@@ -558,6 +573,7 @@ export default function PlayPage() {
                 <div className="flex-[3] self-center rounded-3xl border-2 border-rose-200 bg-white/95 p-5">
                   <h1 ref={questionHeading} tabIndex={-1} className={"text-3xl font-bold outline-none " + (fb.correct ? "text-emerald-700" : "text-rose-600")}>{fb.correct ? "ถูกต้อง! 🎉" : "เฉลย"}</h1>
                   <p className="mt-2 text-lg font-bold">{q.prompt}</p>
+                  {q.image && <LessonImageView img={q.image} />}
                   {q.visual && <div className="mt-3"><VisualView v={q.visual} /></div>}
                   <p className="mt-3 text-xl text-gray-800">{fb.correct ? (fb.explain ?? "") : <>คำตอบที่ถูกคือ <b className="text-emerald-700">{q.choices[fb.answerIndex]}</b>{fb.explain ? ` · ${fb.explain}` : ""}</>}</p>
                 </div>

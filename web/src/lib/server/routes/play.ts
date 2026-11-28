@@ -10,7 +10,7 @@ import {
   newProfile,
   powerTitle,
 } from "../../gamification";
-import type { Assignment, Attempt, AvatarSlot, Enrollment, Exercise, Grade, PlayerProfile, Question, Redemption, TeachCard, Reward, Student, Visual } from "../../types";
+import type { Assignment, Attempt, AvatarSlot, Enrollment, Exercise, Grade, LessonImage, PlayerProfile, Question, Redemption, TeachCard, Reward, Student, Visual } from "../../types";
 import { omit } from "../auth";
 import { type Ctx, OWNER, route, STAFF, staffUser, studentOf } from "../router";
 import { getSettings } from "../settings";
@@ -40,6 +40,19 @@ function cleanParams(raw: unknown, depth = 0): unknown {
     return Object.fromEntries(Object.entries(raw as Record<string, unknown>).slice(0, 20).filter(([k]) => /^[a-zA-Z]{1,20}$/.test(k)).map(([k, v]) => [k, cleanParams(v, depth + 1)]));
   }
   return null;
+}
+
+const IMG_SRC = new RegExp("^/img/[a-zA-Z0-9_\\-/]+\\.(png|jpe?g|webp)$");
+
+function imageFrom(raw: unknown, where: string): LessonImage | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  if (typeof raw !== "object" || Array.isArray(raw)) throw new HttpError(400, `${where}: รูปภาพไม่ถูกต้อง`);
+  const o = raw as Record<string, unknown>;
+  const src = str(o.src, `${where}: ที่อยู่รูป`, 120);
+  // ไฟล์ต้องอยู่ใต้ /img/ เท่านั้น ห้ามลิงก์ภายนอก/โปรโตคอลอื่น
+  if (!IMG_SRC.test(src) || src.includes("..")) throw new HttpError(400, `${where}: ที่อยู่รูปต้องเป็น /img/....png|jpg|webp`);
+  const caption = optStr(o.caption, 120);
+  return { src, alt: str(o.alt, `${where}: คำอธิบายรูป`, 120), ...(caption ? { caption } : {}) };
 }
 
 function visualFrom(raw: unknown, where: string): Visual | undefined {
@@ -79,7 +92,8 @@ function teachFrom(raw: unknown): TeachCard[] | undefined {
     const item = c as Record<string, unknown>;
     const example = optStr(item.example, 200);
     const visual = visualFrom(item.visual, `การ์ดสอนใบที่ ${i + 1}`);
-    return { title: str(item.title, `หัวข้อการ์ด ${i + 1}`, 60), text: str(item.text, `เนื้อหาการ์ด ${i + 1}`, 400), ...(example ? { example } : {}), ...(visual ? { visual } : {}) };
+    const image = imageFrom(item.image, `การ์ดสอนใบที่ ${i + 1}`);
+    return { ...(image ? { image } : {}), title: str(item.title, `หัวข้อการ์ด ${i + 1}`, 60), text: str(item.text, `เนื้อหาการ์ด ${i + 1}`, 400), ...(example ? { example } : {}), ...(visual ? { visual } : {}) };
   });
 }
 
@@ -116,6 +130,7 @@ function exerciseFrom(body: Ctx["body"], id: string, createdAt: string, prev?: E
       answerIndex,
       explain: optStr(item.explain, 500),
       visual: visualFrom(item.visual, `ข้อ ${i + 1}`),
+      image: imageFrom(item.image, `ข้อ ${i + 1}`),
     };
   });
   return {
@@ -277,7 +292,7 @@ route("POST", "play/start", STUDENT, async (ctx) => {
     title: exercise.title,
     teach: exercise.teach ?? [],
     // ไม่ส่ง answerIndex ให้เครื่องนักเรียน
-    questions: picked.map((q) => ({ prompt: q.prompt, choices: q.choices, ...(q.visual ? { visual: q.visual } : {}) })),
+    questions: picked.map((q) => ({ prompt: q.prompt, choices: q.choices, ...(q.visual ? { visual: q.visual } : {}), ...(q.image ? { image: q.image } : {}) })),
   };
 });
 

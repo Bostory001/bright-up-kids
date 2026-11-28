@@ -264,6 +264,14 @@ export interface Slip {
   uploadedAt: string;
 }
 
+/** ภาพประกอบที่ครู/เจ้าของ gen แล้ววางไฟล์ไว้ที่ web/public/img/... (ไม่มีไฟล์ = ซ่อน ไม่พัง) */
+export interface LessonImage {
+  /** ต้องขึ้นต้นด้วย /img/ เช่น /img/science/p5/l1-c1.webp */
+  src: string;
+  alt: string;
+  caption?: string;
+}
+
 export interface Question {
   prompt: string;
   choices: string[];
@@ -272,6 +280,8 @@ export interface Question {
   explain?: string;
   /** ภาพประกอบโจทย์ (ไม่บังคับ) */
   visual?: Visual;
+  /** รูปภาพประกอบโจทย์ที่ gen มา (ไม่บังคับ) */
+  image?: LessonImage;
 }
 
 /**
@@ -316,6 +326,8 @@ export interface TeachCard {
   visual?: Visual;
   /** ตัวอย่างทำให้ดู (ไม่บังคับ) */
   example?: string;
+  /** รูปภาพประกอบการ์ดที่ gen มา (ไม่บังคับ) */
+  image?: LessonImage;
 }
 
 /**
