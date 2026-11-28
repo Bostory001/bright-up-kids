@@ -43,10 +43,14 @@ function CharImg({ name, className, subject }: { name: TeacherPose | "mascot"; c
 }
 
 // ให้เบราว์เซอร์อ่านออกเสียง (ไม่ส่งข้อความออกนอกเครื่อง) — ถ้าเครื่องไม่มีเสียงไทยก็แค่ไม่ดัง
-function speak(text: string) {
+let speakToken = 0;
+function speak(text: string) { speakItems([text]); }
+// อ่านหลายท่อนต่อกัน · onItem = เรียกตอนเริ่มอ่านท่อนที่ i (ไว้เลื่อนหน้าจอตาม) · onDone = อ่านจบ (ไม่เรียกถ้ากดหยุด)
+function speakItems(items: string[], onItem?: (i: number) => void, onDone?: () => void) {
+  const token = ++speakToken;
   try {
     const s = window.speechSynthesis;
-    if (!s) return;
+    if (!s) { onDone?.(); return; }
     s.cancel();
     const all = s.getVoices();
     // เสียงผู้หญิงไทยทั่วไป: เลือกเสียงหญิงที่เครื่องมี (Premwadee/Kanya/Narisa/Google) เลี่ยงเสียงชาย (Niwat) · ไม่มี = ใช้เสียงไทยเริ่มต้น
@@ -55,21 +59,27 @@ function speak(text: string) {
     const zh = all.filter((v) => v.lang.toLowerCase().replace("_", "-").startsWith("zh-cn") || v.lang.toLowerCase().startsWith("cmn"));
     const zhVoice = zh.find((v) => /xiaoxiao|huihui|yaoyao|female/i.test(v.name)) ?? zh[0];
     // ข้อความผสมไทย+จีน: แยกท่อนตัวอักษรจีนไปอ่านด้วยเสียงจีน (เสียงไทยอ่านตัวจีนไม่ได้ = เงียบ)
-    const parts = text.split(/([㐀-鿿（）　-〿]+)/).filter((p) => p.trim());
-    for (const part of parts) {
+    const queue: { part: string; item: number }[] = [];
+    items.forEach((text, item) => {
+      for (const part of text.split(/([㐀-鿿（）　-〿]+)/).filter((p) => p.trim())) queue.push({ part, item });
+    });
+    if (!queue.length) { onDone?.(); return; }
+    queue.forEach(({ part, item }, qi) => {
       const isZh = /[㐀-鿿]/.test(part);
-      if (isZh && !zhVoice && !all.length) continue;
       const u = new SpeechSynthesisUtterance(part);
       u.lang = isZh ? "zh-CN" : "th-TH";
       const v = isZh ? zhVoice : thVoice;
       if (v) u.voice = v;
       u.rate = isZh ? 0.8 : 0.9;
       u.pitch = isZh ? 1 : 1.1;
+      if ((qi === 0 || queue[qi - 1].item !== item) && onItem) u.onstart = () => { if (token === speakToken) onItem(item); };
+      if (qi === queue.length - 1 && onDone) { const fin = () => { if (token === speakToken) onDone(); }; u.onend = fin; u.onerror = fin; }
       s.speak(u);
-    }
-  } catch { /* ไม่รองรับก็ข้าม */ }
+    });
+  } catch { onDone?.(); }
 }
 function stopSpeak() {
+  speakToken++;
   try { window.speechSynthesis?.cancel(); } catch { /* ข้าม */ }
 }
 
@@ -272,6 +282,7 @@ export default function PlayPage() {
   const [filter, setFilter] = useState<ExerciseFilter>("all");
   const [search, setSearch] = useState("");
   const [exitRequested, setExitRequested] = useState(false);
+  const [readingCard, setReadingCard] = useState<number | null>(null);
   const [pickGrade, setPickGrade] = useState<number | null>(null);
   const [unitSel, setUnitSel] = useState<string | null>(null); // หน่วยที่เปิดอยู่ (อยู่ที่ตัวแม่ เพื่อกลับมาหน้ารายการหลังทำบทเสร็จ)
   const [pickSubject, setPickSubject] = useState<string | null>(null);
@@ -496,9 +507,16 @@ export default function PlayPage() {
             <CharImg name="teacher-teach" subject={runSubject} className="size-20 shrink-0 rounded-2xl object-cover object-top" />
             <p className="flex-1 text-lg font-bold text-amber-900">มาเรียนไปด้วยกันนะ ตั้งใจอ่านทีละขั้น</p>
           </section>
-          <button onClick={() => speak(run.teach.map((c) => `${c.title}. ${c.text}${c.example ? " " + c.example : ""}`).join(" "))} className="flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-amber-200 px-4 text-lg font-bold text-amber-950 shadow-sm active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600">🔊 ฟังครูสอนเนื้อหาหน้านี้</button>
+          <button onClick={() => {
+            if (readingCard !== null) { stopSpeak(); setReadingCard(null); return; }
+            setReadingCard(0);
+            speakItems(run.teach.map((c) => `${c.title}. ${c.text}${c.example ? " " + c.example : ""}`), (i) => {
+              setReadingCard(i);
+              document.getElementById(`teach-${i}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, () => setReadingCard(null));
+          }} className="flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-amber-200 px-4 text-lg font-bold text-amber-950 shadow-sm active:scale-95 focus-visible:outline-4 focus-visible:outline-sky-600">{readingCard !== null ? "⏹ หยุดอ่าน" : "🔊 ฟังครูสอนเนื้อหาหน้านี้"}</button>
           {run.teach.map((card, i) => (
-            <section key={i} aria-label={`ขั้นที่ ${i + 1}`} className="overflow-hidden rounded-3xl border-2 border-amber-200 bg-white shadow-md">
+            <section key={i} id={`teach-${i}`} aria-label={`ขั้นที่ ${i + 1}`} className={"scroll-mt-4 overflow-hidden rounded-3xl border-2 bg-white shadow-md transition " + (readingCard === i ? "border-orange-500 ring-4 ring-orange-300" : "border-amber-200")}>
               <h2 className="flex items-center gap-3 bg-amber-100 px-5 py-3 text-xl font-bold text-amber-950"><span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-500 text-lg text-white">{i + 1}</span>{card.title}</h2>
               <div className="p-5">
                 <p className="whitespace-pre-line text-xl leading-relaxed">{card.text}</p>
@@ -510,7 +528,7 @@ export default function PlayPage() {
           ))}
         </div>
         <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-amber-50 p-4">
-          <button onClick={() => { stopSpeak(); setRun({ ...run, teachIndex: run.teach.length }); }} className={BIG + " mx-auto block w-full max-w-2xl bg-amber-500 text-gray-950"}>{run.mini ? "ลองแค่ 3 ข้อ ⭐" : "ทำแบบฝึกหัด ✏️"}</button>
+          <button onClick={() => { stopSpeak(); setReadingCard(null); setRun({ ...run, teachIndex: run.teach.length }); }} className={BIG + " mx-auto block w-full max-w-2xl bg-amber-500 text-gray-950"}>{run.mini ? "ลองแค่ 3 ข้อ ⭐" : "ทำแบบฝึกหัด ✏️"}</button>
         </div>
       </main>
     );
