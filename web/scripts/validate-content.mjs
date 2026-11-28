@@ -36,7 +36,7 @@ function checkVisual(v, where, e) {
       else if (s.label !== undefined && (typeof s.label !== "string" || s.label.length > 30)) bad(`${side}.label ยาวเกิน 30`);
     }
   } else if (v.type === "diagram") {
-    if (!["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars", "states", "tree", "table", "apparatus", "objects"].includes(v.kind)) bad("diagram kind ไม่รู้จัก");
+    if (!["compass", "skydome", "timezone", "earth", "solar", "stars", "angle", "clock", "numline", "bars", "states", "tree", "table", "apparatus", "objects", "blocks", "fracbar", "array", "pgrid", "money", "ruler", "shape", "addsub"].includes(v.kind)) bad("diagram kind ไม่รู้จัก");
     if (!v.params || typeof v.params !== "object" || Array.isArray(v.params)) bad("diagram ต้องมี params เป็น object");
   } else bad("type ต้องเป็น groups, equation หรือ diagram");
 }
