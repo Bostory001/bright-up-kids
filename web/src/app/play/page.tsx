@@ -48,15 +48,25 @@ function speak(text: string) {
     const s = window.speechSynthesis;
     if (!s) return;
     s.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "th-TH";
+    const all = s.getVoices();
     // เสียงผู้หญิงไทยทั่วไป: เลือกเสียงหญิงที่เครื่องมี (Premwadee/Kanya/Narisa/Google) เลี่ยงเสียงชาย (Niwat) · ไม่มี = ใช้เสียงไทยเริ่มต้น
-    const th = s.getVoices().filter((v) => v.lang.toLowerCase().replace("_", "-").startsWith("th"));
-    const voice = th.find((v) => /premwadee|kanya|narisa|female|หญิง/i.test(v.name)) ?? th.find((v) => /google/i.test(v.name)) ?? th.find((v) => !/niwat|male|ชาย/i.test(v.name)) ?? th[0];
-    if (voice) u.voice = voice;
-    u.rate = 0.9;
-    u.pitch = 1.1;
-    s.speak(u);
+    const th = all.filter((v) => v.lang.toLowerCase().replace("_", "-").startsWith("th"));
+    const thVoice = th.find((v) => /premwadee|kanya|narisa|female|หญิง/i.test(v.name)) ?? th.find((v) => /google/i.test(v.name)) ?? th.find((v) => !/niwat|male|ชาย/i.test(v.name)) ?? th[0];
+    const zh = all.filter((v) => v.lang.toLowerCase().replace("_", "-").startsWith("zh-cn") || v.lang.toLowerCase().startsWith("cmn"));
+    const zhVoice = zh.find((v) => /xiaoxiao|huihui|yaoyao|female/i.test(v.name)) ?? zh[0];
+    // ข้อความผสมไทย+จีน: แยกท่อนตัวอักษรจีนไปอ่านด้วยเสียงจีน (เสียงไทยอ่านตัวจีนไม่ได้ = เงียบ)
+    const parts = text.split(/([㐀-鿿（）　-〿]+)/).filter((p) => p.trim());
+    for (const part of parts) {
+      const isZh = /[㐀-鿿]/.test(part);
+      if (isZh && !zhVoice && !all.length) continue;
+      const u = new SpeechSynthesisUtterance(part);
+      u.lang = isZh ? "zh-CN" : "th-TH";
+      const v = isZh ? zhVoice : thVoice;
+      if (v) u.voice = v;
+      u.rate = isZh ? 0.8 : 0.9;
+      u.pitch = isZh ? 1 : 1.1;
+      s.speak(u);
+    }
   } catch { /* ไม่รองรับก็ข้าม */ }
 }
 function stopSpeak() {
