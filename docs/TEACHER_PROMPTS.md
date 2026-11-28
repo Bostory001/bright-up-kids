@@ -95,3 +95,45 @@ uniform, celebrity likeness, extra or missing fingers, 2D flat style.
 | `teacher-point.png` | ชี้ด้านข้างไปที่โจทย์ ถือสมุดอีกมือ |
 
 วางไฟล์ที่ `web/public/characters/science/` (ระบบรองรับแล้ว)
+
+---
+
+## Prompt ครูจีน (ใช้ "หน้าตาหลัก" ของคุณเป็นรูปอ้างอิงใบหน้า)
+
+ใส่รูปหน้าตาหลักเป็น **face/identity reference** แล้วใช้ prompt นี้ เปลี่ยนทรงผม ชุด สี ของถือ พื้นหลัง ให้ต่างจากครูคนอื่นชัดเจน
+(ถ้าใบหน้าเดียวกับครูคณิต/อังกฤษ ให้ต่างกันที่ **ทรงผม + แว่น/ไม่แว่น + สีชุด + พื้นหลัง** และถ้าได้ ขยับอายุหรือโครงหน้าเล็กน้อย เด็กจะได้ไม่เห็นเป็นคนเดียวกัน)
+
+```
+Use the attached reference image ONLY for the face identity (same facial features and warm friendly
+expression). A friendly Thai-Chinese woman Chinese-language teacher, about 35 years old, in the same
+stylized 3D character-render style as the other teachers (soft semi-realistic skin, clean studio
+lighting, upper body to thighs, centered, shallow depth of field, high detail).
+
+Hair: sleek SHORT BOB, chin-length, straight black with a soft centre-left part, a small jade-green
+hairpin on one side. No glasses (or very thin gold-rim glasses, optional).
+Outfit: a deep crimson-red jacket with a mandarin (stand-up) collar and frog-button closure, subtle
+gold embroidered cloud pattern at the collar and cuffs (pattern only, no text or characters),
+cream straight-leg trousers. Small jade bracelet. Colour story: crimson + gold + cream + jade green.
+Props (one per pose): a Chinese calligraphy brush with a little ink, or a blank cream flash card
+with a red tassel, or a small folding fan. Do NOT draw any Chinese characters or letters.
+Background: plain soft cream-jade studio backdrop (#EAF3E6), no text, no objects.
+Mood: elegant, patient, warm, kid-friendly, clearly a teacher.
+
+Negative prompt: any text or Chinese characters or letters, logos, watermark, school uniform,
+tight or revealing clothes, weapons, caricature or stereotyped costume, geisha/kimono, celebrity
+likeness, extra or missing fingers, 2D flat style, yellow cardigan, round glasses, high ponytail.
+```
+
+### 8 ท่าของครูจีน
+| ไฟล์ | ท่า |
+|---|---|
+| `teacher-wave.png` | ประสานมือทักทายเบาๆ หรือโบกมือ ยิ้มอ่อนโยน |
+| `teacher-teach.png` | ถือพู่กันมือหนึ่ง อีกมือยื่นออกข้างเหมือนแนะนำ |
+| `teacher-ask.png` | ยกนิ้วชี้ ทำหน้าถามอย่างสนใจ ถือการ์ดเปล่าอีกมือ |
+| `teacher-correct.png` | ยิ้มกว้าง ยกนิ้วโป้ง หรือปรบมือเบาๆ |
+| `teacher-wrong.png` | ยิ้มให้กำลังใจ เอียงคอเล็กน้อย โบกมือให้ลองใหม่ (ไม่ดุ) |
+| `teacher-think.png` | มือแตะคาง ถือพู่กันอีกมือ |
+| `teacher-celebrate.png` | ยกการ์ดเปล่าหรือสองมือขึ้นฉลอง มีพู่สีแดงปลิว |
+| `teacher-point.png` | ชี้ไปด้านข้างด้วยพู่กัน |
+
+วางไฟล์ที่ `web/public/characters/chinese/` (ระบบรองรับแล้ว)
