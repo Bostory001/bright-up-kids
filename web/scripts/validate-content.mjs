@@ -72,7 +72,7 @@ export function validateFile(file) {
     if (teach.length < 3 || teach.length > 6) e(`teach ต้อง 3-6 การ์ด (มี ${teach.length})`);
     const checkImage = (im, where) => {
       if (im === undefined) return;
-      if (!im || typeof im.src !== "string" || !new RegExp("^/img/[a-zA-Z0-9_\-/]+\.(png|jpe?g|webp)$").test(im.src) || im.src.includes("..")) e(`${where}: image.src ต้องเป็น /img/....png|jpg|webp`);
+      if (!im || typeof im.src !== "string" || !/^[/]img[/][a-zA-Z0-9_/-]+[.](png|jpe?g|webp)$/.test(im.src) || im.src.includes("..")) e(`${where}: image.src ต้องเป็น /img/....png|jpg|webp`);
       if (!im?.alt || String(im.alt).length > 120) e(`${where}: image.alt ว่างหรือยาวเกิน 120`);
     };
     teach.forEach((c, i) => {
