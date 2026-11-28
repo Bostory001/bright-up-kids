@@ -1,0 +1,13 @@
+{
+  "_comment": "Catalog row for scripts/publish-skill.mjs (D1 vids-mcp-db -> skills). All text Thai + English. mode: local (runs on the user's computer). access: free. style: visual-proof. sort: list order. active 0 = hidden draft until the owner turns it on.",
+  "name": "พิสูจน์คณิตด้วยภาพ สมการประกอบจากรูป (Visual proof)",
+  "name_en": "Visual proof — maths proofs drawn on screen, the equation built from the shapes (free)",
+  "summary": "ทำคลิปอธิบายคณิตแนวตั้ง 9:16 แบบครูวาดบนกระดาน บนพื้นกรมท่าเข้ม รูปทรงแบนค่อยๆ วาดขึ้นตามเสียงพูด หนึ่งปริมาณหนึ่งสีตลอดคลิป และสมการประกอบออกมาจากรูปทีละพจน์ซ้ายไปขวา มีฉาก 8 แบบ ชิ้นส่วนวาดด้วยโค้ด 30 แบบ 4 พาเลตต์ ซับคาราโอเกะ เสียงพากย์ไทยฟรี (edge-tts) เพลงและเสียงประกอบสร้างจากโค้ด ฟรีสำหรับทุกคนบนเครื่องคุณ ไม่ต้องมี API key",
+  "summary_en": "Make vertical 9:16 maths explainers the way a good teacher draws them: flat shapes build on a dark navy ground as the narrator speaks, one colour per quantity, and the equation assembles out of the shapes term by term. 8 shot types, 30 code-drawn parts, 4 palettes, karaoke subtitles, a free edge-tts voice, synthesized music and SFX. Free for everyone on your computer, no API key",
+  "kind": "skill",
+  "style": "visual-proof",
+  "access": "free",
+  "mode": "local",
+  "sort": 104,
+  "active": 0
+}

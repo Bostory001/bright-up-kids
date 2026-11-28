@@ -1,0 +1,25 @@
+{
+  "name": "{{SLUG}}",
+  "title": "{{TITLE}}",
+  "created": "{{DATE}}",
+  "mode": "narrated",
+  "aspect": "9:16",
+  "width": 1080,
+  "height": 1920,
+  "voice": { "voice": "{{VOICE}}", "language": "{{LANG}}", "rate": {{RATE}} },
+  "gap_phrase": 0.2,
+  "gap_shot": 0.55,
+  "tail": 2,
+  "music": { "mood": "calm", "level": 0.1 },
+  "sfx": { "scene_cut": null },
+  "thumbnail": { "mode": "frame", "at": 3.0 },
+  "cover": { "seconds": 0.1 },
+  "story": { "logline": "", "source": "", "fact_notes": "" },
+  "publish": {
+    "title": null,
+    "caption": null,
+    "hashtags": [],
+    "sources": [],
+    "ai_disclosure": "{{DISCLOSURE}}"
+  }
+}

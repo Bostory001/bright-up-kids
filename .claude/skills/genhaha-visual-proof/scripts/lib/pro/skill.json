@@ -1,0 +1,8 @@
+{
+  "id": "genhaha-visual-proof",
+  "var": "VP",
+  "driver": "visual-proof",
+  "prefix": "VP",
+  "images": false,
+  "imageWhy": "the picture is drawn from code (chart cards painted by code on a 2D canvas)"
+}

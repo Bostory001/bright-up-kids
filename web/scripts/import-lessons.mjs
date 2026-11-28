@@ -2,6 +2,7 @@
 //
 //   npm run import:lessons              # ดูก่อนว่าจะทำอะไร (dry-run) ไม่แตะอะไรเลย
 //   npm run import:lessons -- --apply   # คัดลอกไฟล์ไป web/public/lessons/ + สร้าง/อัปเดตรายการเป็น "ร่าง" (ใช้กับเครื่องตัวเอง)
+//   npm run import:lessons -- --apply --only=money,write-money   # เฉพาะคลิปที่ระบุ
 //   npm run import:lessons -- --apply --storage   # อัปโหลดไฟล์ขึ้น Firebase Storage (ใช้กับเว็บจริง) ต้องเปิด Storage ใน Console ก่อน
 //
 // ใช้ค่าเชื่อมต่อชุดเดียวกับ admin-api.mjs (ADMIN_BASE_URL / ADMIN_USERNAME / ADMIN_PASSWORD ใน .env.local)
@@ -13,11 +14,13 @@ import path from "node:path";
 
 const WEB = path.resolve(import.meta.dirname, "..");
 const DEMO = path.resolve(WEB, "..", "marketing", "social", "demo");
-// โฟลเดอร์ที่เก็บคลิป: vc = วิทย์ ป.5 · vc-math-p2 = คณิต ป.2 · gh = อังกฤษ ป.5
-const ROOTS = ["vc", "vc-math-p2", "gh"].map((d) => path.join(DEMO, d));
+// โฟลเดอร์ที่เก็บคลิป: vc = วิทย์ ป.5 · vc-math-p2 = คณิต ป.2 · gh = อังกฤษ ป.5 · thai-money = คณิต ป.2 หน่วยเงินไทย
+const ROOTS = ["vc", "vc-math-p2", "gh", "thai-money/videos"].map((d) => path.join(DEMO, d));
 const OUT = path.join(WEB, "public", "lessons");
 const APPLY = process.argv.includes("--apply");
 const STORAGE = process.argv.includes("--storage");
+// --only=slug1,slug2 → นำเข้าเฉพาะคลิปที่ระบุ (ไม่แตะคลิปอื่นในระบบจริง)
+const ONLY = (process.argv.find((a) => a.startsWith("--only=")) ?? "").slice(7).split(",").filter(Boolean);
 
 // กติกาจัดหน่วย/ลำดับจากชื่อ slug — วิทยาศาสตร์ ป.5 (เทอมยังเดาไม่ได้จากหนังสือ จึงตั้งเทอม 1 ไว้ก่อน ให้เจ้าของยืนยัน)
 const SB56 = "ปรากฏการณ์จากการหมุนรอบตัวเองของโลก";
@@ -29,6 +32,8 @@ function classify(slug) {
   if ((m = slug.match(/^sb56-(\d+)-/))) return { subject: "science", grade: 5, unit: SB56, order: 1 + Number(m[1]) };
   if ((m = slug.match(/^sb57-(\d+)-/))) return { subject: "science", grade: 5, unit: SB57, order: Number(m[1]) };
   if ((m = slug.match(/^mb24-(\d+)-/))) return { subject: "math", grade: 2, unit: "การคูณ", order: Number(m[1]) };
+  if (slug === "money") return { subject: "math", grade: 2, unit: "เงินไทย", order: 1 };
+  if (slug === "write-money") return { subject: "math", grade: 2, unit: "เงินไทย", order: 2 };
   const ENGLISH = { "be-verbs": ["ไวยากรณ์", 1], "do-does": ["ไวยากรณ์", 2], "was-were": ["ไวยากรณ์", 3], "past-ed": ["ไวยากรณ์", 4], "there-is-are": ["ไวยากรณ์", 5], "animal-groups": ["ศัพท์", 1], "animal-adjectives": ["ศัพท์", 2], "3rs-recycle": ["ศัพท์", 3] };
   if (ENGLISH[slug]) return { subject: "english", grade: 5, unit: ENGLISH[slug][0], order: ENGLISH[slug][1] };
   return null;
@@ -69,6 +74,7 @@ for (const { root, dir } of ROOTS.filter(existsSync).flatMap((root) => readdirSy
     ...info,
   });
 }
+if (ONLY.length) clips.splice(0, clips.length, ...clips.filter((c) => ONLY.includes(c.slug)));
 clips.sort((a, b) => a.subject.localeCompare(b.subject) || a.grade - b.grade || a.unit.localeCompare(b.unit, "th") || a.order - b.order);
 
 console.log(`พบ ${clips.length} คลิป ${APPLY ? "(นำเข้าจริง)" : "(dry-run — ใส่ --apply เพื่อนำเข้าจริง)"}`);

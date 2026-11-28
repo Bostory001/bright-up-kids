@@ -374,6 +374,12 @@
         "description": ""
       },
       {
+        "name": "extraGrades",
+        "type": "Grade[]",
+        "required": false,
+        "description": "ชั้นอื่นที่เด็กซื้อแพ็กเพิ่ม — เปิดแบบฝึกหัดของชั้นเหล่านี้ให้ด้วย (นอกจาก grade หลัก)"
+      },
+      {
         "name": "school",
         "type": "string",
         "required": false,
@@ -864,6 +870,12 @@
         "type": "boolean",
         "required": true,
         "description": "เผยแพร่ให้นักเรียนเห็นแล้ว"
+      },
+      {
+        "name": "openToAll",
+        "type": "boolean",
+        "required": false,
+        "description": "เปิดให้นักเรียนทุกคนเห็นชุดนี้ ไม่สนชั้น/สถานะเผยแพร่ (คอลัมน์แยกไว้ตรวจเนื้อหา — ปิดก่อนเปิดใช้จริง)"
       },
       {
         "name": "createdAt",

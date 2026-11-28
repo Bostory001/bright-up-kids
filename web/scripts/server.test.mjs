@@ -476,3 +476,26 @@ test("session quota counts per student and only for classes they attended", () =
   assert.equal(paidFromRemaining(0, 3), 3);
   assert.equal(paidFromRemaining(-5, 1), 0, "ติดลบต้องกลายเป็น 0 ไม่ใช่ค่าติดลบ");
 });
+
+test("คลาสออนไลน์: ตรวจลิงก์ Meet และหาคาบวันนี้", async () => {
+  const { meetUrlFrom, onlineSessionsOn, minutesOf, meetMessage } = await import("../src/lib/online.ts");
+  assert.equal(meetUrlFrom(""), undefined);
+  assert.equal(meetUrlFrom(" https://meet.google.com/abc-defg-hij "), "https://meet.google.com/abc-defg-hij");
+  for (const bad of ["http://meet.google.com/abc-defg-hij", "https://evil.example/meet.google.com/abc", "https://meet.google.com.evil.io/abc-defg-hij", "javascript:alert(1)"]) {
+    assert.throws(() => meetUrlFrom(bad), undefined, bad);
+  }
+  const base = { subject: "math", grades: [2], pricePerTerm: 0, capacity: 5, startTime: "17:00", endTime: "18:00" };
+  const courses = [
+    { ...base, id: "a", name: "คณิต", weekday: 1, active: true, online: true, meetUrl: "https://meet.google.com/abc-defg-hij" },
+    { ...base, id: "b", name: "อังกฤษ", weekday: 1, startTime: "16:00", active: true, online: true },
+    { ...base, id: "c", name: "ไทย (ออนไซต์)", weekday: 1, active: true },
+    { ...base, id: "d", name: "ปิดแล้ว", weekday: 1, active: false, online: true },
+    { ...base, id: "e", name: "คนละวัน", weekday: 2, active: true, online: true },
+    { ...base, id: "f", name: "หมดคอร์ส", weekday: 1, active: true, online: true, startDate: "2026-01-05", weeks: 2 },
+  ];
+  const got = onlineSessionsOn(courses, "2026-11-23"); // จันทร์
+  assert.deepEqual(got.map((s) => s.courseId), ["b", "a"], "เรียงตามเวลา, ข้ามออนไซต์/ปิด/คนละวัน/พ้นคอร์ส");
+  assert.equal(got[0].meetUrl, undefined, "คาบที่ยังไม่มีลิงก์ต้องโผล่ให้เตือน");
+  assert.equal(minutesOf("17:30"), 1050);
+  assert.match(meetMessage("ฟ้า", got[1]), /meet\.google\.com\/abc-defg-hij/);
+});

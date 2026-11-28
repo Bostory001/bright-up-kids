@@ -197,6 +197,17 @@ r = await teacher.call("admin/notifications");
 const kinds = new Set(r.data.notifications.map((n) => n.kind));
 check("มีแจ้งเตือน invoice/attendance/payment/weekly ค้างส่ง (ยังไม่ตั้ง LINE)", ["invoice", "attendance", "payment", "weekly"].every((k) => kinds.has(k)) && r.data.notifications.every((n) => n.status === "queued"), [...kinds].join(","));
 
+// ---------- คลาสออนไลน์ (Google Meet) ----------
+check("cron online-check ไม่มี secret → 401", (await anon.call("cron/online-check")).status === 401);
+check("ผู้ปกครองดูหน้าคลาสออนไลน์ไม่ได้ → 403", (await parent.call("admin/online")).status === 403);
+check("วางลิงก์ที่ไม่ใช่ Meet → 400", (await teacher.call(`admin/online/${courseId}/link`, { meetUrl: "https://evil.example/x" })).status === 400);
+check("ครูวางลิงก์ Meet", (await teacher.call(`admin/online/${courseId}/link`, { meetUrl: "https://meet.google.com/abc-defg-hij" })).status === 200);
+r = await teacher.call("admin/online");
+check("หน้าคลาสออนไลน์เห็นคอร์สพร้อมลิงก์", r.data.courses?.some((c) => c.id === courseId && c.meetUrl === "https://meet.google.com/abc-defg-hij"), JSON.stringify(r.data));
+check("ส่งลิงก์ให้ผู้ปกครอง", (await teacher.call(`admin/online/${courseId}/send`, {})).data.sent >= 1);
+r = await parent.call("parent/overview");
+check("ผู้ปกครองเห็นลิงก์ Meet ของคอร์สที่ลูกเรียน", r.data.children.some((c) => c.schedule.some((s) => s.meetUrl === "https://meet.google.com/abc-defg-hij")));
+
 // ---------- R10: รายงาน ----------
 r = await owner.call("admin/reports", { dataset: "royalty", from: `${today.slice(0, 8)}01`, to: today });
 check("รายงาน royalty: รับ 3,500 → 805", r.data.rows?.[0]?.amount === 3500 && r.data.rows[0].royalty === 805, JSON.stringify(r.data.rows));

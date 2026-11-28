@@ -42,6 +42,8 @@
 **สรุปรายสัปดาห์ (cron)**: App Hosting ไม่มี cron ในตัวเหมือน Vercel → ใช้ **Cloud Scheduler** ยิง `GET https://<โดเมน>/api/cron/weekly`
 พร้อม header `Authorization: Bearer <CRON_SECRET>` ทุกวันอาทิตย์ 18:00 (ตั้ง timezone `Asia/Bangkok`) · ยังไม่ทำก็ไม่กระทบระบบส่วนอื่น
 
+**คลาสออนไลน์ (Google Meet)**: Cloud Scheduler อีกงาน ยิง `GET https://<โดเมน>/api/cron/online-check` พร้อม `Authorization: Bearer <CRON_SECRET>` ทุก 15 นาที จันทร์–ศุกร์ 14:00–20:00 (`*/15 14-20 * * 1-5`, `Asia/Bangkok`) · ระบบส่งลิงก์ให้ผู้ปกครองก่อนคาบ 30 นาที และเตือนเจ้าของถ้าคาบวันนี้ไม่มีลิงก์ (ต้องผูก LINE ถึงจะส่งจริง) · ลิงก์ Meet ถาวรวางที่หน้า "คลาสออนไลน์" ตั้งห้องเป็น "ต้องขออนุญาตเข้า"
+
 ### ทางเลือก: Vercel (ถ้าอยากกลับไปใช้)
 
 ต้องตั้ง `FIREBASE_SERVICE_ACCOUNT` ใน Environment Variables (บน Vercel ระบบจะปฏิเสธการเริ่มฐานข้อมูลถ้าไม่ตั้ง)
