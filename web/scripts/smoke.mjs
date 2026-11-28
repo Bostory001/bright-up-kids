@@ -504,7 +504,7 @@ check("คาบคงเหลือติดลบไม่ได้ → 400",
 check("ครูนำเข้าชุดเริ่มต้นไม่ได้ → 403", (await teacher.call("admin/exercises/seed", {})).status === 403);
 r = await owner.call("admin/exercises/seed", {});
 // ตัวเลขนี้ต้องแก้ตามจำนวนชุดใน seed-exercises.ts ทุกครั้งที่เติมคลัง (ดู npm run audit:exercises)
-check("นำเข้าชุดโจทย์เริ่มต้น 87 ชุด", r.data.added === 87, String(r.data.added));
+check("นำเข้าชุดโจทย์เริ่มต้น 94 ชุด", r.data.added === 94, String(r.data.added));
 check("นำเข้าซ้ำ → 0 ชุด", (await owner.call("admin/exercises/seed", {})).data.added === 0);
 const all = (await owner.call("admin/exercises")).data.exercises;
 const seeded = all.filter((e) => !["บวกเลข", "ของ ป.5", "ยังร่าง"].includes(e.title));
